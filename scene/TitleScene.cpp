@@ -88,7 +88,7 @@ void TitleScene::Draw()
 
 	objCommon_->DrawCommonSetting();
 	//-----3DObjectの描画開始-----
-	//sphere_->Draw(wt2_, vp_);
+	
 	//--------------------------
 
 	/// Particleの描画準備
