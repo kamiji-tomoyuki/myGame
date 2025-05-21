@@ -7,6 +7,7 @@
 #include "ParticleCommon.h"
 #include "SpriteCommon.h"
 #include "ViewProjection.h"
+#include <Player.h>
 
 class GameScene : public BaseScene
 {
@@ -55,4 +56,7 @@ private:
 	// ビュープロジェクション
 	ViewProjection vp_;
 	std::unique_ptr<DebugCamera> debugCamera_;
+
+	// 各オブジェクト
+	std::unique_ptr<Player> player_;
 };

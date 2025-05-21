@@ -329,6 +329,9 @@
     <ClCompile Include="engine\utility\json\JsonLoader.cpp">
       <Filter>ソースファイル\myEngine\utility\json</Filter>
     </ClCompile>
+    <ClCompile Include="application\Player\Player.cpp">
+      <Filter>ソースファイル\application\Player</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -564,6 +567,9 @@
     </ClInclude>
     <ClInclude Include="engine\3d\model\animation\ModelAnimation.h">
       <Filter>ソースファイル\myEngine\3d\model\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="application\Player\Player.h">
+      <Filter>ソースファイル\application\Player</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

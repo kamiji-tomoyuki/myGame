@@ -14,6 +14,11 @@ void GameScene::Initialize()
 
 	debugCamera_ = std::make_unique<DebugCamera>();
 	debugCamera_->Initialize(&vp_);
+
+	// ===== 各オブジェクトの初期化 =====
+	// --- プレイヤー ---
+	player_ = std::make_unique<Player>();
+	player_->Init();
 }
 
 void GameScene::Finalize()
@@ -27,6 +32,12 @@ void GameScene::Update()
 	// デバッグ
 	Debug();
 #endif // _DEBUG
+
+	// ===== 各オブジェクトの更新 =====
+	// --- プレイヤー ---
+	player_->Update();
+
+
 
 	// カメラ更新
 	CameraUpdate();
@@ -47,6 +58,8 @@ void GameScene::Draw()
 
 	objCommon_->skinningDrawCommonSetting();
 	//-----アニメーションの描画開始-----
+
+	player_->DrawAnimation(vp_);
 
 	//------------------------------
 
