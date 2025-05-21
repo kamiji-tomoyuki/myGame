@@ -1,6 +1,8 @@
 #include "Player.h"
 #include "Input.h"
 
+#include "FollowCamera.h"
+
 void Player::Init()
 {
 	BaseObject::Init();
@@ -36,6 +38,7 @@ void Player::DrawAnimation(const ViewProjection& viewProjection)
 
 void Player::Move()
 {
+	// --- キーボード ---
 	if (Input::GetInstance()->PushKey(DIK_D)) {
 		BaseObject::SetWorldPositionX(BaseObject::GetWorldPosition().x + kAcceleration);
 	}
@@ -48,4 +51,6 @@ void Player::Move()
 	if (Input::GetInstance()->PushKey(DIK_S)) {
 		BaseObject::SetWorldPositionZ(BaseObject::GetWorldPosition().z - kAcceleration);
 	}
+
+	// --- ゲームパッド ---
 }

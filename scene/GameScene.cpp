@@ -19,6 +19,22 @@ void GameScene::Initialize()
 	// --- プレイヤー ---
 	player_ = std::make_unique<Player>();
 	player_->Init();
+
+	// --- カメラ ---
+	followCamera_ = std::make_unique<FollowCamera>();
+	followCamera_->Initialize();
+	followCamera_->SetTarget(&player_->GetWorldTransform());
+	// カメラをプレイヤーに設定
+	player_->SetFollowCamera(followCamera_.get());
+
+
+
+
+
+#ifdef _DEBUG
+	obj_ = std::make_unique<TempObj>();
+	obj_->Init();
+#endif // _DEBUG
 }
 
 void GameScene::Finalize()
@@ -39,10 +55,11 @@ void GameScene::Update()
 
 
 
-	// カメラ更新
+	// --- カメラ ---
 	CameraUpdate();
 
-	// シーン切り替え
+
+	// ===== シーン切り替え =====
 	ChangeScene();
 }
 
@@ -66,6 +83,10 @@ void GameScene::Draw()
 
 	objCommon_->DrawCommonSetting();
 	//-----3DObjectの描画開始-----
+
+#ifdef _DEBUG
+	obj_->Draw(vp_);
+#endif // _DEBUG
 
 	//--------------------------
 
@@ -119,6 +140,8 @@ void GameScene::DrawForOffScreen()
 
 void GameScene::Debug()
 {
+	obj_->Update();
+
 	ImGui::Begin("GameScene:Debug");
 	debugCamera_->imgui();
 	LightGroup::GetInstance()->imgui();
@@ -131,7 +154,10 @@ void GameScene::CameraUpdate()
 		debugCamera_->Update();
 	}
 	else {
-		vp_.UpdateMatrix();
+		followCamera_->Update();
+		vp_.matView_ = followCamera_->GetViewProjection().matView_;
+		vp_.matProjection_ = followCamera_->GetViewProjection().matProjection_;
+		vp_.TransferMatrix();
 	}
 }
 

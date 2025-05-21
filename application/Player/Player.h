@@ -1,6 +1,8 @@
 #pragma once
 #include "BaseObject.h"
 
+class FollowCamera;
+
 class Player :public BaseObject
 {
 public:
@@ -31,6 +33,15 @@ public:
 	void Draw(const ViewProjection& viewProjection) override;
 	void DrawAnimation(const ViewProjection& viewProjection);
 
+public:
+
+	/// 各ステータス取得関数
+	/// <returns></returns>
+	
+	/// 各ステータス設定関数
+	/// <returns></returns>
+	void SetFollowCamera(FollowCamera* followCamera) { followCamera_ = followCamera; }
+
 private:
 
 	/// <summary>
@@ -45,4 +56,7 @@ private:
 
 	// --- 各ステータス ---
 	float kAcceleration;
+
+	// --- 各ポインタ ---
+	FollowCamera* followCamera_ = nullptr;
 };

@@ -7,7 +7,14 @@
 #include "ParticleCommon.h"
 #include "SpriteCommon.h"
 #include "ViewProjection.h"
+
 #include <Player.h>
+#include <FollowCamera.h>
+
+#ifdef _DEBUG
+#include "application/temp/TempObj.h"
+#endif //_DEBUG
+
 
 class GameScene : public BaseScene
 {
@@ -57,6 +64,15 @@ private:
 	ViewProjection vp_;
 	std::unique_ptr<DebugCamera> debugCamera_;
 
-	// 各オブジェクト
+	// --- 各オブジェクト ---
 	std::unique_ptr<Player> player_;
+
+	std::unique_ptr<FollowCamera> followCamera_;
+
+
+#ifdef _DEBUG
+	std::unique_ptr<TempObj> obj_;
+#endif // _DEBUG
+
+
 };

@@ -132,6 +132,9 @@
     <Filter Include="ソースファイル\myEngine\utility\json">
       <UniqueIdentifier>{e051b6eb-d8df-46d7-8d4f-3d12ee53aea3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソースファイル\application\tempObj">
+      <UniqueIdentifier>{4f47cb50-abb9-43bf-a2e0-b4ef274e6321}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="externals\imgui\imgui.cpp">
@@ -331,6 +334,12 @@
     </ClCompile>
     <ClCompile Include="application\Player\Player.cpp">
       <Filter>ソースファイル\application\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="application\Camera\FollowCamera.cpp">
+      <Filter>ソースファイル\application\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="application\temp\TempObj.cpp">
+      <Filter>ソースファイル\application\tempObj</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -570,6 +579,12 @@
     </ClInclude>
     <ClInclude Include="application\Player\Player.h">
       <Filter>ソースファイル\application\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="application\Camera\FollowCamera.h">
+      <Filter>ソースファイル\application\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="application\temp\TempObj.h">
+      <Filter>ソースファイル\application\tempObj</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
