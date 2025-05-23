@@ -9,6 +9,7 @@
 #include "ViewProjection.h"
 
 #include <Player.h>
+#include <Enemy.h>
 #include <FollowCamera.h>
 
 #ifdef _DEBUG
@@ -66,6 +67,7 @@ private:
 
 	// --- 各オブジェクト ---
 	std::unique_ptr<Player> player_;
+	std::unique_ptr<Enemy> enemy_;
 
 	std::unique_ptr<FollowCamera> followCamera_;
 
@@ -73,6 +75,4 @@ private:
 #ifdef _DEBUG
 	std::unique_ptr<TempObj> obj_;
 #endif // _DEBUG
-
-
 };

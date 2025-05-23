@@ -341,6 +341,9 @@
     <ClCompile Include="application\temp\TempObj.cpp">
       <Filter>ソースファイル\application\tempObj</Filter>
     </ClCompile>
+    <ClCompile Include="application\Enemy\Enemy.cpp">
+      <Filter>ソースファイル\application\Enemy</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -588,6 +591,9 @@
     </ClInclude>
     <ClInclude Include="application\CollisionTypeIdDef.h">
       <Filter>ソースファイル\application</Filter>
+    </ClInclude>
+    <ClInclude Include="application\Enemy\Enemy.h">
+      <Filter>ソースファイル\application\Enemy</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

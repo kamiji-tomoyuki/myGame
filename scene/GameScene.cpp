@@ -27,7 +27,9 @@ void GameScene::Initialize()
 	// カメラをプレイヤーに設定
 	player_->SetFollowCamera(followCamera_.get());
 
-
+	// --- 敵 ---
+	enemy_ = std::make_unique<Enemy>();
+	enemy_->Init();
 
 
 
@@ -53,7 +55,8 @@ void GameScene::Update()
 	// --- プレイヤー ---
 	player_->Update();
 
-
+	// --- 敵 ---
+	enemy_->Update();
 
 	// --- カメラ ---
 	CameraUpdate();
@@ -77,6 +80,7 @@ void GameScene::Draw()
 	//-----アニメーションの描画開始-----
 
 	player_->DrawAnimation(vp_);
+	enemy_->DrawAnimation(vp_);
 
 	//------------------------------
 
