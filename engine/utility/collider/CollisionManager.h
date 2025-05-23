@@ -1,8 +1,9 @@
 #pragma once
-#include "Collider.h"
-#include "SceneManager.h"
-#include "list"
-#include "Object3d.h"
+
+#include"SceneManager.h"
+#include"list"
+#include"Collider.h"
+#include"Object3d.h"
 
 class CollisionManager {
 private:
@@ -11,10 +12,10 @@ private:
 
 	bool visible = true;
 
-	bool sphereCollision = true; 
+	bool sphereCollision = true;
 
-	bool aabbCollision = true; 
-	
+	bool aabbCollision = true;
+
 	bool obbCollision = true;
 
 	bool isCollidingNow = false;

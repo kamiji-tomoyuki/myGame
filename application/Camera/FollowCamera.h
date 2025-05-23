@@ -58,6 +58,11 @@ private:
 	Vector3 targetPos_{};
 	Vector3 offset_ = { 0.0f,2.0f,-10.0f };
 
+	float destinationAngleX_ = -2.9f;
+	float destinationAngleY_ = 0.0f;
+
+	Quaternion destinationAngle{};
+
 	Vector3 move{};
 
 };

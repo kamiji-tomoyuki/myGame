@@ -1,5 +1,7 @@
 #pragma once
 #include "BaseObject.h"
+#include "WorldTransform.h"
+#include "ViewProjection.h"
 
 class FollowCamera;
 
@@ -54,8 +56,13 @@ private:
 	// --- モデル ---
 	std::unique_ptr<Object3d> obj3d_;
 
+	const ViewProjection* vp_ = nullptr;
+
 	// --- 各ステータス ---
-	float kAcceleration;
+	Vector3 velocity_{};
+	float kAcceleration = 0.1f;
+	const float kMaxSpeed = 0.1f;
+	float kRotateAcceleration = 0.1f;
 
 	// --- 各ポインタ ---
 	FollowCamera* followCamera_ = nullptr;

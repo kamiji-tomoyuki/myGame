@@ -586,6 +586,9 @@
     <ClInclude Include="application\temp\TempObj.h">
       <Filter>ソースファイル\application\tempObj</Filter>
     </ClInclude>
+    <ClInclude Include="application\CollisionTypeIdDef.h">
+      <Filter>ソースファイル\application</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\Particle\Particle.PS.hlsl">

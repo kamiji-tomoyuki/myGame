@@ -52,6 +52,9 @@ public:
     Quaternion Inverse() const;
 
     // Sleap補間（Slerp）を計算
-    Quaternion Sleap(Quaternion q1, Quaternion q2, float t);
+    static Quaternion Sleap(Quaternion q1, Quaternion q2, float t);
+
+    static Quaternion MakeRotateAxisAngleQuaternion(const Vector3& axis, float angle);
+
 };
 
