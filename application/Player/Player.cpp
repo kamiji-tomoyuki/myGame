@@ -9,7 +9,8 @@
 void Player::Init()
 {
 	BaseObject::Init();
-    //Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kPlayer));
+
+    Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kPlayer));
 
 	// --- モデルの初期化 ---
 	obj3d_ = std::make_unique<Object3d>();

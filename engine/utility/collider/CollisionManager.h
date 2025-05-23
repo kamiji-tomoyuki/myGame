@@ -4,7 +4,6 @@
 #include"list"
 #include"Collider.h"
 #include"Object3d.h"
-
 class CollisionManager {
 private:
 	// コライダー

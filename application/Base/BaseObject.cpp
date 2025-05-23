@@ -2,7 +2,7 @@
 
 
 void BaseObject::Init() {
-
+	Collider::Initialize();
 	/// ワールドトランスフォームの初期化
 	transform_.Initialize();
 	//カラーのセット

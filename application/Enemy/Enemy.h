@@ -37,6 +37,8 @@ public:
 
 	/// 各ステータス取得関数
 	/// <returns></returns>
+	Vector3 GetCenterPosition() const override { return transform_.translation_; }
+	Vector3 GetCenterRotation() const override { return transform_.rotation_; }
 
 	/// 各ステータス設定関数
 	/// <returns></returns>

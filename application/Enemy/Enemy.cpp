@@ -8,7 +8,8 @@ void Enemy::Init()
 {
 	BaseObject::Init();
 	BaseObject::SetWorldPosition(Vector3{ 0.0f,0.0f,15.0f });
-	//Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kPlayer));
+	
+	Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kEnemy));
 
 	// --- モデルの初期化 ---
 	obj3d_ = std::make_unique<Object3d>();
