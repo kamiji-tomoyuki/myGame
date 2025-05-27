@@ -3,6 +3,8 @@
 #include "WorldTransform.h"
 #include "ViewProjection.h"
 
+class Player;
+
 class Enemy : public BaseObject
 {
 public:
@@ -11,7 +13,7 @@ public:
 	/// 状態
 	/// </summary>
 	enum class Behavior {
-		kRoot,		// 通常
+		kRoot,		// 通常 (接近)
 		kAttack,	// 攻撃
 	};
 
@@ -20,12 +22,12 @@ public:
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Init()override;
+	void Init() override;
 
 	/// <summary>
 	/// 更新
 	/// </summary>
-	void Update()override;
+	void Update(Player* player);
 
 	/// <summary>
 	/// 描画
@@ -49,9 +51,11 @@ private:
 	/// <summary>
 	/// 移動
 	/// </summary>
-	void Move();
+	void Approach();
 
 private:
+	// --- 参照 ---
+	Player* player_;
 
 	// --- モデル ---
 	std::unique_ptr<Object3d> obj3d_;

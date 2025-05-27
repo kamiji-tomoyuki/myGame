@@ -1,6 +1,7 @@
 #include "Enemy.h"
 
 #include "CollisionTypeIdDef.h"
+#include "Player.h"
 
 #include "myMath.h"
 
@@ -16,14 +17,16 @@ void Enemy::Init()
 	obj3d_->Initialize("Enemy/playerArm.gltf");
 
 	// --- 各ステータスの初期値設定 ---
+	
 }
 
-void Enemy::Update()
+void Enemy::Update(Player* player)
 {
+	player_ = player;
 	BaseObject::Update();
 
-	// 移動
-	Move();
+	// 接近
+	Approach();
 
 	// アニメーションの再生
 	obj3d_->AnimationUpdate(true);
@@ -38,6 +41,6 @@ void Enemy::DrawAnimation(const ViewProjection& viewProjection)
 	obj3d_->Draw(BaseObject::GetWorldTransform(), viewProjection);
 }
 
-void Enemy::Move()
+void Enemy::Approach()
 {
 }

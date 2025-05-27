@@ -56,7 +56,7 @@ void GameScene::Update()
 	player_->Update();
 
 	// --- 敵 ---
-	enemy_->Update();
+	enemy_->Update(player_.get());
 
 	// --- カメラ ---
 	CameraUpdate();
