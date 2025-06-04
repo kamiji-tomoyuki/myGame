@@ -5,6 +5,16 @@
 
 #include "myMath.h"
 
+uint32_t Enemy::nextSerialNumber_ = 0;
+
+Enemy::Enemy()
+{
+	// シリアルナンバーをふる
+	serialNumber_ = nextSerialNumber_;
+	// 次の番号を加算
+	++nextSerialNumber_;
+}
+
 void Enemy::Init()
 {
 	BaseObject::Init();
@@ -41,6 +51,16 @@ void Enemy::DrawAnimation(const ViewProjection& viewProjection)
 	obj3d_->Draw(BaseObject::GetWorldTransform(), viewProjection);
 }
 
+void Enemy::OnCollision(Collider* other)
+{
+	if (GetSerialNumber() == GetNextSerialNumber() - 1) {
+		return;
+	}
+}
+
 void Enemy::Approach()
 {
+	Vector3 velocity = (player_->GetCenterPosition() - GetCenterPosition());
+	velocity = velocity.Normalize() * 0.05f;
+	BaseObject::SetWorldPosition(GetCenterPosition() + velocity);
 }

@@ -17,6 +17,7 @@ void GameScene::Initialize()
 
 	// ===== 各オブジェクトの初期化 =====
 	// --- プレイヤー ---
+	Player::SetSerialNumber(0);
 	player_ = std::make_unique<Player>();
 	player_->Init();
 
@@ -28,6 +29,7 @@ void GameScene::Initialize()
 	player_->SetFollowCamera(followCamera_.get());
 
 	// --- 敵 ---
+	Enemy::SetSerialNumber(0);
 	enemy_ = std::make_unique<Enemy>();
 	enemy_->Init();
 
@@ -52,11 +54,11 @@ void GameScene::Update()
 #endif // _DEBUG
 
 	// ===== 各オブジェクトの更新 =====
-	// --- プレイヤー ---
-	player_->Update();
-
 	// --- 敵 ---
 	enemy_->Update(player_.get());
+
+	// --- プレイヤー ---
+	player_->Update();
 
 	// --- カメラ ---
 	CameraUpdate();
