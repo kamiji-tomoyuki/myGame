@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <functional>
+
 ModelManager* ModelManager::instance = nullptr;
 
 ModelManager* ModelManager::GetInstance()
@@ -21,12 +22,12 @@ void ModelManager::LoadModel(const std::string& filePath)
         std::string uniqueKey = filePath + "_" + std::to_string(modelIndex++);
 
         // モデルの生成とファイル読み込み、初期化
-        std::unique_ptr<Model> model = std::make_unique<Model>();
-        model->Initialize(modelCommon, "resources/models/", filePath);
-        model->SetSrv(srvManager);
+        model_ = std::make_unique<Model>();
+        model_->Initialize(modelCommon, "resources/models/", filePath);
+        model_->SetSrv(srvManager);
 
         // モデルをmapコンテナに格納する
-        models.insert(std::make_pair(uniqueKey, std::move(model)));
+        models.insert(std::make_pair(uniqueKey, std::move(model_)));
         return;
     }
 

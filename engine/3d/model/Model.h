@@ -48,6 +48,7 @@ public:
 	/// 各ステータス取得関数
 	/// <returns></returns>
 	ModelData GetModelData() { return modelData; }
+	bool CheckBone() const { return hasBone_; }
 
 	/// 各ステータス設定関数
 	/// <returns></returns>
@@ -77,7 +78,7 @@ private:
 	static MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename);
 
 	/// <summary>
-	/// .objファイルの読み取り
+	///  .objファイルの読み取り
 	/// </summary>
 	/// <param name="directoryPath"></param>
 	/// <param name="filename"></param>
@@ -116,6 +117,8 @@ private:
 	Animator* animator_;
 	Skin* skin_;
 	Bone* bone_;
+
+	bool hasBone_ = false;
 
 	static std::unordered_set<std::string> jointNames;
 };

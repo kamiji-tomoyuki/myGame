@@ -1,5 +1,6 @@
 #pragma once
 #include "ParticleCommon.h"
+#include "PrimitiveType.h"
 #include "SrvManager.h"
 #include "random"
 #include "ViewProjection.h"
@@ -28,7 +29,7 @@ public:
 	/// <summary>
 	/// 描画処理
 	/// </summary>
-	void Draw();
+	void Draw(PrimitiveType primitiveType);
 
 	/// <summary>
 	/// パーティクルグループ生成
@@ -54,6 +55,16 @@ private:
 	/// 頂点データ作成
 	/// </summary>
 	void CreateVartexData(const std::string& filename);
+
+	/// <summary>
+	/// 円状頂点データ作成
+	/// </summary>
+	void CreateRingVartexData();
+
+	/// <summary>
+	/// 円柱状頂点データ作成
+	/// </summary>
+	void CreateCylinderVartexData();
 
 private:
 
@@ -106,6 +117,25 @@ private:
 	VertexData* vertexData = nullptr;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
 
+	// 円形データ
+	Microsoft::WRL::ComPtr<ID3D12Resource> ringVertexResource = nullptr;
+	VertexData* ringVertexData = nullptr;
+	D3D12_VERTEX_BUFFER_VIEW ringVertexBufferView;
+	const uint32_t kRingDivide = 32;
+	const float kOuterRadius = 1.0f;
+	const float kInnerRadius = 0.2f;
+	const float ringRadianPerDivide = 2.0f * std::numbers::pi_v<float> / float(kRingDivide);
+
+	// 円柱データ
+	Microsoft::WRL::ComPtr<ID3D12Resource> cylinderVertexResource = nullptr;
+	VertexData* cylinderVertexData = nullptr;
+	D3D12_VERTEX_BUFFER_VIEW cylinderVertexBufferView;
+	const uint32_t kCylinderDivide = 32;
+	const float kTopRadius = 1.0f;
+	const float kBottomRadius = 1.0f;
+	const float kHeight = 3.0f;
+	const float cylinderRadianPerDivide = 2.0f * std::numbers::pi_v<float> / float(kCylinderDivide);
+
 	// --- マテリアルデータ ---
 	struct Material {
 		Vector4 color;
@@ -125,7 +155,13 @@ private:
 	static std::unordered_map<std::string, ModelData> modelCache;
 	std::unordered_map<std::string, ParticleGroup>particleGroups;
 
-	// デルタタイム
+	// 円形データ
+	ModelData ringModelData;
+
+	// 円柱データ
+	ModelData cylinderModelData;
+
+	// --- デルタタイム ---
 	const float kDeltaTime = 1.0f / 60.0f;
 	static const uint32_t kNumMaxInstance = 10000;
 

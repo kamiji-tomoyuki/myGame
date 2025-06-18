@@ -14,52 +14,67 @@ void Model::Initialize(ModelCommon* modelCommon, const std::string& directorypat
 {
 	// --- 引数で受け取りメンバ変数に記録 ---
 	modelCommon_ = modelCommon;
-
-	// --- パスを設定 ---
 	directorypath_ = directorypath;
 	filename_ = filename;
 	srvManager_ = SrvManager::GetInstance();
 
-	// --- モデル読み込み ---
 	modelData = LoadModelFile(directorypath_, filename_);
 
 	CreateVartexData();
 	CreateIndexResource();
 
-	// --- .objの参照しているテクスチャファイル読み込み ---
+	// スキニングアニメーションか判別
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(directorypath_ + filename_, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
+
+	hasBone_ = false;
+	if (scene) {
+		for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
+			if (scene->mMeshes[i]->HasBones()) {
+				hasBone_ = true;
+				break;
+			}
+		}
+	}
+
+	// テクスチャ読み込み
 	TextureManager::GetInstance()->LoadTexture(modelData.material.textureFilePath);
-	// 単位行列を書き込んでおく
 	modelData.material.textureIndex = TextureManager::GetInstance()->GetTextureIndexByFilePath(modelData.material.textureFilePath);
 
-
+	// アニメーター、ボーン、スキンの初期化は後で行う
+	animator_ = nullptr;
+	bone_ = nullptr;
+	skin_ = nullptr;
 }
 
 void Model::Draw()
 {
-	D3D12_VERTEX_BUFFER_VIEW vbvs[2] = { vertexBufferView, {} };
-
-	if (skin_) {
-		vbvs[1] = skin_->GetSkinCluster().influenceBufferView;
+	if (!animator_ || !animator_->HaveAnimation()) {
+		// アニメーションなし - 通常の頂点バッファのみ使用
+		modelCommon_->GetDxCommon()->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView);
+		modelCommon_->GetDxCommon()->GetCommandList()->IASetIndexBuffer(&indexBufferView);
+		srvManager_->SetGraphicsRootDescriptorTable(2, modelData.material.textureIndex);
 	}
-
-	if (animator_ && animator_->HaveAnimation()) {
-		// アニメーションあり
-		modelCommon_->GetDxCommon()->GetCommandList()->IASetVertexBuffers(0, skin_ ? 2 : 1, vbvs);
-		if (skin_) {
-			srvManager_->SetGraphicsRootDescriptorTable(6, skin_->GetSrvIndex());
-		}
+	else if (!CheckBone()) {
+		// アニメーションあり - 通常の頂点バッファのみ使用
+		modelCommon_->GetDxCommon()->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView);
+		modelCommon_->GetDxCommon()->GetCommandList()->IASetIndexBuffer(&indexBufferView);
+		srvManager_->SetGraphicsRootDescriptorTable(2, modelData.material.textureIndex);
 	}
 	else {
-		// アニメーションなし
-		modelCommon_->GetDxCommon()->GetCommandList()->IASetVertexBuffers(0, 1, vbvs);
+		// アニメーションあり - 頂点バッファ + スキニング用バッファ
+		D3D12_VERTEX_BUFFER_VIEW vbvs[2] = {
+			vertexBufferView,
+			skin_->GetSkinCluster().influenceBufferView
+		};
+		modelCommon_->GetDxCommon()->GetCommandList()->IASetVertexBuffers(0, 2, vbvs);
+		modelCommon_->GetDxCommon()->GetCommandList()->IASetIndexBuffer(&indexBufferView);
+		srvManager_->SetGraphicsRootDescriptorTable(2, modelData.material.textureIndex);
+		srvManager_->SetGraphicsRootDescriptorTable(6, skin_->GetSrvIndex());
 	}
 
-	modelCommon_->GetDxCommon()->GetCommandList()->IASetIndexBuffer(&indexBufferView);
-	srvManager_->SetGraphicsRootDescriptorTable(2, modelData.material.textureIndex);
-
 	// --- 描画 ---
-	modelCommon_->GetDxCommon()->GetCommandList()->DrawIndexedInstanced(
-		UINT(modelData.indices.size()), 1, 0, 0, 0);
+	modelCommon_->GetDxCommon()->GetCommandList()->DrawIndexedInstanced(UINT(modelData.indices.size()), 1, 0, 0, 0);
 }
 
 void Model::CreateVartexData()
@@ -79,7 +94,7 @@ void Model::CreateIndexResource()
 	indexBufferView.BufferLocation = indexResource->GetGPUVirtualAddress();
 	indexBufferView.SizeInBytes = UINT(sizeof(uint32_t) * modelData.indices.size());
 	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
-
+	
 	indexResource->Map(0, nullptr, reinterpret_cast<void**>(&indexData));
 	std::memcpy(indexData, modelData.indices.data(), sizeof(uint32_t) * modelData.indices.size());
 }
@@ -106,7 +121,7 @@ MaterialData Model::LoadMaterialTemplateFile(const std::string& directoryPath, c
 
 	if (materialData.textureFilePath.empty()) {
 		// テクスチャが設定されていない場合、"white1x1.png" を割り当てる
-		materialData.textureFilePath = directoryPath + "/" + "white1x1.png";
+		materialData.textureFilePath = "resources/images/white1x1.png";
 	}
 
 	return materialData;
@@ -135,7 +150,7 @@ ModelData Model::LoadModelFile(const std::string& directoryPath, const std::stri
 
 	if (!scene || !scene->HasMeshes()) {
 		// テクスチャが設定されていない場合、"white1x1.png" を割り当てる
-		modelData.material.textureFilePath = directoryPath + "/" + "white1x1.png";
+		modelData.material.textureFilePath = "resources/images/white1x1.png";
 		return modelData;
 	}
 
@@ -191,6 +206,7 @@ ModelData Model::LoadModelFile(const std::string& directoryPath, const std::stri
 					});
 			}
 		}
+
 	}
 	// クリア
 	jointNames.clear();
@@ -206,7 +222,7 @@ ModelData Model::LoadModelFile(const std::string& directoryPath, const std::stri
 	}
 	if (modelData.material.textureFilePath.empty()) {
 		// テクスチャが設定されていない場合、"white1x1.png" を割り当てる
-		modelData.material.textureFilePath = directoryPath + "/" + "white1x1.png";
+		modelData.material.textureFilePath = "resources/images/white1x1.png";
 	}
 	modelData.rootNode = ReadNode(scene->mRootNode);
 	return modelData;

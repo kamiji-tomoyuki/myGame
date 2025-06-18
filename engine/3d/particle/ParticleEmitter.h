@@ -1,5 +1,6 @@
 #pragma once
 #include "ParticleManager.h"
+#include "PrimitiveType.h"
 #include "GlobalVariables.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
@@ -29,7 +30,7 @@ public:
     /// <summary>
     /// 描画処理
     /// </summary>
-    void Draw();
+    void Draw(PrimitiveType primitiveType);
 
     /// <summary>
     /// エミッター描画処理

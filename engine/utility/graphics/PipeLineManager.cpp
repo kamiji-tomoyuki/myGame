@@ -241,7 +241,7 @@ Microsoft::WRL::ComPtr<ID3D12RootSignature> PipeLineManager::CreateParticleRootS
 	D3D12_STATIC_SAMPLER_DESC staticSamplers[1] = {};
 	staticSamplers[0].Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR; // バイリニアフィルタ
 	staticSamplers[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP; // 0～1の範囲外をリピート
-	staticSamplers[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	staticSamplers[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 	staticSamplers[0].AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 	staticSamplers[0].ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER; // 比較しない
 	staticSamplers[0].MaxLOD = D3D12_FLOAT32_MAX; // ありったけのMipmapを使う
@@ -1295,6 +1295,7 @@ Microsoft::WRL::ComPtr<ID3D12RootSignature> PipeLineManager::CreateBlurRootSigna
 
 Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateNoneGraphicsPipeLine(Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState, Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature)
 {
+
 	HRESULT hr;
 
 	// InputLayout
@@ -1347,6 +1348,7 @@ Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateNoneGraphicsP
 
 Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateGrayGraphicsPipeLine(Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState, Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature)
 {
+
 	HRESULT hr;
 
 	// InputLayout
@@ -1399,6 +1401,7 @@ Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateGrayGraphicsP
 
 Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateVigneetGraphicsPipeLine(Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState, Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature)
 {
+
 	HRESULT hr;
 
 	// InputLayout
@@ -1450,6 +1453,7 @@ Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateVigneetGraphi
 
 Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateSmoothGraphicsPipeLine(Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState, Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature)
 {
+
 	HRESULT hr;
 
 	// InputLayout
@@ -1501,6 +1505,7 @@ Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateSmoothGraphic
 
 Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateGaussGraphicsPipeLine(Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState, Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature)
 {
+
 	HRESULT hr;
 
 	// InputLayout
@@ -1554,6 +1559,7 @@ Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateGaussGraphics
 
 Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateOutLineGraphicsPipeLine(Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState, Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature)
 {
+
 	HRESULT hr;
 
 	// InputLayout
@@ -1671,6 +1677,7 @@ Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateBlurGraphicsP
 	vertexShaderBlob = dxCommon_->CompileShader(L"./resources/shaders/OffScreen/FullScreen.VS.hlsl", L"vs_6_0");
 	pixelShaderBlob = dxCommon_->CompileShader(L"./resources/shaders/OffScreen/RadialBlur.PS.hlsl", L"ps_6_0");
 	assert(pixelShaderBlob != nullptr);
+
 
 	///=========DepthStencilStateの設定==========
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc{};

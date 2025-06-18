@@ -28,11 +28,13 @@ public:
 	Animator* GetAnimator() { return animator_.get(); }
 	Bone* GetBone() { return bone_.get(); }
 	Skin* GetSkin() { return skin_.get(); }
+	Matrix4x4 GetLocalMatrix() { return localMatrix_; }
 
 	/// 各ステータス設定関数
 	/// <returns></returns>
 	void SetModelData(ModelData modelData) { modelData_ = modelData; }
 	void SetIsAnimation(bool anime) { animator_->SetIsAnimation(anime); }
+	void SetHaveBone(bool bone) { HaveBone_ = bone; }
 
 private:
 
@@ -44,5 +46,8 @@ private:
 	std::string filename_;
 
 	ModelData modelData_;
+	Matrix4x4 localMatrix_;
+
+	bool HaveBone_;
 };
 
