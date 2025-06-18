@@ -344,6 +344,9 @@
     <ClCompile Include="application\Enemy\Enemy.cpp">
       <Filter>ソースファイル\application\Enemy</Filter>
     </ClCompile>
+    <ClCompile Include="application\Stage\StageManager.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -595,6 +598,7 @@
     <ClInclude Include="application\Enemy\Enemy.h">
       <Filter>ソースファイル\application\Enemy</Filter>
     </ClInclude>
+    <ClInclude Include="application\Stage\StageManager.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\Particle\Particle.PS.hlsl">

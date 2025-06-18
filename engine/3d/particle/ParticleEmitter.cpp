@@ -67,6 +67,7 @@ void ParticleEmitter::UpdateOnce(const ViewProjection& vp_)
 void ParticleEmitter::Draw(PrimitiveType primitiveType)
 {
 	manager_->SetRandomRotate(isRandomRotate);
+	manager_->SetRandomRotateY(isRandomRotateY);
 	manager_->SetAcceMultipy(isAcceMultiply);
 	manager_->SetBillBorad(isBillBoard);
 	manager_->SetRandomSize(isRandomScale);
@@ -162,6 +163,7 @@ void ParticleEmitter::ApplyGlobalVariables()
 	alphaMin_ = globalVariables->GetFloatValue(groupName, "alphaMin");
 	alphaMax_ = globalVariables->GetFloatValue(groupName, "alphaMax");
 	isRandomRotate = globalVariables->GetBoolValue(groupName, "isRandomRotate");
+	isRandomRotateY = globalVariables->GetBoolValue(groupName, "isRandomRotateY");
 	isAcceMultiply = globalVariables->GetBoolValue(groupName, "isAcceMultiply");
 	rotateVelocityMin = globalVariables->GetVector3Value(groupName, "RotationVelo Min");
 	rotateVelocityMax = globalVariables->GetVector3Value(groupName, "RotationVelo Max");
@@ -197,6 +199,7 @@ void ParticleEmitter::SetValue()
 	globalVariables->SetValue(groupName, "alphaMin", alphaMin_);
 	globalVariables->SetValue(groupName, "alphaMax", alphaMax_);
 	globalVariables->SetValue(groupName, "isRandomRotate", isRandomRotate);
+	globalVariables->SetValue(groupName, "isRandomRotateY", isRandomRotateY);
 	globalVariables->SetValue(groupName, "RotationVelo Min", rotateVelocityMin);
 	globalVariables->SetValue(groupName, "isAcceMultiply", isAcceMultiply);
 	globalVariables->SetValue(groupName, "RotationVelo Max", rotateVelocityMax);
@@ -239,6 +242,7 @@ void ParticleEmitter::AddItem()
 	globalVariables->AddItem(groupName, "isVisible", isVisible);
 	globalVariables->AddItem(groupName, "isBillBoard", isBillBoard);
 	globalVariables->AddItem(groupName, "isRandomRotate", isRandomRotate);
+	globalVariables->AddItem(groupName, "isRandomRotateY", isRandomRotateY);
 	globalVariables->AddItem(groupName, "isAcceMultiply", isAcceMultiply);
 	globalVariables->AddItem(groupName, "RotationVelo Min", rotateVelocityMin);
 	globalVariables->AddItem(groupName, "RotationVelo Max", rotateVelocityMax);
@@ -696,6 +700,10 @@ void ParticleEmitter::imgui() {
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("回転をランダムにするかどうかを設定します");
 
+            ImGui::Checkbox("Y軸を中心にランダムな回転", &isRandomRotateY);
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Y軸を中心に回転をランダムにするかどうかを設定します");
+
             ImGui::Separator();
 
             if (isRandomRotate) {
@@ -741,6 +749,33 @@ void ParticleEmitter::imgui() {
                     ImGui::SetNextItemWidth(-FLT_MIN);
                     ImGui::DragFloat("##RotVelMinZ", &rotateVelocityMin.z, 0.01f);
                     rotateVelocityMin.z = std::clamp(rotateVelocityMin.z, -FLT_MAX, rotateVelocityMax.z);
+
+                    ImGui::EndTable();
+                }
+            }
+            else if (isRandomRotateY) {
+                ImGui::TextColored(ImVec4(0.6f, 0.6f, 1.0f, 1.0f), "回転速度範囲:");
+
+                if (ImGui::BeginTable("RotateVelocityTable", 2, ImGuiTableFlags_Borders)) {
+                    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 50.0f);
+                    ImGui::TableSetupColumn("Y", ImGuiTableColumnFlags_WidthStretch);
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("最大値");
+
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    ImGui::DragFloat("##RotVelMaxY", &rotateVelocityMax.y, 0.01f);
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("最小値");
+
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    ImGui::DragFloat("##RotVelMinY", &rotateVelocityMin.y, 0.01f);
+                    rotateVelocityMin.y = std::clamp(rotateVelocityMin.y, -FLT_MAX, rotateVelocityMax.y);
 
                     ImGui::EndTable();
                 }
@@ -814,9 +849,14 @@ void ParticleEmitter::imgui() {
                 }
             }
 
+
             ImGui::EndChild();
             ImGui::TreePop();
         }
+
+
+
+
         ImGui::PopStyleColor(4);
 
         ImGui::Separator();

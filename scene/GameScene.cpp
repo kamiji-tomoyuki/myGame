@@ -34,6 +34,10 @@ void GameScene::Initialize()
 	enemy_->Init();
 
 
+	// ===== 各エフェクト・演出の初期化 =====
+	stageWall_ = std::make_unique<ParticleEmitter>();
+	stageWall_->Initialize("stage", "debug/ringPlane.obj");
+
 
 #ifdef _DEBUG
 	obj_ = std::make_unique<TempObj>();
@@ -63,6 +67,8 @@ void GameScene::Update()
 	// --- カメラ ---
 	CameraUpdate();
 
+	// ===== 各エフェクト・演出の更新 =====
+	stageWall_->Update(vp_);
 
 	// ===== シーン切り替え =====
 	ChangeScene();
@@ -91,7 +97,7 @@ void GameScene::Draw()
 	//-----3DObjectの描画開始-----
 
 #ifdef _DEBUG
-	obj_->Draw(vp_);
+	//obj_->Draw(vp_);
 #endif // _DEBUG
 
 	//--------------------------
@@ -99,7 +105,7 @@ void GameScene::Draw()
 	/// Particleの描画準備
 	ptCommon_->DrawCommonSetting();
 	//------Particleの描画開始-------
-
+	stageWall_->Draw(Cylinder);
 	//-----------------------------
 
 	//-----線描画-----
@@ -152,6 +158,8 @@ void GameScene::Debug()
 	debugCamera_->imgui();
 	LightGroup::GetInstance()->imgui();
 	ImGui::End();
+
+	stageWall_->imgui();
 }
 
 void GameScene::CameraUpdate()
@@ -169,7 +177,7 @@ void GameScene::CameraUpdate()
 
 void GameScene::ChangeScene()
 {
-	if (input_->TriggerKey(DIK_SPACE)) {
+	/*if (input_->TriggerKey(DIK_SPACE)) {
 		sceneManager_->NextSceneReservation("TITLE");
-	}
+	}*/
 }

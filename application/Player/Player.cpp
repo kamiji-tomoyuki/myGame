@@ -16,7 +16,22 @@ Player::Player()
 void Player::Init()
 {
 	BaseObject::Init();
-	BaseObject::SetWorldPosition(Vector3{ 0.0f,0.0f,-15.0f });
+
+	// ステージマネージャーの取得と初期化確認
+	stageManager_ = StageManager::GetInstance();
+	stageManager_->Initialize();
+
+	// 初期位置設定（ステージマネージャー取得後）
+	Vector3 initialPos = { 0.0f, 0.0f, -15.0f };
+
+	// 初期位置がステージ内かチェック
+	if (stageManager_->IsWithinStageBounds(initialPos)) {
+		BaseObject::SetWorldPosition(initialPos);
+	}
+	else {
+		// ステージ外の場合はステージ中心に配置
+		BaseObject::SetWorldPosition(stageManager_->GetStageCenter());
+	}
 
 	Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kPlayer));
 
@@ -76,6 +91,13 @@ void Player::OnCollision(Collider* other)
 			distance *= enemy->GetShortDistance();
 			enemy->SetTranslation(GetCenterPosition() + distance);
 		}
+
+		// 衝突処理後もステージ境界内に留める
+		Vector3 playerPos = BaseObject::GetWorldPosition();
+		if (!stageManager_->IsWithinStageBounds(playerPos)) {
+			playerPos = stageManager_->ClampToStageBounds(playerPos);
+			BaseObject::SetWorldPosition(playerPos);
+		}
 	}
 
 	transform_.UpdateMatrix();
@@ -129,11 +151,23 @@ void Player::Move()
 		velocity_ = velocity_.Normalize() * kMaxSpeed;
 	}
 
-	// 位置の更新
-	Vector3 pos = BaseObject::GetWorldPosition();
-	pos += velocity_;
-	BaseObject::SetWorldPosition(pos);
+	// 位置の更新（境界チェック付き）
+	Vector3 currentPos = BaseObject::GetWorldPosition();
+	Vector3 newPos = currentPos + velocity_;
 
+	// ステージマネージャーが正常に初期化されているかチェック
+	if (stageManager_ != nullptr) {
+		// ステージ境界チェック
+		if (!stageManager_->IsWithinStageBounds(newPos)) {
+			// 境界外の場合は補正
+			newPos = stageManager_->ClampToStageBounds(newPos);
+
+			// 境界に衝突した場合は速度を減衰させる（完全にリセットしない）
+			velocity_ *= 0.5f;
+		}
+	}
+
+	BaseObject::SetWorldPosition(newPos);
 
 	// --- ゲームパッド ---
 }

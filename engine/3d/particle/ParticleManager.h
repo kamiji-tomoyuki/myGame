@@ -44,6 +44,7 @@ public:
 	/// <returns></returns>
 	void SetBillBorad(bool isBillBoard) { isBillboard = isBillBoard; }
 	void SetRandomRotate(bool isRandomRotate) { isRandomRotate_ = isRandomRotate; }
+	void SetRandomRotateY(bool isRandomRotateY) { isRandomRotateY_ = isRandomRotateY; }
 	void SetAcceMultipy(bool isAcceMultipy) { isAcceMultipy_ = isAcceMultipy; }
 	void SetRandomSize(bool isRandomSize) { isRandomSize_ = isRandomSize; }
 	void SetAllRandomSize(bool isAllRandomSize) { isRandomAllSize_ = isAllRandomSize; }
@@ -170,6 +171,7 @@ private:
 
 	bool isBillboard = false;
 	bool isRandomRotate_ = false;
+	bool isRandomRotateY_ = false;
 	bool isAcceMultipy_ = false;
 	bool isRandomSize_ = false;
 	bool isRandomAllSize_ = false;

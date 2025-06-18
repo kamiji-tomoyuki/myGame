@@ -15,6 +15,7 @@
 #ifdef _DEBUG
 #include "application/temp/TempObj.h"
 #endif //_DEBUG
+#include <ParticleEmitter.h>
 
 
 class GameScene : public BaseScene
@@ -70,6 +71,9 @@ private:
 	std::unique_ptr<Enemy> enemy_;
 
 	std::unique_ptr<FollowCamera> followCamera_;
+
+	// --- 各エフェクト・演出 ---
+	std::unique_ptr<ParticleEmitter> stageWall_;
 
 
 #ifdef _DEBUG

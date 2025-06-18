@@ -1,5 +1,5 @@
 {
-    "test": {
+    "stage": {
         "AllScale Max": [
             0.0,
             0.0,
@@ -22,7 +22,7 @@
         ],
         "Emit translation": [
             0.0,
-            12.800000190734863,
+            -1.0,
             0.0
         ],
         "Particle EndAcce": [
@@ -57,12 +57,12 @@
         ],
         "RotationVelo Max": [
             0.07000000029802322,
-            0.07000000029802322,
+            0.003000000026077032,
             0.07000000029802322
         ],
         "RotationVelo Min": [
             -0.07000000029802322,
-            -0.07000000029802322,
+            -0.003000000026077032,
             -0.07000000029802322
         ],
         "Scale Max": 0.0,
@@ -70,16 +70,17 @@
         "alphaMax": 1.0,
         "alphaMin": 1.0,
         "count": 1,
-        "emitFrequency": 0.36000001430511475,
+        "emitFrequency": 0.25,
         "isAcceMultiply": false,
         "isAllRamdomScale": false,
         "isBillBoard": false,
-        "isRamdomColor": false,
+        "isRamdomColor": true,
         "isRandomRotate": false,
+        "isRandomRotateY": true,
         "isRandomScale": false,
         "isSinMove": false,
         "isVisible": true,
-        "lifeTimeMax": 1.0,
+        "lifeTimeMax": 1.7100000381469727,
         "lifeTimeMin": 1.0,
         "maxVelocity": [
             0.0,

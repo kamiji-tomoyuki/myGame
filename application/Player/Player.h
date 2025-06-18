@@ -3,6 +3,8 @@
 #include "WorldTransform.h"
 #include "ViewProjection.h"
 
+#include <Stage/StageManager.h>
+
 class FollowCamera;
 
 class Player : public BaseObject
@@ -84,4 +86,7 @@ private:
 
 	// --- 各ポインタ ---
 	FollowCamera* followCamera_ = nullptr;
+
+	// --- ステージマネージャー ---
+	StageManager* stageManager_ = nullptr;
 };
