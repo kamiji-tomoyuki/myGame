@@ -40,17 +40,31 @@ void Player::Init()
 	obj3d_->Initialize("walk.gltf");
 
 	// --- 各ステータスの初期値設定 ---
+	
+
+
+	// --- 各エフェクト・演出の初期設定 ---
+	hitEffect_ = std::make_unique<ParticleEmitter>();
+	hitEffect_->Initialize("hitEffect", "debug/ringPlane.obj");
 }
 
 void Player::Update()
 {
 	BaseObject::Update();
 
-	// 移動
-	Move();
+	if (isAlive_) {
+		// 移動
+		hitEffect_->SetPosition(BaseObject::GetWorldPosition());
+		Move();
+	}
 
 	// アニメーションの再生
 	obj3d_->AnimationUpdate(true);
+
+#ifdef _DEBUG
+	hitEffect_->Update(*vp_);
+#endif // _DEBUG
+
 }
 
 void Player::Draw(const ViewProjection& viewProjection)
@@ -65,6 +79,16 @@ void Player::DrawAnimation(const ViewProjection& viewProjection)
 	}
 }
 
+void Player::DrawParticle(const ViewProjection& viewProjection)
+{
+	hitEffect_->Draw(Ring);
+}
+
+void Player::ImGui()
+{
+	hitEffect_->imgui();
+}
+
 void Player::OnCollision(Collider* other)
 {
 	uint32_t typeID = other->GetTypeID();
@@ -73,6 +97,7 @@ void Player::OnCollision(Collider* other)
 	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kEnemy)) {
 		// 仮処理
 		isAlive_ = false;
+		hitEffect_->UpdateOnce(*vp_);
 
 		Enemy* enemy = static_cast<Enemy*>(other);
 		if (enemy->GetSerialNumber() == enemy->GetNextSerialNumber() - 1) {

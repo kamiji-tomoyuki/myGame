@@ -4,6 +4,7 @@
 #include "ViewProjection.h"
 
 #include <Stage/StageManager.h>
+#include <ParticleEmitter.h>
 
 class FollowCamera;
 
@@ -38,6 +39,12 @@ public:
 	/// </summary>
 	void Draw(const ViewProjection& viewProjection) override;
 	void DrawAnimation(const ViewProjection& viewProjection);
+	void DrawParticle(const ViewProjection& viewProjection);
+
+	/// <summary>
+	/// ImGui
+	/// </summary>
+	void ImGui();
 
 public:
 
@@ -57,6 +64,7 @@ public:
 	/// 各ステータス設定関数
 	/// <returns></returns>
 	void SetFollowCamera(FollowCamera* followCamera) { followCamera_ = followCamera; }
+	void SetViewProjection(const ViewProjection* viewProjection) { vp_ = viewProjection; }
 	static void SetSerialNumber(int num) { nextSerialNumber_ = num; }
 
 private:
@@ -79,6 +87,9 @@ private:
 	float kAcceleration = 0.1f;
 	const float kMaxSpeed = 0.1f;
 	float kRotateAcceleration = 0.1f;
+
+	// --- 各エフェクト・演出 ---
+	std::unique_ptr<ParticleEmitter> hitEffect_;
 
 	// シリアルナンバー
 	uint32_t serialNumber_ = 0;

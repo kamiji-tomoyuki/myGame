@@ -32,7 +32,7 @@ void ParticleEmitter::Initialize(const std::string& name, const std::string& fil
 	alphaMax_ = 1.0f;
 	AddItem();
 	isBillBoard = false;
-	isActive_ = true;
+	isActive_ = false;
 	isAcceMultiply = false;
 	allScaleMin = { 1.0f,1.0f,1.0f };
 	allScaleMax = { 1.0f,1.0f,1.0f };

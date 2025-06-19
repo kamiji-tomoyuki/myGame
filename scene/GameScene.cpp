@@ -20,6 +20,7 @@ void GameScene::Initialize()
 	Player::SetSerialNumber(0);
 	player_ = std::make_unique<Player>();
 	player_->Init();
+	player_->SetViewProjection(&vp_);
 
 	// --- カメラ ---
 	followCamera_ = std::make_unique<FollowCamera>();
@@ -72,6 +73,13 @@ void GameScene::Update()
 
 	// ===== シーン切り替え =====
 	ChangeScene();
+
+
+#ifdef _DEBUG
+	// --- Debug時処理 ---
+	obj_->Update();
+#endif // _DEBUG
+
 }
 
 void GameScene::Draw()
@@ -97,7 +105,7 @@ void GameScene::Draw()
 	//-----3DObjectの描画開始-----
 
 #ifdef _DEBUG
-	//obj_->Draw(vp_);
+	obj_->Draw(vp_);
 #endif // _DEBUG
 
 	//--------------------------
@@ -106,6 +114,7 @@ void GameScene::Draw()
 	ptCommon_->DrawCommonSetting();
 	//------Particleの描画開始-------
 	stageWall_->Draw(Cylinder);
+	player_->DrawParticle(vp_);
 	//-----------------------------
 
 	//-----線描画-----
@@ -152,14 +161,13 @@ void GameScene::DrawForOffScreen()
 
 void GameScene::Debug()
 {
-	obj_->Update();
-
 	ImGui::Begin("GameScene:Debug");
 	debugCamera_->imgui();
 	LightGroup::GetInstance()->imgui();
 	ImGui::End();
 
 	stageWall_->imgui();
+	player_->ImGui();
 }
 
 void GameScene::CameraUpdate()
