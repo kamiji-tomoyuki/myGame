@@ -44,6 +44,15 @@ void Animator::Update(bool roop)
 	}
 }
 
+void Animator::UpdateNodeAnimation(bool roop)
+{
+	NodeAnimation& rootNodeAnimation = animation_.nodeAnimations[model_.rootNode.name];
+	Vector3 translate = CalculateValue(rootNodeAnimation.translate, animationTime); // 指定時刻の値を取得。関数の詳細は次ページ
+	Quaternion rotate = CalculateValue(rootNodeAnimation.rotate, animationTime);
+	Vector3 scale = CalculateValue(rootNodeAnimation.scale, animationTime);
+	localMatrix_ = MakeAffineMatrix(scale, rotate, translate);
+}
+
 Animation Animator::LoadAnimationFile(const std::string& directoryPath, const std::string& filename)
 {
 	// --- パスの生成・チェック ---

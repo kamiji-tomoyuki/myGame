@@ -8,6 +8,7 @@
 
 #include "myMath.h"
 
+
 void Object3d::Initialize(const std::string& filePath)
 {
 	this->obj3dCommon = Object3dCommon::GetInstance();
@@ -22,10 +23,17 @@ void Object3d::Initialize(const std::string& filePath)
 	modelAnimation_ = std::make_unique<ModelAnimation>();
 	modelAnimation_->SetModelData(model->GetModelData());
 	modelAnimation_->Initialize("resources/models/", filePath);
+	modelAnimation_->GetAnimator()->SetAnimationTime(0.0f);
+
+	hasBone_ = model->CheckBone();
+	modelAnimation_->SetHaveBone(hasBone_);
 
 	model->SetAnimator(modelAnimation_->GetAnimator());
-	model->SetBone(modelAnimation_->GetBone());
-	model->SetSkin(modelAnimation_->GetSkin());
+
+	if (hasBone_) {
+		model->SetBone(modelAnimation_->GetBone());
+		model->SetSkin(modelAnimation_->GetSkin());
+	}
 }
 
 void Object3d::Update(const WorldTransform& worldTransform, const ViewProjection& viewProjection)
@@ -38,14 +46,21 @@ void Object3d::Update(const WorldTransform& worldTransform, const ViewProjection
 	if (worldTransform.parent_) {
 		worldMatrix *= worldTransform.parent_->matWorld_;
 	}
-	Matrix4x4 worldViewProjectionMatrix;
 	const Matrix4x4& viewProjectionMatrix = viewProjection.matView_ * viewProjection.matProjection_;
-	worldViewProjectionMatrix = worldMatrix * viewProjectionMatrix;
+	worldViewProjectionMatrix_ = worldMatrix * viewProjectionMatrix;
 
 	Matrix4x4 worldInverseMatrix = Inverse(worldMatrix);
-	transformationMatrixData->WVP = worldViewProjectionMatrix;
-	transformationMatrixData->World = worldTransform.matWorld_;
-	transformationMatrixData->WorldInverseTranspose = Transpose(worldInverseMatrix);
+
+	if (modelAnimation_) {
+		transformationMatrixData->WVP = worldViewProjectionMatrix_;
+		transformationMatrixData->World = worldTransform.matWorld_;
+		transformationMatrixData->WorldInverseTranspose = Transpose(worldInverseMatrix);
+	}
+	else {
+		transformationMatrixData->WVP = modelAnimation_->GetLocalMatrix() * worldViewProjectionMatrix_;
+		transformationMatrixData->World = modelAnimation_->GetLocalMatrix() * worldTransform.matWorld_;
+		transformationMatrixData->WorldInverseTranspose = Transpose(worldInverseMatrix);
+	}
 }
 
 void Object3d::AnimationUpdate(bool roop)
@@ -74,13 +89,23 @@ void Object3d::Draw(const WorldTransform& worldTransform, const ViewProjection& 
 	materialData->enableLighting = Lighting;
 	Update(worldTransform, viewProjection);
 
+	// パイプライン切り替え
+	if (hasBone_ && modelAnimation_ && modelAnimation_->GetAnimator()->HaveAnimation()) {
+		// スキニング用パイプライン設定
+		obj3dCommon->skinningDrawCommonSetting();
+	}
+	else {
+		// 通常パイプライン設定
+		obj3dCommon->DrawCommonSetting();
+	}
+
 	obj3dCommon->GetDxCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 	obj3dCommon->GetDxCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResource->GetGPUVirtualAddress());
-	
+
 	if (materialData->enableLighting != 0 && lightGroup) {
 		lightGroup->Draw();
 	}
-	
+
 	if (model) {
 		model->Draw();
 	}
@@ -89,7 +114,7 @@ void Object3d::Draw(const WorldTransform& worldTransform, const ViewProjection& 
 void Object3d::DrawSkeleton(const WorldTransform& worldTransform, const ViewProjection& viewProjection)
 {
 	Update(worldTransform, viewProjection);
-	
+
 	const Skeleton& skeleton = modelAnimation_->GetSkeletonData();
 
 	for (const auto& joint : skeleton.joints) {
@@ -123,7 +148,7 @@ void Object3d::CreateTransformationMatrix()
 {
 	transformationMatrixResource = obj3dCommon->GetDxCommon()->CreateBufferResource(sizeof(TransformationMatrix));
 	transformationMatrixResource->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixData));
-	
+
 	transformationMatrixData->WVP = MakeIdentity4x4();
 	transformationMatrixData->World = MakeIdentity4x4();
 	transformationMatrixData->WorldInverseTranspose = MakeIdentity4x4();
@@ -133,7 +158,7 @@ void Object3d::CreateMaterial()
 {
 	materialResource = obj3dCommon->GetDxCommon()->CreateBufferResource(sizeof(Material));
 	materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
-	
+
 	materialData->color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	materialData->enableLighting = true;
 	materialData->uvTransform = MakeIdentity4x4();

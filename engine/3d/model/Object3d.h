@@ -74,7 +74,6 @@ public:
 	void SetPosition(const Vector3& position) { this->position = position; }
 	void SetRotation(const Vector3& rotation) { this->rotation = rotation; }
 	void SetSize(const Vector3& size) { this->size = size; }
-	void SetColor(const Vector4& color) { materialData->color = color; }
 	void SetModel(const std::string& filePath);
 	
 	/// <summary>
@@ -107,6 +106,7 @@ private:
 		Matrix4x4 World;
 		Matrix4x4 WorldInverseTranspose;
 	};
+	Matrix4x4 worldViewProjectionMatrix_;
 	Microsoft::WRL::ComPtr<ID3D12Resource> transformationMatrixResource;
 	TransformationMatrix* transformationMatrixData = nullptr;
 
@@ -136,5 +136,7 @@ private:
 	Vector3 position = { 0.0f,0.0f,0.0f };
 	Vector3 rotation = { 0.0f,0.0f,0.0f };
 	Vector3 size = { 1.0f,1.0f,1.0f };
+
+	bool hasBone_ = false;
 };
 

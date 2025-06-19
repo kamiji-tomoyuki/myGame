@@ -1,0 +1,96 @@
+{
+    "stage": {
+        "AllScale Max": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "AllScale Min": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Emit rotation": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Emit scale": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Emit translation": [
+            0.0,
+            -1.0,
+            0.0
+        ],
+        "Particle EndAcce": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Particle EndRote": [
+            0.0,
+            0.0,
+            3.1415927410125732
+        ],
+        "Particle EndScale": [
+            40.0,
+            5.0,
+            40.0
+        ],
+        "Particle StartAcce": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Particle StartRote": [
+            0.0,
+            0.0,
+            3.1415927410125732
+        ],
+        "Particle StartScale": [
+            40.0,
+            5.0,
+            40.0
+        ],
+        "RotationVelo Max": [
+            0.07000000029802322,
+            0.003000000026077032,
+            0.07000000029802322
+        ],
+        "RotationVelo Min": [
+            -0.07000000029802322,
+            -0.003000000026077032,
+            -0.07000000029802322
+        ],
+        "Scale Max": 0.0,
+        "Scale Min": 0.0,
+        "alphaMax": 1.0,
+        "alphaMin": 1.0,
+        "count": 1,
+        "emitFrequency": 0.25,
+        "isAcceMultiply": false,
+        "isAllRamdomScale": false,
+        "isBillBoard": false,
+        "isRamdomColor": true,
+        "isRandomRotate": false,
+        "isRandomRotateY": true,
+        "isRandomScale": false,
+        "isSinMove": false,
+        "isVisible": true,
+        "lifeTimeMax": 1.7100000381469727,
+        "lifeTimeMin": 1.0,
+        "maxVelocity": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "minVelocity": [
+            0.0,
+            0.0,
+            0.0
+        ]
+    }
+}

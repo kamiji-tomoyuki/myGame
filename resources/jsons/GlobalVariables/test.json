@@ -16,44 +16,44 @@
             0.0
         ],
         "Emit scale": [
-            1.0,
-            1.0,
-            1.0
+            0.0,
+            0.0,
+            0.0
         ],
         "Emit translation": [
-            -4.300000190734863,
-            -1.600000023841858,
+            0.0,
+            12.800000190734863,
             0.0
         ],
         "Particle EndAcce": [
-            1.0,
-            1.0,
-            1.0
+            0.0,
+            0.0,
+            0.0
         ],
         "Particle EndRote": [
             0.0,
             0.0,
-            0.0
+            3.1415927410125732
         ],
         "Particle EndScale": [
+            40.0,
+            5.0,
+            40.0
+        ],
+        "Particle StartAcce": [
             0.0,
             0.0,
             0.0
-        ],
-        "Particle StartAcce": [
-            1.0,
-            1.0,
-            1.0
         ],
         "Particle StartRote": [
             0.0,
             0.0,
-            0.0
+            3.1415927410125732
         ],
         "Particle StartScale": [
-            0.5,
-            0.5,
-            0.5
+            40.0,
+            5.0,
+            40.0
         ],
         "RotationVelo Max": [
             0.07000000029802322,
@@ -70,26 +70,26 @@
         "alphaMax": 1.0,
         "alphaMin": 1.0,
         "count": 1,
-        "emitFrequency": 0.30000001192092896,
-        "isAcceMultiply": true,
+        "emitFrequency": 0.36000001430511475,
+        "isAcceMultiply": false,
         "isAllRamdomScale": false,
-        "isBillBoard": true,
-        "isRamdomColor": true,
+        "isBillBoard": false,
+        "isRamdomColor": false,
         "isRandomRotate": false,
         "isRandomScale": false,
         "isSinMove": false,
         "isVisible": true,
-        "lifeTimeMax": 3.0,
+        "lifeTimeMax": 1.0,
         "lifeTimeMin": 1.0,
         "maxVelocity": [
-            1.0,
-            1.0,
-            1.0
+            0.0,
+            0.0,
+            0.0
         ],
         "minVelocity": [
-            -1.0,
-            -1.0,
-            -1.0
+            0.0,
+            0.0,
+            0.0
         ]
     }
 }

@@ -24,6 +24,11 @@ public:
 	/// </summary>
 	void Update(bool roop);
 
+	/// <summary>
+	/// アニメーション更新処理
+	/// </summary>
+	void UpdateNodeAnimation(bool roop);
+
 public:
 
 	/// <summary>
@@ -35,12 +40,14 @@ public:
 	/// <returns></returns>
 	Animation GetAnimation() { return animation_; }
 	float GetAnimationTime() { return animationTime; }
+	Matrix4x4 GetLocalMatrix() { return localMatrix_; }
 
 	/// 各ステータス設定関数
 	/// <returns></returns>
 	void SetAnimationTime(float time) { animationTime = time; }
 	void SetIsAnimation(bool isAnimation) { isAnimation_ = isAnimation; }
-
+	void SetModelData(ModelData modelData) { model_ = modelData; }
+	
 public:
 
 	/// <summary>
@@ -72,6 +79,7 @@ private:
 	std::string filename_;
 	std::string directorypath_;
 
+	ModelData model_;
 	bool haveAnimation = false;
 
 	Animation animation_;
@@ -80,5 +88,7 @@ private:
 	bool isAnimation_ = true;
 
 	static std::unordered_map<std::string, Animation> animationCache;
+
+	Matrix4x4 localMatrix_;
 };
 

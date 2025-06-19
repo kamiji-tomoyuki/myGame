@@ -3,11 +3,11 @@
 #include "WorldTransform.h"
 #include "Object3d.h"
 #include "ObjColor.h"
-#include "engine/utility/collider/Collider.h"
+#include "Collider.h"
 //std
 #include<string>
 
-class BaseObject {
+class BaseObject : public Collider {
 protected:
 
 	/// ===================================================
@@ -35,6 +35,28 @@ public:
 	virtual void CreateModel(const std::string modelname);
 
 	virtual void DebugTransform(const std::string className);
+
+	/// <summary>
+	/// 当たってる間
+	/// </summary>
+	/// <param name="other"></param>
+	virtual void OnCollision([[maybe_unused]] Collider* other) override {};
+
+	/// <summary>
+	/// 当たった瞬間
+	/// </summary>
+	/// <param name="other"></param>
+	virtual void OnCollisionEnter([[maybe_unused]] Collider* other) override {};
+
+	/// <summary>
+	/// 当たり終わった瞬間
+	/// </summary>
+	/// <param name="other"></param>
+	virtual void OnCollisionOut([[maybe_unused]] Collider* other) override {};
+
+	// 中心座標を取得
+	virtual Vector3 GetCenterPosition() const override = 0;
+	virtual Vector3 GetCenterRotation() const override = 0;
 
 	// 中心座標取得
 	virtual Vector3 GetWorldPosition() const;

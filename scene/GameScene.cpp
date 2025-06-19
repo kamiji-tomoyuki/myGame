@@ -14,6 +14,36 @@ void GameScene::Initialize()
 
 	debugCamera_ = std::make_unique<DebugCamera>();
 	debugCamera_->Initialize(&vp_);
+
+	// ===== 各オブジェクトの初期化 =====
+	// --- プレイヤー ---
+	Player::SetSerialNumber(0);
+	player_ = std::make_unique<Player>();
+	player_->Init();
+	player_->SetViewProjection(&vp_);
+
+	// --- カメラ ---
+	followCamera_ = std::make_unique<FollowCamera>();
+	followCamera_->Initialize();
+	followCamera_->SetTarget(&player_->GetWorldTransform());
+	// カメラをプレイヤーに設定
+	player_->SetFollowCamera(followCamera_.get());
+
+	// --- 敵 ---
+	Enemy::SetSerialNumber(0);
+	enemy_ = std::make_unique<Enemy>();
+	enemy_->Init();
+
+
+	// ===== 各エフェクト・演出の初期化 =====
+	stageWall_ = std::make_unique<ParticleEmitter>();
+	stageWall_->Initialize("stage", "debug/ringPlane.obj");
+
+
+#ifdef _DEBUG
+	obj_ = std::make_unique<TempObj>();
+	obj_->Init();
+#endif // _DEBUG
 }
 
 void GameScene::Finalize()
@@ -28,11 +58,28 @@ void GameScene::Update()
 	Debug();
 #endif // _DEBUG
 
-	// カメラ更新
+	// ===== 各オブジェクトの更新 =====
+	// --- 敵 ---
+	enemy_->Update(player_.get());
+
+	// --- プレイヤー ---
+	player_->Update();
+
+	// --- カメラ ---
 	CameraUpdate();
 
-	// シーン切り替え
+	// ===== 各エフェクト・演出の更新 =====
+	stageWall_->Update(vp_);
+
+	// ===== シーン切り替え =====
 	ChangeScene();
+
+
+#ifdef _DEBUG
+	// --- Debug時処理 ---
+	obj_->Update();
+#endif // _DEBUG
+
 }
 
 void GameScene::Draw()
@@ -48,18 +95,26 @@ void GameScene::Draw()
 	objCommon_->skinningDrawCommonSetting();
 	//-----アニメーションの描画開始-----
 
+	player_->DrawAnimation(vp_);
+	enemy_->DrawAnimation(vp_);
+
 	//------------------------------
 
 
 	objCommon_->DrawCommonSetting();
 	//-----3DObjectの描画開始-----
 
+#ifdef _DEBUG
+	obj_->Draw(vp_);
+#endif // _DEBUG
+
 	//--------------------------
 
 	/// Particleの描画準備
 	ptCommon_->DrawCommonSetting();
 	//------Particleの描画開始-------
-
+	stageWall_->Draw(Cylinder);
+	player_->DrawParticle(vp_);
 	//-----------------------------
 
 	//-----線描画-----
@@ -110,6 +165,9 @@ void GameScene::Debug()
 	debugCamera_->imgui();
 	LightGroup::GetInstance()->imgui();
 	ImGui::End();
+
+	stageWall_->imgui();
+	player_->ImGui();
 }
 
 void GameScene::CameraUpdate()
@@ -118,13 +176,16 @@ void GameScene::CameraUpdate()
 		debugCamera_->Update();
 	}
 	else {
-		vp_.UpdateMatrix();
+		followCamera_->Update();
+		vp_.matView_ = followCamera_->GetViewProjection().matView_;
+		vp_.matProjection_ = followCamera_->GetViewProjection().matProjection_;
+		vp_.TransferMatrix();
 	}
 }
 
 void GameScene::ChangeScene()
 {
-	if (input_->TriggerKey(DIK_SPACE)) {
+	/*if (input_->TriggerKey(DIK_SPACE)) {
 		sceneManager_->NextSceneReservation("TITLE");
-	}
+	}*/
 }

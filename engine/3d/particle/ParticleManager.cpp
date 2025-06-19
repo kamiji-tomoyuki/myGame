@@ -46,17 +46,18 @@ void ParticleManager::Update(const ViewProjection& viewProjection)
 				float waveScale = 0.5f * (sin(t * DirectX::XM_PI * 18.0f) + 1.0f);  // 0 ~ 1
 
 				// 最大スケールが寿命に応じて縮小し、最終的に0になる
-				float maxScale = (1.0f - t); 
+				float maxScale = (1.0f - t);
 
 				// Sin波スケールと最大スケールの積を適用
 				(*particleIterator).transform.scale_ =
 					(*particleIterator).startScale * waveScale * maxScale;
 
-			} else {
+			}
+			else {
 				// 通常の線形補間
 				(*particleIterator).transform.scale_ =
 					(1.0f - t) * (*particleIterator).startScale + t * (*particleIterator).endScale;
-				
+
 				// アルファ値の計算
 				(*particleIterator).color.w = (*particleIterator).initialAlpha - ((*particleIterator).currentTime / (*particleIterator).lifeTime);
 			}
@@ -65,13 +66,18 @@ void ParticleManager::Update(const ViewProjection& viewProjection)
 
 			if (isRandomRotate_) {
 				(*particleIterator).transform.rotation_ += (*particleIterator).rotateVelocity;
-			} else {
+			}
+			else if (isRandomRotateY_) {
+				(*particleIterator).transform.rotation_.y += (*particleIterator).rotateVelocity.y;
+			}
+			else {
 				(*particleIterator).transform.rotation_ = (1.0f - t) * (*particleIterator).startRote + t * (*particleIterator).endRote;
 			}
 
 			if (isAcceMultipy_) {
 				(*particleIterator).velocity *= (*particleIterator).Acce;
-			} else {
+			}
+			else {
 				(*particleIterator).velocity += (*particleIterator).Acce;
 			}
 
@@ -87,7 +93,8 @@ void ParticleManager::Update(const ViewProjection& viewProjection)
 				// ビルボード
 				worldMatrix = MakeScaleMatrix((*particleIterator).transform.scale_) * billboardMatrix *
 					MakeTranslateMatrix((*particleIterator).transform.translation_);
-			} else {
+			}
+			else {
 				// 通常
 				worldMatrix = MakeAffineMatrix((*particleIterator).transform.scale_,
 					(*particleIterator).transform.rotation_,
@@ -114,18 +121,50 @@ void ParticleManager::Update(const ViewProjection& viewProjection)
 	}
 }
 
-void ParticleManager::Draw()
+void ParticleManager::Draw(PrimitiveType primitiveType)
 {
-	particleCommon->GetDxCommon()->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView);
+	if (primitiveType == Normal) {
+		particleCommon->GetDxCommon()->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView);
 
-	for (auto& [groupName, particleGroup] : particleGroups) {
-		if (particleGroup.instanceCount > 0) {
-			particleCommon->GetDxCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
+		for (auto& [groupName, particleGroup] : particleGroups) {
+			if (particleGroup.instanceCount > 0) {
+				particleCommon->GetDxCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 
-			srvManager_->SetGraphicsRootDescriptorTable(1, particleGroup.instancingSRVIndex);
-			srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetTextureIndexByFilePath(particleGroup.material.textureFilePath));
+				srvManager_->SetGraphicsRootDescriptorTable(1, particleGroup.instancingSRVIndex);
+				srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetTextureIndexByFilePath(particleGroup.material.textureFilePath));
 
-			particleCommon->GetDxCommon()->GetCommandList()->DrawInstanced(UINT(modelData.vertices.size()), particleGroup.instanceCount, 0, 0);
+				particleCommon->GetDxCommon()->GetCommandList()->DrawInstanced(UINT(modelData.vertices.size()), particleGroup.instanceCount, 0, 0);
+			}
+		}
+	}
+
+	else if (primitiveType == Ring) {
+		particleCommon->GetDxCommon()->GetCommandList()->IASetVertexBuffers(0, 1, &ringVertexBufferView);
+
+		for (auto& [groupName, particleGroup] : particleGroups) {
+			if (particleGroup.instanceCount > 0) {
+				particleCommon->GetDxCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
+
+				srvManager_->SetGraphicsRootDescriptorTable(1, particleGroup.instancingSRVIndex);
+				srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetTextureIndexByFilePath(particleGroup.material.textureFilePath));
+
+				particleCommon->GetDxCommon()->GetCommandList()->DrawInstanced(UINT(ringModelData.vertices.size()), particleGroup.instanceCount, 0, 0);
+			}
+		}
+	}
+
+	else if (primitiveType == Cylinder) {
+		particleCommon->GetDxCommon()->GetCommandList()->IASetVertexBuffers(0, 1, &cylinderVertexBufferView);
+
+		for (auto& [groupName, particleGroup] : particleGroups) {
+			if (particleGroup.instanceCount > 0) {
+				particleCommon->GetDxCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
+
+				srvManager_->SetGraphicsRootDescriptorTable(1, particleGroup.instancingSRVIndex);
+				srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetTextureIndexByFilePath(particleGroup.material.textureFilePath));
+
+				particleCommon->GetDxCommon()->GetCommandList()->DrawInstanced(UINT(cylinderModelData.vertices.size()), particleGroup.instanceCount, 0, 0);
+			}
 		}
 	}
 }
@@ -158,16 +197,87 @@ void ParticleManager::CreateVartexData(const std::string& filename)
 {
 	modelData = LoadObjFile("resources/models/", filename);
 
+	ringModelData.material.textureFilePath = "resources/images/" + filename;
+	CreateRingVartexData();
+
+	cylinderModelData.material.textureFilePath = "resources/images/" + filename;
+	CreateCylinderVartexData();
+
 	// --- 頂点リソース生成 ---
 	vertexResource = particleCommon->GetDxCommon()->CreateBufferResource(sizeof(VertexData) * modelData.vertices.size());
+
+	ringVertexResource = particleCommon->GetDxCommon()->CreateBufferResource(sizeof(VertexData) * ringModelData.vertices.size());
+
+	cylinderVertexResource = particleCommon->GetDxCommon()->CreateBufferResource(sizeof(VertexData) * cylinderModelData.vertices.size());
+
 	// --- 頂点バッファビュー生成 ---
 	vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();
 	vertexBufferView.SizeInBytes = UINT(sizeof(VertexData) * modelData.vertices.size());
 	vertexBufferView.StrideInBytes = sizeof(VertexData);
 
+	ringVertexBufferView.BufferLocation = ringVertexResource->GetGPUVirtualAddress();
+	ringVertexBufferView.SizeInBytes = UINT(sizeof(VertexData) * ringModelData.vertices.size());
+	ringVertexBufferView.StrideInBytes = sizeof(VertexData);
+
+	cylinderVertexBufferView.BufferLocation = cylinderVertexResource->GetGPUVirtualAddress();
+	cylinderVertexBufferView.SizeInBytes = UINT(sizeof(VertexData) * cylinderModelData.vertices.size());
+	cylinderVertexBufferView.StrideInBytes = sizeof(VertexData);
+
 	// --- 書き込み ---
 	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
 	std::memcpy(vertexData, modelData.vertices.data(), sizeof(VertexData) * modelData.vertices.size());
+
+	ringVertexResource->Map(0, nullptr, reinterpret_cast<void**>(&ringVertexData));
+	std::memcpy(ringVertexData, ringModelData.vertices.data(), sizeof(VertexData) * ringModelData.vertices.size());
+
+	cylinderVertexResource->Map(0, nullptr, reinterpret_cast<void**>(&cylinderVertexData));
+	std::memcpy(cylinderVertexData, cylinderModelData.vertices.data(), sizeof(VertexData) * cylinderModelData.vertices.size());
+
+}
+
+void ParticleManager::CreateRingVartexData()
+{
+	for (uint32_t index = 0; index < kRingDivide; ++index) {
+		float sin = std::sin(index * ringRadianPerDivide);
+		float cos = std::cos(index * ringRadianPerDivide);
+		float sinNext = std::sin((index + 1) * ringRadianPerDivide);
+		float cosNext = std::cos((index + 1) * ringRadianPerDivide);
+		float u = float(index) / float(kRingDivide);
+		float uNext = float(index + 1) / float(kRingDivide);
+
+		Vector4 outerCurr = { -sin * kOuterRadius, cos * kOuterRadius, 0.0f, 1.0f };
+		Vector4 outerNext = { -sinNext * kOuterRadius, cosNext * kOuterRadius, 0.0f, 1.0f };
+		Vector4 innerCurr = { -sin * kInnerRadius, cos * kInnerRadius, 0.0f, 1.0f };
+		Vector4 innerNext = { -sinNext * kInnerRadius, cosNext * kInnerRadius, 0.0f, 1.0f };
+
+		ringModelData.vertices.push_back({ outerCurr, {u, 0.0f} });
+		ringModelData.vertices.push_back({ outerNext, {uNext, 0.0f} });
+		ringModelData.vertices.push_back({ innerCurr, {u, 1.0f} });
+
+		ringModelData.vertices.push_back({ innerCurr, {u, 1.0f} });
+		ringModelData.vertices.push_back({ outerNext, {uNext, 0.0f} });
+		ringModelData.vertices.push_back({ innerNext, {uNext, 1.0f} });
+	}
+}
+
+void ParticleManager::CreateCylinderVartexData()
+{
+	for (uint32_t i = 0; i < kCylinderDivide; ++i) {
+		float sin = std::sin(i * cylinderRadianPerDivide);
+		float cos = std::cos(i * cylinderRadianPerDivide);
+		float sinNext = std::sin((i + 1) * cylinderRadianPerDivide);
+		float cosNext = std::cos((i + 1) * cylinderRadianPerDivide);
+		float u = float(i) / kCylinderDivide;
+		float uNext = float(i + 1) / kCylinderDivide;
+
+		cylinderModelData.vertices.push_back({ {-sin * kTopRadius, kHeight, cos * kTopRadius, 1.0f}, {u, 1.0f} });
+		cylinderModelData.vertices.push_back({ {-sinNext * kTopRadius, kHeight, cosNext * kTopRadius, 1.0f}, {uNext, 1.0f} });
+		cylinderModelData.vertices.push_back({ {-sin * kBottomRadius, 0.0f, cos * kBottomRadius, 1.0f}, {u, 0.0f} });
+
+		cylinderModelData.vertices.push_back({ {-sin * kBottomRadius, 0.0f, cos * kBottomRadius, 1.0f}, {u, 0.0f} });
+		cylinderModelData.vertices.push_back({ {-sinNext * kTopRadius, kHeight, cosNext * kTopRadius, 1.0f}, {uNext, 1.0f} });
+		cylinderModelData.vertices.push_back({ {-sinNext * kBottomRadius, 0.0f, cosNext * kBottomRadius, 1.0f}, {uNext, 0.0f} });
+	}
 }
 
 ParticleManager::Particle ParticleManager::MakeNewParticle(
@@ -221,13 +331,15 @@ ParticleManager::Particle ParticleManager::MakeNewParticle(
 		std::uniform_real_distribution<float> distScaleZ(allScaleMin.z, allScaleMax.z);
 
 		particle.startScale = { distScaleX(randomEngine),distScaleY(randomEngine),distScaleZ(randomEngine) };
-	} else if (isRandomSize_) {
+	}
+	else if (isRandomSize_) {
 		std::uniform_real_distribution<float> distScale(scaleMin, scaleMax);
 		particle.startScale.x = distScale(randomEngine);
 		particle.startScale.y = particle.startScale.x;
 		particle.startScale.z = particle.startScale.x;
 
-	} else {
+	}
+	else {
 		particle.startScale = particleStartScale;
 	}
 
@@ -265,7 +377,15 @@ ParticleManager::Particle ParticleManager::MakeNewParticle(
 		particle.transform.rotation_.x = distRotateX(randomEngine);
 		particle.transform.rotation_.y = distRotateY(randomEngine);
 		particle.transform.rotation_.z = distRotateZ(randomEngine);
-	} else {
+	}
+	else if (isRandomRotateY_) {
+		// 回転速度をランダムに設定
+		std::uniform_real_distribution<float> distRotateYVelocity(rotateVelocityMin.y, rotateVelocityMax.y);
+		std::uniform_real_distribution<float> distRotateY(0.0f, 2.0f);
+		particle.rotateVelocity.y = distRotateYVelocity(randomEngine);
+		particle.transform.rotation_.y = distRotateY(randomEngine);
+	}
+	else {
 		particle.startRote = startRote;
 		particle.endRote = endRote;
 	}
@@ -273,7 +393,8 @@ ParticleManager::Particle ParticleManager::MakeNewParticle(
 	if (isRamdomColor) {
 		std::uniform_real_distribution<float> distColor(0.0f, 1.0f);
 		particle.color = { distColor(randomEngine), distColor(randomEngine), distColor(randomEngine), distAlpha(randomEngine) };
-	} else {
+	}
+	else {
 		particle.color = { 1.0f,1.0f,1.0f, distAlpha(randomEngine) };
 	}
 

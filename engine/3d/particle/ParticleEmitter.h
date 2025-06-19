@@ -1,5 +1,6 @@
 #pragma once
 #include "ParticleManager.h"
+#include "PrimitiveType.h"
 #include "GlobalVariables.h"
 #include "ViewProjection.h"
 #include "WorldTransform.h"
@@ -29,7 +30,7 @@ public:
     /// <summary>
     /// 描画処理
     /// </summary>
-    void Draw();
+    void Draw(PrimitiveType primitiveType);
 
     /// <summary>
     /// エミッター描画処理
@@ -46,6 +47,7 @@ public:
     /// 各ステータス設定関数
     /// <returns></returns>
     void SetPosition(const Vector3& position) { transform_.translation_ = position; }
+    void SetRotate(const Vector3& rotate) { transform_.rotation_ = rotate; }
     void SetScale(const Vector3& scale) { transform_.scale_ = scale; }
     void SetCount(const int& count) { count_ = count; }
     void SetActive(bool isActive) { isActive_ = isActive; }
@@ -93,6 +95,7 @@ private:
     bool isAllRamdomScale = false;
     bool isRandomColor = true;
     bool isRandomRotate = false;
+    bool isRandomRotateY = false;
     bool isVisible;
     bool isBillBoard = true;
     bool isActive_ = false;

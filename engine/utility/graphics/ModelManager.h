@@ -6,6 +6,7 @@
 class ModelManager
 {
 private:
+
 	static ModelManager* instance;
 
 	ModelManager() = default;
@@ -44,10 +45,16 @@ public:
 	/// </summary>
 	/// <param name="filePath"></param>
 	void LoadModel(const std::string& filePath);
+
 public:
+
 	std::unordered_map<std::string, std::unique_ptr<Model>> models;
+
 private:
+
 	ModelCommon* modelCommon = nullptr;
 	SrvManager* srvManager = nullptr;
+
+	std::unique_ptr<Model> model_;
 };
 

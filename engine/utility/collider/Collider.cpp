@@ -1,6 +1,5 @@
 #include "Collider.h"
-#include "CollisionManager.h"
-
+#include"CollisionManager.h"
 #include <line/DrawLine3D.h>
 
 int Collider::counter = -1;  // 初期値を-1に変更
@@ -15,7 +14,7 @@ Collider::Collider() {
 	AABB_ = std::make_unique<Object3d>();
 	AABB_->Initialize("debug/AABB.obj");
 	OBB_ = std::make_unique<Object3d>();
-	OBB_->Initialize("debug/OBB.obj");
+	OBB_->Initialize("debug/AABB.obj");
 	variables_ = GlobalVariables::GetInstance();
 
 	// 派生クラス名を取得して整形
@@ -49,7 +48,7 @@ Collider::Collider() {
 Collider::~Collider()
 {
 	CollisionManager::RemoveCollider(this);
-	counter--; // カウンターをデクリメント
+	counter--;  // カウンターをデクリメント
 }
 
 void Collider::Initialize() {
@@ -156,7 +155,7 @@ void Collider::DrawAABB(const ViewProjection& viewProjection)
 
 	// 線を描画
 	for (const auto& edge : edges) {
-		DrawLine3D::GetInstance()->SetPoints(vertices[edge.first], vertices[edge.second],color_);
+		DrawLine3D::GetInstance()->SetPoints(vertices[edge.first], vertices[edge.second], color_);
 	}
 }
 

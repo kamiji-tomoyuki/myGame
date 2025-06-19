@@ -216,7 +216,7 @@ void Framework::DisplayFPS()
 
 	// ウィンドウフラグを設定
 	ImGui::Begin("FPS Overlay", nullptr,
-		ImGuiWindowFlags_NoTitleBar |         // タイトルバーを非表示
+		ImGuiWindowFlags_NoTitleBar |        // タイトルバーを非表示
 		ImGuiWindowFlags_NoResize |          // リサイズを禁止
 		ImGuiWindowFlags_NoMove |            // ウィンドウの移動を禁止
 		ImGuiWindowFlags_NoScrollbar |       // スクロールバーを非表示
