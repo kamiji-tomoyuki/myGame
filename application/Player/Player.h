@@ -57,15 +57,19 @@ public:
 public:
 
 	/// 各ステータス取得関数
-	/// <returns></returns>
+/// <returns></returns>
 	Vector3 GetCenterPosition() const override { return transform_.translation_; }
 	Vector3 GetCenterRotation() const override { return transform_.rotation_; }
+	uint32_t GetSerialNumber() const { return serialNumber_; }
+	Vector3 GetVelocity() const { return velocity_; }
 
 	/// 各ステータス設定関数
 	/// <returns></returns>
 	void SetFollowCamera(FollowCamera* followCamera) { followCamera_ = followCamera; }
 	void SetViewProjection(const ViewProjection* viewProjection) { vp_ = viewProjection; }
 	static void SetSerialNumber(int num) { nextSerialNumber_ = num; }
+	void SetTranslation(const Vector3& translation) { transform_.translation_ = translation; }
+	void SetVelocity(const Vector3& velocity) { velocity_ = velocity; }
 
 private:
 

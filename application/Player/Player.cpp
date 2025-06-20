@@ -95,31 +95,20 @@ void Player::OnCollision(Collider* other)
 
 	//衝突相手
 	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kEnemy)) {
-		// 仮処理
-		isAlive_ = false;
-		hitEffect_->UpdateOnce(*vp_);
-
 		Enemy* enemy = static_cast<Enemy*>(other);
-		if (enemy->GetSerialNumber() == enemy->GetNextSerialNumber() - 1) {
+
+		// 重複処理を避けるため、シリアル番号の大きい方で処理
+		if (GetSerialNumber() > enemy->GetSerialNumber()) {
 			return;
 		}
 
-		float distance = Vector3(GetCenterPosition() - enemy->GetCenterPosition()).Length();
-
-		Vector3 correction = Vector3(GetCenterPosition() - enemy->GetCenterPosition()).Normalize() * (GetRadius() + enemy->GetRadius() - distance) * 0.750f;
-		transform_.translation_ += correction;
-		enemy->SetTranslation(enemy->GetTransform().translation_ - correction);
-
-		if (Vector3(GetCenterPosition() - enemy->GetCenterPosition()).Length() < enemy->GetShortDistance()) {
-			// プレイヤーとの距離が短い場合は、適切な距離に移動
-			Vector3 distance = Vector3(enemy->GetCenterPosition() - GetCenterPosition()).Normalize();
-			distance *= enemy->GetShortDistance();
-			enemy->SetTranslation(GetCenterPosition() + distance);
-		}
+		// 仮処理
+		//isAlive_ = false;
+		hitEffect_->UpdateOnce(*vp_);
 
 		// 衝突処理後もステージ境界内に留める
 		Vector3 playerPos = BaseObject::GetWorldPosition();
-		if (!stageManager_->IsWithinStageBounds(playerPos)) {
+		if (stageManager_ != nullptr && !stageManager_->IsWithinStageBounds(playerPos)) {
 			playerPos = stageManager_->ClampToStageBounds(playerPos);
 			BaseObject::SetWorldPosition(playerPos);
 		}

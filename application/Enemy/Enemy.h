@@ -45,6 +45,11 @@ public:
 	/// <param name="other"></param>
 	void OnCollision([[maybe_unused]] Collider* other) override;
 
+	/// <summary>
+	/// プレイヤーとの衝突処理
+	/// </summary>
+	void HandleCollisionWithPlayer(Player* player);
+
 public:
 
 	/// 各ステータス取得関数
@@ -79,9 +84,11 @@ private:
 	// --- 各ステータス ---
 	Vector3 velocity_ = { 0.0f,0.0f,0.0f };
 	//行動距離
-	float shortDistance_ = 10.0f;
+	float shortDistance_ = 1.5f; // 適切な距離に調整
+	// 移動速度関連
+	float approachSpeed_ = 0.05f;
+	float maxSpeed_ = 0.08f;
 	// シリアルナンバー
 	uint32_t serialNumber_ = 0;
 	static uint32_t nextSerialNumber_;
 };
-
