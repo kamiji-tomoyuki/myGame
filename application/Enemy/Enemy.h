@@ -82,12 +82,14 @@ private:
 	const ViewProjection* vp_ = nullptr;
 
 	// --- 各ステータス ---
+	bool isAlive_ = true;
+
+	// kRoot関連変数
 	Vector3 velocity_ = { 0.0f,0.0f,0.0f };
-	//行動距離
-	float shortDistance_ = 1.5f; // 適切な距離に調整
-	// 移動速度関連
+	float shortDistance_ = 1.5f;
 	float approachSpeed_ = 0.05f;
 	float maxSpeed_ = 0.08f;
+
 	// シリアルナンバー
 	uint32_t serialNumber_ = 0;
 	static uint32_t nextSerialNumber_;

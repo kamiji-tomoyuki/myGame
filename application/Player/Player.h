@@ -87,10 +87,16 @@ private:
 
 	// --- 各ステータス ---
 	bool isAlive_ = true;
+
+	// Move関連変数
+	bool isMove_ = false;
 	Vector3 velocity_{};
-	float kAcceleration = 0.1f;
-	const float kMaxSpeed = 0.1f;
-	float kRotateAcceleration = 0.1f;
+	float kAcceleration_ = 0.1f;
+	const float kMaxSpeed_ = 0.1f;
+	float kRotateAcceleration_ = 0.1f;
+
+	// Attack関連変数
+	bool isAttack_ = false;
 
 	// --- 各エフェクト・演出 ---
 	std::unique_ptr<ParticleEmitter> hitEffect_;

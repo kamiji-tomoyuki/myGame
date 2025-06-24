@@ -16,31 +16,22 @@ Player::Player()
 void Player::Init()
 {
 	BaseObject::Init();
+	Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kPlayer));
 
-	// ステージマネージャーの取得と初期化確認
+	// --- ステージマネージャー ---
 	stageManager_ = StageManager::GetInstance();
 	stageManager_->Initialize();
 
-	// 初期位置設定（ステージマネージャー取得後）
+	// 初期位置設定
 	Vector3 initialPos = { 0.0f, 0.0f, -15.0f };
-
-	// 初期位置がステージ内かチェック
-	if (stageManager_->IsWithinStageBounds(initialPos)) {
-		BaseObject::SetWorldPosition(initialPos);
-	}
-	else {
-		// ステージ外の場合はステージ中心に配置
-		BaseObject::SetWorldPosition(stageManager_->GetStageCenter());
-	}
-
-	Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kPlayer));
+	BaseObject::SetWorldPosition(initialPos);
 
 	// --- モデルの初期化 ---
 	obj3d_ = std::make_unique<Object3d>();
 	obj3d_->Initialize("walk.gltf");
 
 	// --- 各ステータスの初期値設定 ---
-	
+	isMove_ = true;
 
 
 	// --- 各エフェクト・演出の初期設定 ---
@@ -123,24 +114,24 @@ void Player::Move()
 
 	// --- キーボード ---
 	if (Input::GetInstance()->PushKey(DIK_D)) {
-		move.x += kAcceleration;
+		move.x += kAcceleration_;
 	}
 	if (Input::GetInstance()->PushKey(DIK_A)) {
-		move.x -= kAcceleration;
+		move.x -= kAcceleration_;
 	}
 	if (Input::GetInstance()->PushKey(DIK_W)) {
-		move.z += kAcceleration;
+		move.z += kAcceleration_;
 	}
 	if (Input::GetInstance()->PushKey(DIK_S)) {
-		move.z -= kAcceleration;
+		move.z -= kAcceleration_;
 	}
 
 	// 回転
 	if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
-		BaseObject::SetRotationY(BaseObject::GetTransform().rotation_.y + kRotateAcceleration);
+		BaseObject::SetRotationY(BaseObject::GetTransform().rotation_.y + kRotateAcceleration_);
 	}
 	if (Input::GetInstance()->PushKey(DIK_LEFT)) {
-		BaseObject::SetRotationY(BaseObject::GetTransform().rotation_.y - kRotateAcceleration);
+		BaseObject::SetRotationY(BaseObject::GetTransform().rotation_.y - kRotateAcceleration_);
 	}
 
 	// 入力ベクトルがある場合
@@ -154,15 +145,15 @@ void Player::Move()
 		// 向いている方向に移動ベクトルを回転
 		move = TransformNormal(move, rotMat);
 
-		velocity_ += move * kAcceleration;  // 加速度をかけて速度に反映
+		velocity_ += move * kAcceleration_;  // 加速度をかけて速度に反映
 	}
 	else {
 		velocity_ = 0.0f;
 	}
 
 	// 速度上限
-	if (velocity_.Length() > kMaxSpeed) {
-		velocity_ = velocity_.Normalize() * kMaxSpeed;
+	if (velocity_.Length() > kMaxSpeed_) {
+		velocity_ = velocity_.Normalize() * kMaxSpeed_;
 	}
 
 	// 位置の更新（境界チェック付き）
