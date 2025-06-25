@@ -347,6 +347,9 @@
     <ClCompile Include="application\Stage\StageManager.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
+    <ClCompile Include="application\Player\Weapon\Weapon.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -599,6 +602,7 @@
       <Filter>ソースファイル\application\Enemy</Filter>
     </ClInclude>
     <ClInclude Include="application\Stage\StageManager.h" />
+    <ClInclude Include="application\Player\Weapon\Weapon.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\Particle\Particle.PS.hlsl">
