@@ -28,7 +28,7 @@ void Player::Init()
 
 	// --- モデルの初期化 ---
 	obj3d_ = std::make_unique<Object3d>();
-	obj3d_->Initialize("walk.gltf");
+	obj3d_->Initialize("Player/player.gltf");
 
 	// --- 各ステータスの初期値設定 ---
 	isMove_ = true;

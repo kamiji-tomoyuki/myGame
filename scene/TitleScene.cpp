@@ -28,7 +28,7 @@ void TitleScene::Initialize()
 	wt1_.translation_ = { -2.0f,0.0f,0.0f };
 
 	walk_ = std::make_unique<Object3d>();
-	walk_->Initialize("walk.gltf");
+	walk_->Initialize("Player/player.gltf");
 
 	obb = std::make_unique<Object3d>();
 	obb->Initialize("walk.gltf");
@@ -83,7 +83,6 @@ void TitleScene::Draw()
 	objCommon_->skinningDrawCommonSetting();
 	//-----アニメーションの描画開始-----
 	walk_->Draw(wt1_, vp_);
-	walk_->DrawSkeleton(wt1_, vp_);
 	//------------------------------
 
 	objCommon_->DrawCommonSetting();

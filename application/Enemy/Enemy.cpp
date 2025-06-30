@@ -24,7 +24,9 @@ void Enemy::Init()
 
 	// --- モデルの初期化 ---
 	obj3d_ = std::make_unique<Object3d>();
-	obj3d_->Initialize("Enemy/playerArm.gltf");
+	obj3d_->Initialize("Enemy/enemy.gltf");
+	obj3d_->SetRotation({ 0.0f,1.57f*2.0f,0.0f });
+	BaseObject::SetRotation(obj3d_->GetRotation());
 
 	// --- 各ステータスの初期値設定 ---
 

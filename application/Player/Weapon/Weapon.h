@@ -9,6 +9,16 @@ class Weapon : public BaseObject
 {
 public:
 
+	/// <summary>
+	/// 状態
+	/// </summary>
+	enum class Behavior {
+		kNormal,		// 通常
+		kSkill,			// スキル
+	};
+
+public:
+
 	Weapon();
 
 	/// <summary>
@@ -50,6 +60,7 @@ public:
 	/// 各ステータス設定関数
 	/// <returns></returns>
 	void SetPlayer(Player* player);
+	void SetComboTimer(uint32_t comboT) { comboTimer_ = comboT; }
 
 private:
 
@@ -58,6 +69,9 @@ private:
 
 	// --- 各ステータス ---
 	bool isAttack_ = false;
+
+	// コンボ
+	uint32_t comboTimer_ = 0;
 
 	// --- 各ポインタ ---
 	Player* player_ = nullptr;
