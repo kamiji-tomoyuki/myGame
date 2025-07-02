@@ -32,6 +32,10 @@ Vector3 BaseObject::GetWorldPosition() const {
 	return worldPos;
 }
 
+Vector3 BaseObject::GetWorldRotation() const {
+	return transform_.rotation_;
+}
+
 void BaseObject::CreateModel(const std::string modelname) {
 	obj3d_ = std::make_unique<Object3d>();
 	obj3d_->Initialize(modelname);

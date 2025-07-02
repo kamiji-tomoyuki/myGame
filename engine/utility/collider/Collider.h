@@ -97,6 +97,7 @@ public:
 	void SetAABBScale(Vector3 scale) { scale_ = scale; }
 	void SetHitColor() { color_ = { 1.0f,0.0f,0.0f,1.0f }; }
 	void SetDefaultColor() { color_ = { 1.0f,1.0f,1.0f,1.0f }; }
+	void SetWorldTransform(WorldTransform worldTransform) { Cubewt_ = worldTransform; }
 
 private:
 	void ApplyVariables();

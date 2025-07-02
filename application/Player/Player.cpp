@@ -30,6 +30,9 @@ void Player::Init()
 	obj3d_ = std::make_unique<Object3d>();
 	obj3d_->Initialize("Player/player.gltf");
 
+	// --- 各パーツの初期化・設定 ---
+	InitArm();
+
 	// --- 各ステータスの初期値設定 ---
 	isMove_ = true;
 
@@ -52,6 +55,10 @@ void Player::Update()
 	// アニメーションの再生
 	obj3d_->AnimationUpdate(true);
 
+	for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+		arm->Update();
+	}
+
 #ifdef _DEBUG
 	hitEffect_->Update(*vp_);
 #endif // _DEBUG
@@ -67,6 +74,9 @@ void Player::DrawAnimation(const ViewProjection& viewProjection)
 {
 	if (isAlive_) {
 		obj3d_->Draw(BaseObject::GetWorldTransform(), viewProjection);
+		for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+			arm->DrawAnimation(viewProjection);
+		}
 	}
 }
 
@@ -106,6 +116,24 @@ void Player::OnCollision(Collider* other)
 	}
 
 	transform_.UpdateMatrix();
+}
+
+void Player::InitArm()
+{
+	for (std::unique_ptr<PlayerArm>& arm : arms_) {
+		arm = std::make_unique<PlayerArm>();
+		arm->SetPlayer(this);
+	}
+
+	arms_[kRArm]->Init("player/Arm/playerArm.gltf");
+	arms_[kRArm]->SetID(serialNumber_);
+	arms_[kRArm]->SetTranslation(Vector3(-1.7f, 0.0f, 1.3f));
+	arms_[kRArm]->SetScale(Vector3(0.8f, 0.8f, 0.8f));
+
+	arms_[kLArm]->Init("player/Arm/playerArm.gltf");
+	arms_[kLArm]->SetID(serialNumber_);
+	arms_[kLArm]->SetTranslation(Vector3(1.7f, 0.0f, 1.3f));
+	arms_[kLArm]->SetScale(Vector3(0.8f, 0.8f, 0.8f));
 }
 
 void Player::Move()

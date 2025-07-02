@@ -5,12 +5,21 @@
 
 #include <Stage/StageManager.h>
 #include <ParticleEmitter.h>
+#include <Weapon/PlayerArm.h>
 
 class FollowCamera;
 
 class Player : public BaseObject
 {
 public:
+	/// <summary>
+	/// 連動するモデル
+	/// </summary>
+	enum ModelArm {
+		kRArm,
+		kLArm,
+		kModelNum,
+	};
 
 	/// <summary>
 	/// 状態
@@ -74,6 +83,11 @@ public:
 private:
 
 	/// <summary>
+	/// 腕の初期化
+	/// </summary>
+	void InitArm();
+
+	/// <summary>
 	/// 移動
 	/// </summary>
 	void Move();
@@ -85,8 +99,14 @@ private:
 
 	const ViewProjection* vp_ = nullptr;
 
+	// --- 腕 ---
+	std::array<std::unique_ptr<PlayerArm>, kModelNum> arms_;
+
 	// --- 各ステータス ---
 	bool isAlive_ = true;
+
+	// Behavior
+	Behavior behavior_ = Behavior::kRoot;
 
 	// Move関連変数
 	bool isMove_ = false;
