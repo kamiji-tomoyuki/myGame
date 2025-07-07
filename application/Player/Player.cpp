@@ -50,11 +50,15 @@ void Player::Update()
 		// 移動
 		hitEffect_->SetPosition(BaseObject::GetWorldPosition());
 		Move();
+
+		// 攻撃処理の更新
+		UpdateAttack();
 	}
 
 	// アニメーションの再生
 	obj3d_->AnimationUpdate(true);
 
+	// 腕の更新
 	for (const std::unique_ptr<PlayerArm>& arm : arms_) {
 		arm->Update();
 	}
@@ -62,7 +66,44 @@ void Player::Update()
 #ifdef _DEBUG
 	hitEffect_->Update(*vp_);
 #endif // _DEBUG
+}
 
+void Player::UpdateAttack()
+{
+	// 攻撃キー入力チェック（スペースキーで攻撃）
+	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
+
+		// 現在攻撃中でない場合、右腕で攻撃開始
+		bool anyAttacking = false;
+		for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+			if (arm->GetBehavior() == PlayerArm::Behavior::kAttack) {
+				anyAttacking = true;
+				break;
+			}
+		}
+
+		if (!anyAttacking) {
+			// 右腕で右パンチ開始
+			if (arms_[kRArm]) {
+				arms_[kRArm]->StartAttack(PlayerArm::AttackType::kRightPunch);
+			}
+		}
+		else {
+			// 左腕でコンボ攻撃（左パンチ）
+			if (arms_[kLArm] && arms_[kLArm]->CanCombo()) {
+				arms_[kLArm]->StartAttack(PlayerArm::AttackType::kLeftPunch);
+			}
+		}
+	}
+
+	// 右パンチ終了時に左腕にコンボタイマーを設定
+	if (arms_[kRArm] && arms_[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch &&
+		arms_[kRArm]->GetBehavior() == PlayerArm::Behavior::kNormal) {
+		// 右パンチが終了した瞬間に左腕にコンボタイマーを設定
+		if (arms_[kLArm]) {
+			arms_[kLArm]->SetComboTimer(60); // 60フレームのコンボ受付時間
+		}
+	}
 }
 
 void Player::Draw(const ViewProjection& viewProjection)
@@ -88,6 +129,35 @@ void Player::DrawParticle(const ViewProjection& viewProjection)
 void Player::ImGui()
 {
 	hitEffect_->imgui();
+
+	// 腕のデバッグ情報表示
+	for (size_t i = 0; i < arms_.size(); ++i) {
+		if (arms_[i]) {
+			arms_[i]->ImGui();
+		}
+	}
+
+	// プレイヤーのデバッグ情報
+	ImGui::Begin("Player Debug");
+	ImGui::Text("Player Rotation Y: %.2f", BaseObject::GetTransform().rotation_.y);
+	ImGui::Text("Player Position: (%.2f, %.2f, %.2f)",
+		BaseObject::GetWorldPosition().x,
+		BaseObject::GetWorldPosition().y,
+		BaseObject::GetWorldPosition().z);
+
+	// 攻撃状態の表示
+	if (arms_[kRArm]) {
+		ImGui::Text("Right Arm State: %s",
+			arms_[kRArm]->GetBehavior() == PlayerArm::Behavior::kAttack ? "Attacking" : "Normal");
+	}
+	if (arms_[kLArm]) {
+		ImGui::Text("Left Arm State: %s",
+			arms_[kLArm]->GetBehavior() == PlayerArm::Behavior::kAttack ? "Attacking" : "Normal");
+		ImGui::Text("Left Arm Can Combo: %s",
+			arms_[kLArm]->CanCombo() ? "Yes" : "No");
+	}
+
+	ImGui::End();
 }
 
 void Player::OnCollision(Collider* other)
@@ -125,16 +195,21 @@ void Player::InitArm()
 		arm->SetPlayer(this);
 	}
 
+	// 右腕の設定
 	arms_[kRArm]->Init("player/Arm/playerArm.gltf");
 	arms_[kRArm]->SetID(serialNumber_);
+	arms_[kRArm]->SetIsRightArm(true);  // 右腕として設定
 	arms_[kRArm]->SetTranslation(Vector3(-1.7f, 0.0f, 1.3f));
 	arms_[kRArm]->SetScale(Vector3(0.8f, 0.8f, 0.8f));
 
+	// 左腕の設定
 	arms_[kLArm]->Init("player/Arm/playerArm.gltf");
 	arms_[kLArm]->SetID(serialNumber_);
+	arms_[kLArm]->SetIsRightArm(false); // 左腕として設定
 	arms_[kLArm]->SetTranslation(Vector3(1.7f, 0.0f, 1.3f));
 	arms_[kLArm]->SetScale(Vector3(0.8f, 0.8f, 0.8f));
 }
+
 
 void Player::Move()
 {

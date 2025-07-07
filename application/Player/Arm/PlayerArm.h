@@ -14,7 +14,17 @@ public:
 	/// </summary>
 	enum class Behavior {
 		kNormal,		// 通常
+		kAttack,		// 攻撃中
 		kSkill,			// スキル
+	};
+
+	/// <summary>
+	/// 攻撃の種類
+	/// </summary>
+	enum class AttackType {
+		kNone,			// 攻撃なし
+		kRightPunch,	// 右パンチ
+		kLeftPunch,		// 左パンチ
 	};
 
 public:
@@ -31,6 +41,7 @@ public:
 	/// </summary>
 	void Update()override;
 	void UpdateComboTime();
+	void UpdateAttack();
 
 	/// <summary>
 	/// 描画
@@ -43,6 +54,14 @@ public:
 	/// ImGui
 	/// </summary>
 	void ImGui();
+
+	/// <summary>
+	/// 攻撃処理
+	/// </summary>
+	void StartAttack(AttackType attackType);
+	void ProcessAttack();
+	bool CanCombo() const;
+	void HandleAttackInput();
 
 public:
 
@@ -60,14 +79,20 @@ public:
 	int GetID() { return serialNumber_; }
 	Player* GetPlayer() { return player_; }
 	bool GetIsAttack() { return isAttack_; }
+	AttackType GetCurrentAttackType() { return currentAttackType_; }
+	AttackType GetLastAttackType() { return lastAttackType_; }
+	Behavior GetBehavior() { return behavior_; }
 	Vector3 GetCenterPosition() const override { return GetWorldPosition(); }
 	Vector3 GetCenterRotation() const override { return GetWorldRotation(); }
+	Vector3 GetAttackDirection() const { return attackDirection_; }
+	bool IsRightArm() const { return isRightArm_; }
 
 	/// 各ステータス設定関数
 	/// <returns></returns>
 	void SetID(int id) { serialNumber_ = id; }
 	void SetPlayer(Player* player);
 	void SetComboTimer(uint32_t comboT) { comboTimer_ = comboT; }
+	void SetIsRightArm(bool isRight) { isRightArm_ = isRight; }
 
 	void SetTranslation(Vector3 pos) { transform_.translation_ = pos; }
 	void SetTranslationY(float pos) { transform_.translation_.y = pos; }
@@ -91,9 +116,29 @@ private:
 
 	// --- 各ステータス ---
 	bool isAttack_ = false;
+	Behavior behavior_ = Behavior::kNormal;
+	AttackType currentAttackType_ = AttackType::kNone;
+	AttackType lastAttackType_ = AttackType::kNone;
 
-	// コンボ
-	uint32_t comboTimer_ = 0;
+	// 攻撃関連
+	Vector3 attackDirection_ = { 0.0f, 0.0f, 1.0f };  // 攻撃方向（正面）
+	Vector3 originalPosition_;  // 元の位置
+	Vector3 targetPosition_;    // 攻撃時の目標位置
+	float attackProgress_ = 0.0f;  // 攻撃の進行度（0.0f〜1.0f）
+
+	// タイマー関連
+	uint32_t attackTimer_ = 0;      // 攻撃アニメーション用タイマー
+	uint32_t comboTimer_ = 0;       // コンボ受付時間
+
+	// 定数
+	static constexpr uint32_t kAttackDuration = 20;   // 攻撃アニメーション時間（フレーム）
+	static constexpr uint32_t kComboWindow = 30;      // コンボ受付時間（フレーム）
+	static constexpr float kAttackDistance = 2.0f;    // 攻撃時の前進距離
+	static constexpr float kRightPunchOffset = -0.5f; // 右パンチの横オフセット
+	static constexpr float kLeftPunchOffset = 0.5f;   // 左パンチの横オフセット
+
+	// 腕の種類
+	bool isRightArm_ = true;  // true: 右腕, false: 左腕
 
 	// シリアルナンバー
 	uint32_t serialNumber_ = 0;
@@ -102,4 +147,3 @@ private:
 	// --- 各ポインタ ---
 	Player* player_ = nullptr;
 };
-

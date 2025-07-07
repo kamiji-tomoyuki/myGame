@@ -5,7 +5,7 @@
 
 #include <Stage/StageManager.h>
 #include <ParticleEmitter.h>
-#include <Weapon/PlayerArm.h>
+#include <Arm/PlayerArm.h>
 
 class FollowCamera;
 
@@ -42,6 +42,7 @@ public:
 	/// 更新
 	/// </summary>
 	void Update()override;
+	void UpdateAttack();
 
 	/// <summary>
 	/// 描画
