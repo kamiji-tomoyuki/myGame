@@ -73,35 +73,37 @@ void Player::UpdateAttack()
 	// 攻撃キー入力チェック（スペースキーで攻撃）
 	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
 
-		// 現在攻撃中でない場合、右腕で攻撃開始
-		bool anyAttacking = false;
-		for (const std::unique_ptr<PlayerArm>& arm : arms_) {
-			if (arm->GetBehavior() == PlayerArm::Behavior::kAttack) {
-				anyAttacking = true;
-				break;
-			}
-		}
-
-		if (!anyAttacking) {
-			// 右腕で右パンチ開始
+		// 左腕が左パンチ終了後のコンボ受付時間内の場合はラッシュ開始
+		if (arms_[kLArm] && arms_[kLArm]->CanStartRush()) {
+			// 両腕同時にラッシュ開始
 			if (arms_[kRArm]) {
-				arms_[kRArm]->StartAttack(PlayerArm::AttackType::kRightPunch);
+				arms_[kRArm]->StartRush();
+			}
+			if (arms_[kLArm]) {
+				arms_[kLArm]->StartRush();
 			}
 		}
-		else {
-			// 左腕でコンボ攻撃（左パンチ）
-			if (arms_[kLArm] && arms_[kLArm]->CanCombo()) {
+		// 右腕が右パンチ終了後のコンボ受付時間内の場合は左パンチ
+		else if (arms_[kRArm] && arms_[kRArm]->CanCombo() &&
+			arms_[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch) {
+			if (arms_[kLArm]) {
 				arms_[kLArm]->StartAttack(PlayerArm::AttackType::kLeftPunch);
 			}
 		}
-	}
+		// どちらも攻撃中でない場合は右腕で初回攻撃
+		else {
+			bool anyAttacking = false;
+			for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+				if (arm->GetBehavior() == PlayerArm::Behavior::kAttack ||
+					arm->GetBehavior() == PlayerArm::Behavior::kRush) {
+					anyAttacking = true;
+					break;
+				}
+			}
 
-	// 右パンチ終了時に左腕にコンボタイマーを設定
-	if (arms_[kRArm] && arms_[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch &&
-		arms_[kRArm]->GetBehavior() == PlayerArm::Behavior::kNormal) {
-		// 右パンチが終了した瞬間に左腕にコンボタイマーを設定
-		if (arms_[kLArm]) {
-			arms_[kLArm]->SetComboTimer(60); // 60フレームのコンボ受付時間
+			if (!anyAttacking && arms_[kRArm]) {
+				arms_[kRArm]->StartAttack(PlayerArm::AttackType::kRightPunch);
+			}
 		}
 	}
 }
@@ -145,16 +147,22 @@ void Player::ImGui()
 		BaseObject::GetWorldPosition().y,
 		BaseObject::GetWorldPosition().z);
 
+	// グローバルコンボ状態の表示
+	ImGui::Text("Global Combo Count: %d", globalComboCount_);
+	ImGui::Text("Global Combo Timer: %d", globalComboTimer_);
+	ImGui::Text("Can Start Rush: %s",
+		(globalComboCount_ >= 2 && globalComboTimer_ > 0) ? "Yes" : "No");
+
 	// 攻撃状態の表示
 	if (arms_[kRArm]) {
 		ImGui::Text("Right Arm State: %s",
-			arms_[kRArm]->GetBehavior() == PlayerArm::Behavior::kAttack ? "Attacking" : "Normal");
+			arms_[kRArm]->GetBehavior() == PlayerArm::Behavior::kAttack ? "Attacking" :
+			arms_[kRArm]->GetBehavior() == PlayerArm::Behavior::kRush ? "Rush" : "Normal");
 	}
 	if (arms_[kLArm]) {
 		ImGui::Text("Left Arm State: %s",
-			arms_[kLArm]->GetBehavior() == PlayerArm::Behavior::kAttack ? "Attacking" : "Normal");
-		ImGui::Text("Left Arm Can Combo: %s",
-			arms_[kLArm]->CanCombo() ? "Yes" : "No");
+			arms_[kLArm]->GetBehavior() == PlayerArm::Behavior::kAttack ? "Attacking" :
+			arms_[kLArm]->GetBehavior() == PlayerArm::Behavior::kRush ? "Rush" : "Normal");
 	}
 
 	ImGui::End();

@@ -118,6 +118,8 @@ private:
 
 	// Attack関連変数
 	bool isAttack_ = false;
+	uint32_t globalComboCount_ = 0;  // プレイヤー全体のコンボカウント
+	uint32_t globalComboTimer_ = 0;  // プレイヤー全体のコンボタイマー
 
 	// --- 各エフェクト・演出 ---
 	std::unique_ptr<ParticleEmitter> hitEffect_;
