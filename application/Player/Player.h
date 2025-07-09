@@ -3,9 +3,10 @@
 #include "WorldTransform.h"
 #include "ViewProjection.h"
 
+#include <Arm/PlayerArm.h>
+
 #include <Stage/StageManager.h>
 #include <ParticleEmitter.h>
-#include <Arm/PlayerArm.h>
 
 class FollowCamera;
 
@@ -108,6 +109,10 @@ private:
 
 	// Behavior
 	Behavior behavior_ = Behavior::kRoot;
+
+	// HP
+	uint32_t kMaxHP_ = 1000;
+	uint32_t HP_ = kMaxHP_;
 
 	// Move関連変数
 	bool isMove_ = false;

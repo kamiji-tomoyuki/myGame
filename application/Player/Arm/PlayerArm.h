@@ -131,15 +131,17 @@ private:
 
 	// 攻撃関連
 	Vector3 attackDirection_ = { 0.0f, 0.0f, 1.0f };  // 攻撃方向（正面）
-	Vector3 originalPosition_;  // 元の位置
-	Vector3 targetPosition_;    // 攻撃時の目標位置
-	float attackProgress_ = 0.0f;  // 攻撃の進行度（0.0f〜1.0f）
+	Vector3 originalPosition_;		// 元の位置
+	Vector3 targetPosition_;		// 攻撃時の目標位置
+	float attackProgress_ = 0.0f;	// 攻撃の進行度（0.0f〜1.0f）
+	uint32_t attackDamage_;			// ダメージ
 
 	// ラッシュ関連
 	uint32_t rushTimer_ = 0;        // ラッシュ攻撃継続時間
 	uint32_t rushAttackTimer_ = 0;  // 個別のラッシュ攻撃タイマー
 	uint32_t rushCount_ = 0;        // ラッシュ攻撃回数カウント
 	bool rushAttackActive_ = false; // 個別のラッシュ攻撃が実行中かどうか
+	uint32_t rushAttackDamage_;		// ダメージ
 
 	// タイマー関連
 	uint32_t attackTimer_ = 0;      // 攻撃アニメーション用タイマー
@@ -147,15 +149,15 @@ private:
 	uint32_t comboCount_ = 0;       // コンボ数
 
 	// 定数
-	static constexpr uint32_t kAttackDuration = 20;   // 攻撃アニメーション時間（フレーム）
-	static constexpr uint32_t kComboWindow = 30;      // コンボ受付時間（フレーム）
-	static constexpr uint32_t kRushDuration = 120;    // ラッシュ攻撃継続時間（フレーム）
-	static constexpr uint32_t kRushInterval = 8;      // ラッシュ攻撃間隔（フレーム）
+	static constexpr uint32_t kAttackDuration = 20;		// 攻撃アニメーション時間（フレーム）
+	static constexpr uint32_t kComboWindow = 30;		// コンボ受付時間（フレーム）
+	static constexpr uint32_t kRushDuration = 120;		// ラッシュ攻撃継続時間（フレーム）
+	static constexpr uint32_t kRushInterval = 8;		// ラッシュ攻撃間隔（フレーム）
 	static constexpr uint32_t kRushAttackDuration = 12; // 個別ラッシュ攻撃時間（フレーム）
-	static constexpr float kAttackDistance = 2.0f;    // 攻撃時の前進距離
-	static constexpr float kRushDistance = 1.5f;      // ラッシュ攻撃時の前進距離
-	static constexpr float kRightPunchOffset = -0.5f; // 右パンチの横オフセット
-	static constexpr float kLeftPunchOffset = 0.5f;   // 左パンチの横オフセット
+	static constexpr float kAttackDistance = 2.0f;		// 攻撃時の前進距離
+	static constexpr float kRushDistance = 1.5f;		// ラッシュ攻撃時の前進距離
+	static constexpr float kRightPunchOffset = -0.5f;	// 右パンチの横オフセット
+	static constexpr float kLeftPunchOffset = 0.5f;		// 左パンチの横オフセット
 
 	// 腕の種類
 	bool isRightArm_ = true;  // true: 右腕, false: 左腕

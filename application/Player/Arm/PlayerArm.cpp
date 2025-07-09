@@ -3,6 +3,7 @@
 #include "Input.h"
 #include "myMath.h"
 #include "Player.h"
+#include <Enemy.h>
 
 PlayerArm::PlayerArm()
 {
@@ -398,13 +399,13 @@ void PlayerArm::OnCollision(Collider* other)
 
 		// 敵との当たり判定例
 		if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kEnemy)) {
-			// 敵にダメージを与える処理
-			// Enemy* enemy = static_cast<Enemy*>(other);
-			// if (isRush_) {
-			//     enemy->TakeDamage(rushAttackDamage_);
-			// } else {
-			//     enemy->TakeDamage(attackDamage_);
-			// }
+			 //敵にダメージを与える処理
+			 Enemy* enemy = static_cast<Enemy*>(other);
+			 if (isRush_) {
+			     enemy->TakeDamage(rushAttackDamage_);
+			 } else {
+			     enemy->TakeDamage(attackDamage_);
+			 }
 		}
 	}
 }

@@ -115,6 +115,11 @@ void Enemy::HandleCollisionWithPlayer(Player* player)
 	}
 }
 
+void Enemy::TakeDamage(uint32_t damage)
+{
+	HP_ -= damage;
+}
+
 void Enemy::Approach()
 {
 	if (player_ == nullptr) return;

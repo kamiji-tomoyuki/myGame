@@ -50,6 +50,8 @@ public:
 	/// </summary>
 	void HandleCollisionWithPlayer(Player* player);
 
+	void TakeDamage(uint32_t damage);
+
 public:
 
 	/// 各ステータス取得関数
@@ -83,6 +85,10 @@ private:
 
 	// --- 各ステータス ---
 	bool isAlive_ = true;
+
+	// HP
+	uint32_t kMaxHP_ = 1000;
+	uint32_t HP_ = kMaxHP_;
 
 	// kRoot関連変数
 	Vector3 velocity_ = { 0.0f,0.0f,0.0f };
