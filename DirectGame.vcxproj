@@ -65,7 +65,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)engine\2d;$(ProjectDir)engine\3d;$(ProjectDir)engine\3d\light;$(ProjectDir)engine\3d\particle;$(ProjectDir)engine\3d\model;$(ProjectDir)engine\3d\transform;$(ProjectDir)engine\3d\camera;$(ProjectDir)engine\base;$(ProjectDir)engine\input;$(ProjectDir)engine\utility;$(ProjectDir)engine\utility\graphics;$(ProjectDir)engine\utility\debug;$(ProjectDir)engine\utility\string;$(ProjectDir)scene;$(ProjectDir)engine\core;$(ProjectDir)engine\utility\edit;$(ProjectDir)engine\utility\collider;$(ProjectDir)engine\utility\scene;$(ProjectDir)particle;$(ProjectDir)math;$(ProjectDir)externals\assimp\include;$(ProjectDir)engine\Frame;$(ProjectDir)engine\Audio;$(ProjectDir)externals\imgui;$(ProjectDir)externals\DirectXTex;$(ProjectDir)engine\offscreen;$(ProjectDir)engine\utility\json;$(ProjectDir)application\Base;$(ProjectDir)application\Player;$(ProjectDir)application\Camera;$(ProjectDir)application;$(ProjectDir)application\Enemy</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)engine\2d;$(ProjectDir)engine\3d;$(ProjectDir)engine\3d\light;$(ProjectDir)engine\3d\particle;$(ProjectDir)engine\3d\model;$(ProjectDir)engine\3d\transform;$(ProjectDir)engine\3d\camera;$(ProjectDir)engine\base;$(ProjectDir)engine\input;$(ProjectDir)engine\utility;$(ProjectDir)engine\utility\graphics;$(ProjectDir)engine\utility\debug;$(ProjectDir)engine\utility\string;$(ProjectDir)scene;$(ProjectDir)engine\core;$(ProjectDir)engine\utility\edit;$(ProjectDir)engine\utility\collider;$(ProjectDir)engine\utility\scene;$(ProjectDir)particle;$(ProjectDir)math;$(ProjectDir)externals\assimp\include;$(ProjectDir)engine\Frame;$(ProjectDir)engine\Audio;$(ProjectDir)externals\imgui;$(ProjectDir)externals\DirectXTex;$(ProjectDir)engine\offscreen;$(ProjectDir)engine\utility\json;$(ProjectDir)application\Base;$(ProjectDir)application\Player;$(ProjectDir)application\Camera;$(ProjectDir)application;$(ProjectDir)application\Enemy;$(ProjectDir)engine\3d\skybox</AdditionalIncludeDirectories>
       <Optimization>Custom</Optimization>
     </ClCompile>
     <Link>
@@ -92,7 +92,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
       <AdditionalOptions>/utf-8</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)engine\2d;$(ProjectDir)engine\3d;$(ProjectDir)engine\3d\light;$(ProjectDir)engine\3d\particle;$(ProjectDir)engine\3d\model;$(ProjectDir)engine\3d\transform;$(ProjectDir)engine\3d\camera;$(ProjectDir)engine\base;$(ProjectDir)engine\input;$(ProjectDir)engine\utility;$(ProjectDir)engine\utility\graphics;$(ProjectDir)engine\utility\debug;$(ProjectDir)engine\utility\string;$(ProjectDir)scene;$(ProjectDir)engine\core;$(ProjectDir)engine\utility\edit;$(ProjectDir)engine\utility\collider;$(ProjectDir)engine\utility\scene;$(ProjectDir)particle;$(ProjectDir)math;$(ProjectDir)externals\assimp\include;$(ProjectDir)engine\Frame;$(ProjectDir)engine\Audio;$(ProjectDir)externals\imgui;$(ProjectDir)externals\DirectXTex;$(ProjectDir)engine\offscreen;$(ProjectDir)engine\utility\json;$(ProjectDir)application\Base;$(ProjectDir)application\Player;$(ProjectDir)application\Camera;$(ProjectDir)application;$(ProjectDir)application\Enemy</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)engine\2d;$(ProjectDir)engine\3d;$(ProjectDir)engine\3d\light;$(ProjectDir)engine\3d\particle;$(ProjectDir)engine\3d\model;$(ProjectDir)engine\3d\transform;$(ProjectDir)engine\3d\camera;$(ProjectDir)engine\base;$(ProjectDir)engine\input;$(ProjectDir)engine\utility;$(ProjectDir)engine\utility\graphics;$(ProjectDir)engine\utility\debug;$(ProjectDir)engine\utility\string;$(ProjectDir)scene;$(ProjectDir)engine\core;$(ProjectDir)engine\utility\edit;$(ProjectDir)engine\utility\collider;$(ProjectDir)engine\utility\scene;$(ProjectDir)particle;$(ProjectDir)math;$(ProjectDir)externals\assimp\include;$(ProjectDir)engine\Frame;$(ProjectDir)engine\Audio;$(ProjectDir)externals\imgui;$(ProjectDir)externals\DirectXTex;$(ProjectDir)engine\offscreen;$(ProjectDir)engine\utility\json;$(ProjectDir)application\Base;$(ProjectDir)application\Player;$(ProjectDir)application\Camera;$(ProjectDir)application;$(ProjectDir)application\Enemy;$(ProjectDir)engine\3d\skybox</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
     </ClCompile>
     <Link>
@@ -115,6 +115,10 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\Stage\StageManager.cpp" />
     <ClCompile Include="application\temp\TempObj.cpp" />
     <ClCompile Include="engine\3d\model\animation\ModelAnimation.cpp" />
+    <ClCompile Include="engine\3d\skybox\Skybox.cpp" />
+    <ClCompile Include="engine\3d\skybox\SkyboxGeometry.cpp" />
+    <ClCompile Include="engine\3d\skybox\SkyboxManager.cpp" />
+    <ClCompile Include="engine\3d\skybox\SkyboxTransform.cpp" />
     <ClCompile Include="engine\utility\graphics\AnimationManager.cpp" />
     <ClCompile Include="engine\3d\model\animation\Bone.cpp" />
     <ClCompile Include="engine\3d\model\animation\Animator.cpp" />
@@ -212,6 +216,10 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\Stage\StageManager.h" />
     <ClInclude Include="application\temp\TempObj.h" />
     <ClInclude Include="engine\3d\model\animation\ModelAnimation.h" />
+    <ClInclude Include="engine\3d\skybox\Skybox.h" />
+    <ClInclude Include="engine\3d\skybox\SkyboxGeometry.h" />
+    <ClInclude Include="engine\3d\skybox\SkyboxManager.h" />
+    <ClInclude Include="engine\3d\skybox\SkyboxTransform.h" />
     <ClInclude Include="engine\utility\graphics\AnimationManager.h" />
     <ClInclude Include="engine\3d\model\animation\Bone.h" />
     <ClInclude Include="engine\3d\model\animation\Animator.h" />

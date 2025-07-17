@@ -11,6 +11,7 @@ void ModelAnimation::Initialize(const std::string& directorypath, const std::str
 	bone_ = std::make_unique<Bone>();
 	skin_ = std::make_unique<Skin>();
 	animator_->Initialize(directorypath_, filename_);
+	animator_->SetModelData(modelData_);
 	if (animator_->HaveAnimation()) {	
 		// アニメーションがある時
 		bone_->Initialize(modelData_);
@@ -25,5 +26,14 @@ void ModelAnimation::Update(bool roop)
 		animator_->Update(roop);
 		bone_->Update(animator_->GetAnimation(), animator_->GetAnimationTime());
 		skin_->Update(bone_->GetSkeleton());
+	}
+}
+
+void ModelAnimation::UpdateNodeAnimation(bool roop)
+{
+	// --- アニメーションの更新処理　---
+	if (animator_->HaveAnimation()) {
+		animator_->UpdateNodeAnimation(roop);
+		localMatrix_ = animator_->GetLocalMatrix();
 	}
 }

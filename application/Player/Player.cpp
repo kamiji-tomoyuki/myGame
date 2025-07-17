@@ -56,7 +56,7 @@ void Player::Update()
 	}
 
 	// アニメーションの再生
-	obj3d_->AnimationUpdate(true);
+	obj3d_->UpdateAnimation(true);
 
 	// 腕の更新
 	for (const std::unique_ptr<PlayerArm>& arm : arms_) {

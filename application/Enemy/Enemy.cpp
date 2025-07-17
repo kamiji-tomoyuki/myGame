@@ -41,7 +41,7 @@ void Enemy::Update(Player* player)
 	Approach();
 
 	// アニメーションの再生
-	obj3d_->AnimationUpdate(true);
+	obj3d_->UpdateAnimation(true);
 }
 
 void Enemy::Draw(const ViewProjection& viewProjection)

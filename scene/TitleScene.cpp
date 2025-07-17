@@ -63,7 +63,7 @@ void TitleScene::Update()
 	ChangeScene();
 
 	emitter_->Update(vp_);
-	walk_->AnimationUpdate(roop);
+	walk_->UpdateAnimation(roop);
 
 	wt1_.UpdateMatrix();
 }

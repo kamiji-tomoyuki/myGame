@@ -354,18 +354,38 @@ void DirectXCommon::InitializeFixFPS()
 	reference_ = std::chrono::steady_clock::now();
 }
 
-void DirectXCommon::UpdateFixFPS()
-{
-	const std::chrono::microseconds kMinTime(uint64_t(1000000.0f / 60.0f));
-	const std::chrono::microseconds kMinCheckTime(uint64_t(1000000.0f / 65.0f));
-	std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-	std::chrono::microseconds elapsed = std::chrono::duration_cast<std::chrono::microseconds>(now - reference_);
-	if (elapsed < kMinCheckTime) {
-		while (std::chrono::steady_clock::now() - reference_ < kMinTime) {
-			std::this_thread::sleep_for(std::chrono::microseconds(1));
-		}
-	}
-	reference_ = std::chrono::steady_clock::now();
+void DirectXCommon::UpdateFixFPS() {
+    // 現在時間を取得する
+    std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+
+    // 前回記録からの経過時間を取得する
+    std::chrono::microseconds elapsed = std::chrono::duration_cast<std::chrono::microseconds>(now - reference);
+
+    // 次のフレームまでの待機時間を計算
+    if (elapsed < frameTime) {
+        // 待機すべき時間
+        std::chrono::microseconds sleepTime = frameTime - elapsed;
+
+        // より正確なスリープのためのスピンロック
+        auto sleepEnd = now + sleepTime;
+        // まず大部分の時間をsleep_forで待機
+        if (sleepTime > std::chrono::microseconds(1000)) {
+            std::this_thread::sleep_for(sleepTime - std::chrono::microseconds(1000));
+        }
+        // 残りの短い時間はスピンロックで正確に待機
+        while (std::chrono::steady_clock::now() < sleepEnd) {
+            // スピンロック（何もしない）
+        }
+    }
+
+    // 次のフレームの基準時間を更新
+    // 精確な60FPSを維持するため、理想的なフレーム時間を加算
+    reference += frameTime;
+
+    // もし大幅に遅れている場合は現在時刻に調整（フレームスキップ）
+    if (std::chrono::steady_clock::now() > reference + frameTime) {
+        reference = std::chrono::steady_clock::now();
+    }
 }
 
 #pragma region 必要な関数

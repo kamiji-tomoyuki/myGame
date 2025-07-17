@@ -38,7 +38,7 @@ void PlayerArm::Update()
 	// コンボタイマーの更新
 	UpdateComboTime();
 
-	obj3d_->AnimationUpdate(true);
+	obj3d_->UpdateAnimation(true);
 }
 
 void PlayerArm::UpdateComboTime()

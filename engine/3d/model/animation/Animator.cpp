@@ -46,6 +46,26 @@ void Animator::Update(bool roop)
 
 void Animator::UpdateNodeAnimation(bool roop)
 {
+	if (isAnimation_) {
+		if (roop) {
+			// --- ループ時の処理 ---
+			// アニメーション時間を進め、超えたら最初に戻る
+			animationTime += Frame::DeltaTime();
+			animationTime = std::fmod(animationTime, animation_.duration);
+		}
+		else {
+			// --- 非ループ時の処理 ---
+			// アニメーションが終了するまで進行
+			if (animationTime < animation_.duration) {
+				animationTime += Frame::DeltaTime();
+				// durationを超えたら停止
+				if (animationTime > animation_.duration) {
+					animationTime = animation_.duration;
+					isAnimation_ = false;
+				}
+			}
+		}
+	}
 	NodeAnimation& rootNodeAnimation = animation_.nodeAnimations[model_.rootNode.name];
 	Vector3 translate = CalculateValue(rootNodeAnimation.translate, animationTime); // 指定時刻の値を取得。関数の詳細は次ページ
 	Quaternion rotate = CalculateValue(rootNodeAnimation.rotate, animationTime);

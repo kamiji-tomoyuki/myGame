@@ -4,6 +4,8 @@
 #include <wrl.h>
 #include <d3d12.h>
 
+#include <DirectXTex.h>
+
 class DirectXCommon;
 
 class SrvManager
@@ -62,7 +64,7 @@ public:
 	/// <param name="pResource"></param>
 	/// <param name="Format"></param>
 	/// <param name="MipLevels"></param>
-	void CreateSRVforTexture2D(uint32_t srvIndex, ID3D12Resource* pResource, DXGI_FORMAT Format, UINT MipLevels);
+	void CreateSRVforTexture2D(uint32_t srvIndex, ID3D12Resource* pResource, DirectX::TexMetadata metaData, UINT MipLevels);
 
 	/// <summary>
 	/// SRV生成(Structured Buffer用)
