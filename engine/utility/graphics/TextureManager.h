@@ -50,6 +50,20 @@ public:
 	uint32_t GetTextureIndexByFilePath(const std::string& filePath);
 
 	/// <summary>
+	/// モデル用テクスチャファイルの読み込み
+	/// </summary>
+	/// <param name="filePath"></param>
+	/// <returns></returns>
+	void LoadModelTexture(const std::string& filePath);
+
+	/// <summary>
+	/// モデル用SRVインデックスの開始番号
+	/// </summary>
+	/// <param name="filePath"></param>
+	/// <returns></returns>
+	uint32_t GetModelTextureIndexByFilePath(const std::string& filePath);
+
+	/// <summary>
 	/// テクスチャ番号からGPUハンドルを取得
 	/// </summary>
 	/// <param name="textureIndex"></param>

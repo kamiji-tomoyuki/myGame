@@ -128,7 +128,7 @@ void ParticleManager::Draw(PrimitiveType primitiveType)
 				particleCommon->GetDxCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 
 				srvManager_->SetGraphicsRootDescriptorTable(1, particleGroup.instancingSRVIndex);
-				srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetTextureIndexByFilePath(particleGroup.material.textureFilePath));
+				srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetModelTextureIndexByFilePath(particleGroup.material.textureFilePath));
 
 				particleCommon->GetDxCommon()->GetCommandList()->DrawInstanced(UINT(modelData.vertices.size()), particleGroup.instanceCount, 0, 0);
 			}
@@ -143,7 +143,7 @@ void ParticleManager::Draw(PrimitiveType primitiveType)
 				particleCommon->GetDxCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 
 				srvManager_->SetGraphicsRootDescriptorTable(1, particleGroup.instancingSRVIndex);
-				srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetTextureIndexByFilePath(particleGroup.material.textureFilePath));
+				srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetModelTextureIndexByFilePath(particleGroup.material.textureFilePath));
 
 				particleCommon->GetDxCommon()->GetCommandList()->DrawInstanced(UINT(ringModelData.vertices.size()), particleGroup.instanceCount, 0, 0);
 			}
@@ -158,7 +158,7 @@ void ParticleManager::Draw(PrimitiveType primitiveType)
 				particleCommon->GetDxCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 
 				srvManager_->SetGraphicsRootDescriptorTable(1, particleGroup.instancingSRVIndex);
-				srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetTextureIndexByFilePath(particleGroup.material.textureFilePath));
+				srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetModelTextureIndexByFilePath(particleGroup.material.textureFilePath));
 
 				particleCommon->GetDxCommon()->GetCommandList()->DrawInstanced(UINT(cylinderModelData.vertices.size()), particleGroup.instanceCount, 0, 0);
 			}
@@ -178,7 +178,7 @@ void ParticleManager::CreateParticleGroup(const std::string name, const std::str
 	CreateVartexData(filename);
 
 	particleGroup.material.textureFilePath = modelData.material.textureFilePath;
-	TextureManager::GetInstance()->LoadTexture(modelData.material.textureFilePath);
+	TextureManager::GetInstance()->LoadModelTexture(modelData.material.textureFilePath);
 	particleGroup.instancingResource = particleCommon->GetDxCommon()->CreateBufferResource(sizeof(ParticleForGPU) * kNumMaxInstance);
 
 	particleGroup.instancingSRVIndex = srvManager_->Allocate() + 1;

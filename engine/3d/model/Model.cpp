@@ -37,8 +37,8 @@ void Model::Initialize(ModelCommon *modelCommon, const std::string &directorypat
     }
 
     // テクスチャ読み込み
-    TextureManager::GetInstance()->LoadTexture(modelData.material.textureFilePath);
-    modelData.material.textureIndex = TextureManager::GetInstance()->GetTextureIndexByFilePath(modelData.material.textureFilePath);
+    TextureManager::GetInstance()->LoadModelTexture(modelData.material.textureFilePath);
+    modelData.material.textureIndex = TextureManager::GetInstance()->GetModelTextureIndexByFilePath(modelData.material.textureFilePath);
 
     // アニメーター、ボーン、スキンの初期化は後で行う
     animator_ = nullptr;
@@ -200,12 +200,33 @@ ModelData Model::LoadModelFile(const std::string &directoryPath, const std::stri
     jointNames.clear();
 
     // --- マテリアル処理 ---
+    // モデルファイルの完全なパスからディレクトリ部分を取得
+    std::string modelFileDir = directoryPath + "/" + filename;
+    size_t lastSlashPos = modelFileDir.find_last_of('/');
+    if (lastSlashPos != std::string::npos) {
+        modelFileDir = modelFileDir.substr(0, lastSlashPos + 1);
+    }
+    else {
+        modelFileDir = directoryPath + "/";
+    }
+
     for (uint32_t materialIndex = 0; materialIndex < scene->mNumMaterials; ++materialIndex) {
-        aiMaterial *material = scene->mMaterials[materialIndex];
+        aiMaterial* material = scene->mMaterials[materialIndex];
         if (material->GetTextureCount(aiTextureType_DIFFUSE) != 0) {
             aiString textureFilePath;
             material->GetTexture(aiTextureType_DIFFUSE, 0, &textureFilePath);
-            modelData.material.textureFilePath = directoryPath + textureFilePath.C_Str();
+
+            std::string texturePath = textureFilePath.C_Str();
+
+            // 相対パスの場合は、モデルファイルと同じディレクトリに配置されていると仮定
+            if (texturePath.find("../") == std::string::npos && texturePath.find(":/") == std::string::npos) {
+                // 相対パスの場合、モデルファイルと同じディレクトリに配置
+                modelData.material.textureFilePath = modelFileDir + texturePath;
+            }
+            else {
+                // 絶対パスまたは既に適切なパスの場合
+                modelData.material.textureFilePath = texturePath;
+            }
         }
     }
     if (modelData.material.textureFilePath.empty()) {
