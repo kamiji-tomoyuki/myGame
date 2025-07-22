@@ -124,8 +124,7 @@ void PlayerArm::UpdateRush()
 			forward.z * kRushDistance
 		};
 
-		// 【修正】元の位置は変更せず、目標位置のみを更新
-		// originalPosition_ = transform_.translation_;  // この行を削除
+		// 元の位置は変更せず、目標位置のみを更新
 		targetPosition_ = {
 			originalPosition_.x + attackOffset.x,
 			originalPosition_.y + attackOffset.y,

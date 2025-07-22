@@ -66,7 +66,6 @@ public:
 	void ProcessAttack();
 	bool CanCombo() const;
 	bool CanStartRush() const;
-	void HandleAttackInput();
 
 public:
 
