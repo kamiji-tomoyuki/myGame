@@ -34,6 +34,8 @@ void GameScene::Initialize()
 	enemy_ = std::make_unique<Enemy>();
 	enemy_->Init();
 
+	skybox_ = std::make_unique<Skybox>();
+	skybox_->Initialize("skybox.dds");
 
 	// ===== 各エフェクト・演出の初期化 =====
 	stageWall_ = std::make_unique<ParticleEmitter>();
@@ -68,6 +70,8 @@ void GameScene::Update()
 	// --- カメラ ---
 	CameraUpdate();
 
+	skybox_->Update(vp_);
+
 	// ===== 各エフェクト・演出の更新 =====
 	stageWall_->Update(vp_);
 
@@ -85,6 +89,8 @@ void GameScene::Update()
 void GameScene::Draw()
 {
 	/// -------描画処理開始-------
+
+	skybox_->Draw();
 
 	/// Spriteの描画準備
 	spCommon_->DrawCommonSetting();

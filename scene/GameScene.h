@@ -16,6 +16,7 @@
 #include "application/temp/TempObj.h"
 #endif //_DEBUG
 #include <ParticleEmitter.h>
+#include <Skybox.h>
 
 
 class GameScene : public BaseScene
@@ -69,6 +70,8 @@ private:
 	// --- 各オブジェクト ---
 	std::unique_ptr<Player> player_;
 	std::unique_ptr<Enemy> enemy_;
+
+	std::unique_ptr<Skybox> skybox_;
 
 	std::unique_ptr<FollowCamera> followCamera_;
 

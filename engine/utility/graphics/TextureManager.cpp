@@ -21,23 +21,36 @@ void TextureManager::LoadTexture(const std::string& filePath)
     assert(srvManager_->CanAllocate());
 
     // テクスチャファイルを読んでプログラムで扱えるようにする
+    HRESULT hr;
     DirectX::ScratchImage image{};
     std::wstring filePathW = StringUtility::ConvertString(newFilePath);
-    HRESULT hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
+    if (filePathW.ends_with(L".dds")) {
+        hr = DirectX::LoadFromDDSFile(filePathW.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, image);
+    }
+    else {
+        hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
+    }
+
     assert(SUCCEEDED(hr));
 
     DirectX::ScratchImage* imageToUse = &image; // 初期値はオリジナルのイメージ
 
     // ミニマップの作成
     DirectX::ScratchImage mipImages{};
-    hr = DirectX::GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::TEX_FILTER_SRGB, 0, mipImages);
+    if (DirectX::IsCompressed(image.GetMetadata().format)) {
+        mipImages = std::move(image);
+    }
+    else {
+        hr = DirectX::GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::TEX_FILTER_SRGB, 4, mipImages);
+    }
+
     if (SUCCEEDED(hr)) {
         imageToUse = &mipImages; // ミップマップが生成された場合はこれを使用
     }
 
     // テクスチャデータを追加して書き込む
     TextureData& textureData = textureDatas[newFilePath];
-
+    
     textureData.metadata = imageToUse->GetMetadata();
     textureData.resource = dxCommon_->CreateTextureResource(textureData.metadata);
     textureData.intermediateResource = dxCommon_->UploadTextureData(textureData.resource, *imageToUse); // ミップマップも含めてアップロード
