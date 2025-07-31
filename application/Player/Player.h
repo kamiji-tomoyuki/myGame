@@ -3,6 +3,8 @@
 #include "WorldTransform.h"
 #include "ViewProjection.h"
 
+#include <Arm/PlayerArm.h>
+
 #include <Stage/StageManager.h>
 #include <ParticleEmitter.h>
 
@@ -11,6 +13,14 @@ class FollowCamera;
 class Player : public BaseObject
 {
 public:
+	/// <summary>
+	/// 連動するモデル
+	/// </summary>
+	enum ModelArm {
+		kRArm,
+		kLArm,
+		kModelNum,
+	};
 
 	/// <summary>
 	/// 状態
@@ -33,6 +43,7 @@ public:
 	/// 更新
 	/// </summary>
 	void Update()override;
+	void UpdateAttack();
 
 	/// <summary>
 	/// 描画
@@ -60,14 +71,23 @@ public:
 	/// <returns></returns>
 	Vector3 GetCenterPosition() const override { return transform_.translation_; }
 	Vector3 GetCenterRotation() const override { return transform_.rotation_; }
+	uint32_t GetSerialNumber() const { return serialNumber_; }
+	Vector3 GetVelocity() const { return velocity_; }
 
 	/// 各ステータス設定関数
 	/// <returns></returns>
 	void SetFollowCamera(FollowCamera* followCamera) { followCamera_ = followCamera; }
 	void SetViewProjection(const ViewProjection* viewProjection) { vp_ = viewProjection; }
 	static void SetSerialNumber(int num) { nextSerialNumber_ = num; }
+	void SetTranslation(const Vector3& translation) { transform_.translation_ = translation; }
+	void SetVelocity(const Vector3& velocity) { velocity_ = velocity; }
 
 private:
+
+	/// <summary>
+	/// 腕の初期化
+	/// </summary>
+	void InitArm();
 
 	/// <summary>
 	/// 移動
@@ -81,12 +101,30 @@ private:
 
 	const ViewProjection* vp_ = nullptr;
 
+	// --- 腕 ---
+	std::array<std::unique_ptr<PlayerArm>, kModelNum> arms_;
+
 	// --- 各ステータス ---
 	bool isAlive_ = true;
+
+	// Behavior
+	Behavior behavior_ = Behavior::kRoot;
+
+	// HP
+	uint32_t kMaxHP_ = 1000;
+	uint32_t HP_ = kMaxHP_;
+
+	// Move関連変数
+	bool isMove_ = false;
 	Vector3 velocity_{};
-	float kAcceleration = 0.1f;
-	const float kMaxSpeed = 0.1f;
-	float kRotateAcceleration = 0.1f;
+	float kAcceleration_ = 0.1f;
+	const float kMaxSpeed_ = 0.1f;
+	float kRotateAcceleration_ = 0.1f;
+
+	// Attack関連変数
+	bool isAttack_ = false;
+	uint32_t globalComboCount_ = 0;  // プレイヤー全体のコンボカウント
+	uint32_t globalComboTimer_ = 0;  // プレイヤー全体のコンボタイマー
 
 	// --- 各エフェクト・演出 ---
 	std::unique_ptr<ParticleEmitter> hitEffect_;

@@ -22,6 +22,16 @@ void BaseObject::Draw(const ViewProjection& viewProjection) {
 	obj3d_->Draw(transform_, viewProjection, &objColor_);
 }
 
+Vector3 BaseObject::GetCenterPosition() const
+{
+	return transform_.translation_;
+}
+
+Vector3 BaseObject::GetCenterRotation() const
+{
+	return transform_.rotation_;
+}
+
 Vector3 BaseObject::GetWorldPosition() const {
 	Vector3 worldPos;
 	// ワールド行列の平行移動成分を取得
@@ -30,6 +40,10 @@ Vector3 BaseObject::GetWorldPosition() const {
 	worldPos.z = transform_.matWorld_.m[3][2];
 
 	return worldPos;
+}
+
+Vector3 BaseObject::GetWorldRotation() const {
+	return transform_.rotation_;
 }
 
 void BaseObject::CreateModel(const std::string modelname) {

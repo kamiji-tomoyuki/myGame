@@ -45,6 +45,13 @@ public:
 	/// <param name="other"></param>
 	void OnCollision([[maybe_unused]] Collider* other) override;
 
+	/// <summary>
+	/// プレイヤーとの衝突処理
+	/// </summary>
+	void HandleCollisionWithPlayer(Player* player);
+
+	void TakeDamage(uint32_t damage);
+
 public:
 
 	/// 各ステータス取得関数
@@ -67,6 +74,15 @@ private:
 	/// </summary>
 	void Approach();
 
+	/// <summary>
+	/// ラッシュ攻撃関連処理
+	/// </summary>
+	void CheckPlayerRushStatus();
+	void StartRushKnockback();
+	void UpdateRushKnockback();
+	void EndRushKnockback();
+	void RecoverRotation();
+
 private:
 	// --- 参照 ---
 	Player* player_;
@@ -77,11 +93,31 @@ private:
 	const ViewProjection* vp_ = nullptr;
 
 	// --- 各ステータス ---
+	bool isAlive_ = true;
+
+	// HP
+	uint32_t kMaxHP_ = 1000;
+	uint32_t HP_ = kMaxHP_;
+
+	// kRoot関連変数
 	Vector3 velocity_ = { 0.0f,0.0f,0.0f };
-	//行動距離
-	float shortDistance_ = 10.0f;
+	float shortDistance_ = 1.5f;
+	float approachSpeed_ = 0.05f;
+	float maxSpeed_ = 0.08f;
+
+	// 被弾時のノックバック
+	bool isBeingRushed_ = false;              // ラッシュ攻撃を受けているかどうか
+	uint32_t rushKnockbackTimer_ = 0;         // ラッシュノックバックタイマー
+	Vector3 knockbackDirection_ = { 0.0f, 0.0f, 1.0f }; // ノックバック方向
+	float knockbackSpeed_ = 0.02f;            // 現在のノックバック速度
+	Vector3 originalRotation_;                // 元の回転角度
+
+	static constexpr float initialKnockbackSpeed_ = 0.02f;  // 初期ノックバック速度
+	static constexpr float minKnockbackSpeed_ = 0.005f;     // 最小ノックバック速度
+	static constexpr float knockbackDecay_ = 0.98f;         // ノックバック速度減衰率
+	static constexpr float maxTiltAngle_ = 0.3f;            // 最大傾き角度（ラジアン）
+
 	// シリアルナンバー
 	uint32_t serialNumber_ = 0;
 	static uint32_t nextSerialNumber_;
 };
-

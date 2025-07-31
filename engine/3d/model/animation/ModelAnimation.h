@@ -19,6 +19,7 @@ public:
 	/// 更新処理
 	/// </summary>
 	void Update(bool roop);
+	void UpdateNodeAnimation(bool roop);
 
 public:
 

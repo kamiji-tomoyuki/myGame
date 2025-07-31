@@ -55,11 +55,12 @@ public:
 	virtual void OnCollisionOut([[maybe_unused]] Collider* other) override {};
 
 	// 中心座標を取得
-	virtual Vector3 GetCenterPosition() const override = 0;
-	virtual Vector3 GetCenterRotation() const override = 0;
+	virtual Vector3 GetCenterPosition() const override;
+	virtual Vector3 GetCenterRotation() const override;
 
 	// 中心座標取得
 	virtual Vector3 GetWorldPosition() const;
+	virtual Vector3 GetWorldRotation() const;
 	virtual const WorldTransform& GetWorldTransform() const { return transform_; }
 
 	/// ===================================================

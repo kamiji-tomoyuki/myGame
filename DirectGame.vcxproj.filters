@@ -347,6 +347,24 @@
     <ClCompile Include="application\Stage\StageManager.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
+    <ClCompile Include="application\Player\Arm\PlayerArm.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\3d\skybox\SkyboxTransform.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\3d\skybox\SkyboxManager.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\3d\skybox\SkyboxGeometry.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\3d\skybox\Skybox.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\Stage\Ground.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -599,6 +617,12 @@
       <Filter>ソースファイル\application\Enemy</Filter>
     </ClInclude>
     <ClInclude Include="application\Stage\StageManager.h" />
+    <ClInclude Include="application\Player\Arm\PlayerArm.h" />
+    <ClInclude Include="engine\3d\skybox\SkyboxTransform.h" />
+    <ClInclude Include="engine\3d\skybox\SkyboxManager.h" />
+    <ClInclude Include="engine\3d\skybox\SkyboxGeometry.h" />
+    <ClInclude Include="engine\3d\skybox\Skybox.h" />
+    <ClInclude Include="application\Stage\Ground.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\Particle\Particle.PS.hlsl">

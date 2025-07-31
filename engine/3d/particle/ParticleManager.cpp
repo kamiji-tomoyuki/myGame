@@ -67,9 +67,6 @@ void ParticleManager::Update(const ViewProjection& viewProjection)
 			if (isRandomRotate_) {
 				(*particleIterator).transform.rotation_ += (*particleIterator).rotateVelocity;
 			}
-			else if (isRandomRotateY_) {
-				(*particleIterator).transform.rotation_.y += (*particleIterator).rotateVelocity.y;
-			}
 			else {
 				(*particleIterator).transform.rotation_ = (1.0f - t) * (*particleIterator).startRote + t * (*particleIterator).endRote;
 			}
@@ -131,7 +128,7 @@ void ParticleManager::Draw(PrimitiveType primitiveType)
 				particleCommon->GetDxCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 
 				srvManager_->SetGraphicsRootDescriptorTable(1, particleGroup.instancingSRVIndex);
-				srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetTextureIndexByFilePath(particleGroup.material.textureFilePath));
+				srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetModelTextureIndexByFilePath(particleGroup.material.textureFilePath));
 
 				particleCommon->GetDxCommon()->GetCommandList()->DrawInstanced(UINT(modelData.vertices.size()), particleGroup.instanceCount, 0, 0);
 			}
@@ -146,7 +143,7 @@ void ParticleManager::Draw(PrimitiveType primitiveType)
 				particleCommon->GetDxCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 
 				srvManager_->SetGraphicsRootDescriptorTable(1, particleGroup.instancingSRVIndex);
-				srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetTextureIndexByFilePath(particleGroup.material.textureFilePath));
+				srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetModelTextureIndexByFilePath(particleGroup.material.textureFilePath));
 
 				particleCommon->GetDxCommon()->GetCommandList()->DrawInstanced(UINT(ringModelData.vertices.size()), particleGroup.instanceCount, 0, 0);
 			}
@@ -161,7 +158,7 @@ void ParticleManager::Draw(PrimitiveType primitiveType)
 				particleCommon->GetDxCommon()->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 
 				srvManager_->SetGraphicsRootDescriptorTable(1, particleGroup.instancingSRVIndex);
-				srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetTextureIndexByFilePath(particleGroup.material.textureFilePath));
+				srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetModelTextureIndexByFilePath(particleGroup.material.textureFilePath));
 
 				particleCommon->GetDxCommon()->GetCommandList()->DrawInstanced(UINT(cylinderModelData.vertices.size()), particleGroup.instanceCount, 0, 0);
 			}
@@ -181,7 +178,7 @@ void ParticleManager::CreateParticleGroup(const std::string name, const std::str
 	CreateVartexData(filename);
 
 	particleGroup.material.textureFilePath = modelData.material.textureFilePath;
-	TextureManager::GetInstance()->LoadTexture(modelData.material.textureFilePath);
+	TextureManager::GetInstance()->LoadModelTexture(modelData.material.textureFilePath);
 	particleGroup.instancingResource = particleCommon->GetDxCommon()->CreateBufferResource(sizeof(ParticleForGPU) * kNumMaxInstance);
 
 	particleGroup.instancingSRVIndex = srvManager_->Allocate() + 1;
@@ -270,13 +267,13 @@ void ParticleManager::CreateCylinderVartexData()
 		float u = float(i) / kCylinderDivide;
 		float uNext = float(i + 1) / kCylinderDivide;
 
-		cylinderModelData.vertices.push_back({ {-sin * kTopRadius, kHeight, cos * kTopRadius, 1.0f}, {u, 1.0f} });
-		cylinderModelData.vertices.push_back({ {-sinNext * kTopRadius, kHeight, cosNext * kTopRadius, 1.0f}, {uNext, 1.0f} });
-		cylinderModelData.vertices.push_back({ {-sin * kBottomRadius, 0.0f, cos * kBottomRadius, 1.0f}, {u, 0.0f} });
+		cylinderModelData.vertices.push_back({ {-sin * kTopRadius, kHeight, cos * kTopRadius, 1.0f}, {u, 0.0f} });
+		cylinderModelData.vertices.push_back({ {-sinNext * kTopRadius, kHeight, cosNext * kTopRadius, 1.0f}, {uNext, 0.0f} });
+		cylinderModelData.vertices.push_back({ {-sin * kBottomRadius, 0.0f, cos * kBottomRadius, 1.0f}, {u, 1.0f} });
 
-		cylinderModelData.vertices.push_back({ {-sin * kBottomRadius, 0.0f, cos * kBottomRadius, 1.0f}, {u, 0.0f} });
-		cylinderModelData.vertices.push_back({ {-sinNext * kTopRadius, kHeight, cosNext * kTopRadius, 1.0f}, {uNext, 1.0f} });
-		cylinderModelData.vertices.push_back({ {-sinNext * kBottomRadius, 0.0f, cosNext * kBottomRadius, 1.0f}, {uNext, 0.0f} });
+		cylinderModelData.vertices.push_back({ {-sin * kBottomRadius, 0.0f, cos * kBottomRadius, 1.0f}, {u, 1.0f} });
+		cylinderModelData.vertices.push_back({ {-sinNext * kTopRadius, kHeight, cosNext * kTopRadius, 1.0f}, {uNext, 0.0f} });
+		cylinderModelData.vertices.push_back({ {-sinNext * kBottomRadius, 0.0f, cosNext * kBottomRadius, 1.0f}, {uNext, 1.0f} });
 	}
 }
 
@@ -377,13 +374,6 @@ ParticleManager::Particle ParticleManager::MakeNewParticle(
 		particle.transform.rotation_.x = distRotateX(randomEngine);
 		particle.transform.rotation_.y = distRotateY(randomEngine);
 		particle.transform.rotation_.z = distRotateZ(randomEngine);
-	}
-	else if (isRandomRotateY_) {
-		// 回転速度をランダムに設定
-		std::uniform_real_distribution<float> distRotateYVelocity(rotateVelocityMin.y, rotateVelocityMax.y);
-		std::uniform_real_distribution<float> distRotateY(0.0f, 2.0f);
-		particle.rotateVelocity.y = distRotateYVelocity(randomEngine);
-		particle.transform.rotation_.y = distRotateY(randomEngine);
 	}
 	else {
 		particle.startRote = startRote;
