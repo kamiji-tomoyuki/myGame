@@ -131,6 +131,7 @@ std::vector<std::pair<std::string, GlobalVariables::Item&>> GlobalVariables::Get
 }
 
 void GlobalVariables::RenderItemControls(const std::string& groupName, const std::string& itemName, Item& item) {
+#ifdef _DEBUG
 	ImGui::PushID(itemName.c_str());
 
 	// 項目名の表示（右クリックメニュー付き）
@@ -174,6 +175,7 @@ void GlobalVariables::RenderItemControls(const std::string& groupName, const std
 	}
 
 	ImGui::PopID();
+#endif // _DEBUG
 }
 
 GlobalVariables* GlobalVariables::GetInstance() {
