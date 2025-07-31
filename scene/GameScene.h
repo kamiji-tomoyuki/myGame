@@ -11,6 +11,7 @@
 #include <Player.h>
 #include <Enemy.h>
 #include <FollowCamera.h>
+#include <Stage/Ground.h>
 
 #ifdef _DEBUG
 #include "application/temp/TempObj.h"
@@ -72,6 +73,7 @@ private:
 	std::unique_ptr<Enemy> enemy_;
 
 	std::unique_ptr<Skybox> skybox_;
+	std::unique_ptr<Ground> ground_;
 
 	std::unique_ptr<FollowCamera> followCamera_;
 

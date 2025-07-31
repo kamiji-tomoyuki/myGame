@@ -362,6 +362,9 @@
     <ClCompile Include="engine\3d\skybox\Skybox.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
+    <ClCompile Include="application\Stage\Ground.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -619,6 +622,7 @@
     <ClInclude Include="engine\3d\skybox\SkyboxManager.h" />
     <ClInclude Include="engine\3d\skybox\SkyboxGeometry.h" />
     <ClInclude Include="engine\3d\skybox\Skybox.h" />
+    <ClInclude Include="application\Stage\Ground.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\Particle\Particle.PS.hlsl">

@@ -18,15 +18,17 @@ void Object3d::Initialize(const std::string &filePath) {
     ModelManager::GetInstance()->LoadModel(filePath);
     model = ModelManager::GetInstance()->FindModel(filePath);
 
-    modelAnimation_ = std::make_unique<ModelAnimation>();
-    modelAnimation_->SetModelData(model->GetModelData());
-    modelAnimation_->Initialize("resources/models/", filePath);
-    modelAnimation_->GetAnimator()->SetAnimationTime(0.0f);
+    if (model->IsGltf()) {
+        modelAnimation_ = std::make_unique<ModelAnimation>();
+        modelAnimation_->SetModelData(model->GetModelData());
+        modelAnimation_->Initialize("resources/models/", filePath);
+        modelAnimation_->GetAnimator()->SetAnimationTime(0.0f);
 
-    hasBone_ = model->CheckBone();
-    modelAnimation_->SetHaveBone(hasBone_);
+        hasBone_ = model->CheckBone();
+        modelAnimation_->SetHaveBone(hasBone_);
 
-    model->SetAnimator(modelAnimation_->GetAnimator());
+        model->SetAnimator(modelAnimation_->GetAnimator());
+    }
 
     if (hasBone_) {
         model->SetBone(modelAnimation_->GetBone());
@@ -59,8 +61,8 @@ void Object3d::Update(const WorldTransform &worldTransform, const ViewProjection
             transformationMatrixData->WorldInverseTranspose = Transpose(worldInverseMatrix);
         }
     } else {
-        transformationMatrixData->WVP = modelAnimation_->GetLocalMatrix() * worldViewProjectionMatrix_;
-        transformationMatrixData->World = modelAnimation_->GetLocalMatrix() * worldTransform.matWorld_;
+        transformationMatrixData->WVP = worldViewProjectionMatrix_;
+        transformationMatrixData->World = worldTransform.matWorld_;
         transformationMatrixData->WorldInverseTranspose = Transpose(worldInverseMatrix);
     }
 }
