@@ -4,6 +4,8 @@
 
 #include "TitleScene.h"
 #include "GameScene.h"
+#include "GameClearScene.h"
+#include "GameOverScene.h"
 
 class MyGame : public Framework
 {
