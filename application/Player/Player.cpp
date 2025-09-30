@@ -28,7 +28,7 @@ void Player::Init()
 
 	// --- モデルの初期化 ---
 	obj3d_ = std::make_unique<Object3d>();
-	obj3d_->Initialize("Player/player.gltf");
+	obj3d_->Initialize("Player/playerBody.obj");
 
 	// --- 各パーツの初期化・設定 ---
 	InitArm();
@@ -110,13 +110,14 @@ void Player::UpdateAttack()
 
 void Player::Draw(const ViewProjection& viewProjection)
 {
-
+	if (isAlive_) {
+		obj3d_->Draw(BaseObject::GetWorldTransform(), viewProjection);
+	}
 }
 
 void Player::DrawAnimation(const ViewProjection& viewProjection)
 {
 	if (isAlive_) {
-		obj3d_->Draw(BaseObject::GetWorldTransform(), viewProjection);
 		for (const std::unique_ptr<PlayerArm>& arm : arms_) {
 			arm->DrawAnimation(viewProjection);
 		}

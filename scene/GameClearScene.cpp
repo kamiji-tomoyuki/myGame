@@ -1,4 +1,4 @@
-#include "TitleScene.h"
+#include "GameClearScene.h"
 #include "ImGuiManager.h"
 #include "SceneManager.h"
 #include "SrvManager.h"
@@ -10,7 +10,7 @@
 #include <LightGroup.h>
 #include <line/DrawLine3D.h>
 
-void TitleScene::Initialize()
+void GameClearScene::Initialize()
 {
 	audio_ = Audio::GetInstance();
 	objCommon_ = Object3dCommon::GetInstance();
@@ -44,12 +44,12 @@ void TitleScene::Initialize()
 	wt1_.translation_ = position;
 }
 
-void TitleScene::Finalize()
+void GameClearScene::Finalize()
 {
 
 }
 
-void TitleScene::Update()
+void GameClearScene::Update()
 {
 #ifdef _DEBUG
 	// デバッグ
@@ -68,7 +68,7 @@ void TitleScene::Update()
 	wt1_.UpdateMatrix();
 }
 
-void TitleScene::Draw()
+void GameClearScene::Draw()
 {
 	/// -------描画処理開始-------
 
@@ -82,12 +82,12 @@ void TitleScene::Draw()
 
 	objCommon_->skinningDrawCommonSetting();
 	//-----アニメーションの描画開始-----
-	
+
 	//------------------------------
 
 	objCommon_->DrawCommonSetting();
 	//-----3DObjectの描画開始-----
-	
+
 	//--------------------------
 
 	/// Particleの描画準備
@@ -105,7 +105,7 @@ void TitleScene::Draw()
 	/// -------描画処理終了-------
 }
 
-void TitleScene::DrawForOffScreen()
+void GameClearScene::DrawForOffScreen()
 {
 	/// -------描画処理開始-------
 
@@ -122,7 +122,7 @@ void TitleScene::DrawForOffScreen()
 
 	objCommon_->DrawCommonSetting();
 	//-----3DObjectの描画開始-----
-	
+
 	//--------------------------
 
 	/// Particleの描画準備
@@ -138,9 +138,9 @@ void TitleScene::DrawForOffScreen()
 }
 
 
-void TitleScene::Debug()
+void GameClearScene::Debug()
 {
-	ImGui::Begin("TitleScene:Debug");
+	ImGui::Begin("GameOverScene:Debug");
 
 	debugCamera_->imgui();
 
@@ -153,7 +153,7 @@ void TitleScene::Debug()
 	emitter_->imgui();
 }
 
-void TitleScene::CameraUpdate()
+void GameClearScene::CameraUpdate()
 {
 	if (debugCamera_->GetActive()) {
 		debugCamera_->Update();
@@ -163,9 +163,9 @@ void TitleScene::CameraUpdate()
 	}
 }
 
-void TitleScene::ChangeScene()
+void GameClearScene::ChangeScene()
 {
 	if (input_->TriggerKey(DIK_SPACE)) {
-		sceneManager_->NextSceneReservation("GAME");
+		sceneManager_->NextSceneReservation("TITLE");
 	}
 }

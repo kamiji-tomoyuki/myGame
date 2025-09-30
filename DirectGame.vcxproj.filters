@@ -365,6 +365,12 @@
     <ClCompile Include="application\Stage\Ground.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
+    <ClCompile Include="scene\GameClearScene.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="scene\GameOverScene.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -623,6 +629,8 @@
     <ClInclude Include="engine\3d\skybox\SkyboxGeometry.h" />
     <ClInclude Include="engine\3d\skybox\Skybox.h" />
     <ClInclude Include="application\Stage\Ground.h" />
+    <ClInclude Include="scene\GameClearScene.h" />
+    <ClInclude Include="scene\GameOverScene.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\Particle\Particle.PS.hlsl">

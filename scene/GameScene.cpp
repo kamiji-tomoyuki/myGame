@@ -66,7 +66,7 @@ void GameScene::Update()
 
 	// ===== 各オブジェクトの更新 =====
 	// --- 敵 ---
-	enemy_->Update(player_.get());
+	enemy_->Update(player_.get(),vp_);
 
 	// --- プレイヤー ---
 	player_->Update();
@@ -120,7 +120,10 @@ void GameScene::Draw()
 	obj_->Draw(vp_);
 #endif // _DEBUG
 
-	ground_->Draw(vp_);
+	player_->Draw(vp_);
+	enemy_->Draw(vp_);
+
+	//ground_->Draw(vp_);
 
 	//--------------------------
 
@@ -200,7 +203,11 @@ void GameScene::CameraUpdate()
 
 void GameScene::ChangeScene()
 {
-	/*if (input_->TriggerKey(DIK_SPACE)) {
-		sceneManager_->NextSceneReservation("TITLE");
-	}*/
+	if (enemy_->GetHP() <= 0) {
+		sceneManager_->NextSceneReservation("CLEAR");
+	}
+
+#ifdef _DEBUG
+	//if(enemy->)
+#endif // _DEBUG
 }

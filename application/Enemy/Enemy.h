@@ -14,7 +14,8 @@ public:
 	/// </summary>
 	enum class Behavior {
 		kRoot,		// 通常 (接近)
-		kAttack,	// 攻撃
+		kAttack,	// 攻撃 (突進)
+		kCooldown,	// クールダウン
 	};
 
 public:
@@ -29,7 +30,7 @@ public:
 	/// <summary>
 	/// 更新
 	/// </summary>
-	void Update(Player* player);
+	void Update(Player* player, const ViewProjection &vp);
 
 	/// <summary>
 	/// 描画
@@ -61,6 +62,8 @@ public:
 	uint32_t GetSerialNumber() const { return serialNumber_; }
 	static uint32_t GetNextSerialNumber() { return nextSerialNumber_; }
 	float GetShortDistance() { return shortDistance_; }
+	uint32_t GetHP() { return HP_; }
+	Behavior GetBehavior() const { return behavior_; }
 
 	/// 各ステータス設定関数
 	/// <returns></returns>
@@ -73,6 +76,16 @@ private:
 	/// 移動
 	/// </summary>
 	void Approach();
+
+	/// <summary>
+	/// 突進攻撃関連
+	/// </summary>
+	void UpdateBehavior();
+	void StartCharge();
+	void UpdateCharge();
+	void EndCharge();
+	void StartCooldown();
+	void UpdateCooldown();
 
 	/// <summary>
 	/// ラッシュ攻撃関連処理
@@ -99,11 +112,29 @@ private:
 	uint32_t kMaxHP_ = 1000;
 	uint32_t HP_ = kMaxHP_;
 
+	// 行動状態
+	Behavior behavior_ = Behavior::kRoot;
+
 	// kRoot関連変数
 	Vector3 velocity_ = { 0.0f,0.0f,0.0f };
 	float shortDistance_ = 1.5f;
 	float approachSpeed_ = 0.05f;
 	float maxSpeed_ = 0.08f;
+
+	// 突進攻撃関連変数
+	uint32_t chargeTimer_ = 0;              // 突進準備タイマー
+	uint32_t chargeDuration_ = 0;           // 突進継続時間
+	uint32_t cooldownTimer_ = 0;            // クールダウンタイマー
+	uint32_t chargeCount_ = 0;              // 現在の突進回数
+	uint32_t maxChargeCount_ = 1;           // 最大突進回数
+	Vector3 chargeDirection_ = { 0.0f, 0.0f, 1.0f }; // 突進方向
+	Vector3 chargeStartPos_ = { 0.0f, 0.0f, 0.0f };  // 突進開始位置
+
+	static constexpr uint32_t kChargePreparationTime_ = 180;  // 突進準備時間（3秒 @ 60FPS）
+	static constexpr uint32_t kChargeDuration_ = 60;          // 突進継続時間（1秒 @ 60FPS）
+	static constexpr uint32_t kCooldownTime_ = 300;           // クールダウン時間（5秒 @ 60FPS）
+	static constexpr float kChargeSpeed_ = 0.3f;              // 突進速度
+	static constexpr float kChargeRange_ = 15.0f;             // 突進可能距離
 
 	// 被弾時のノックバック
 	bool isBeingRushed_ = false;              // ラッシュ攻撃を受けているかどうか

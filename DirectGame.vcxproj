@@ -125,6 +125,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\Base\BaseObject.cpp" />
     <ClCompile Include="engine\utility\json\JsonLoader.cpp" />
     <ClCompile Include="application\Stage\Ground.cpp" />
+    <ClCompile Include="scene\GameOverScene.cpp" />
     <ClCompile Include="math\random.cpp" />
     <ClCompile Include="engine\3d\camera\DebugCamera.cpp" />
     <ClCompile Include="engine\3d\light\LightGroup.cpp" />
@@ -180,6 +181,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\utility\scene\SceneTransition.cpp" />
     <ClCompile Include="engine\offscreen\OffScreen.cpp" />
     <ClCompile Include="scene\BaseScene.cpp" />
+    <ClCompile Include="scene\GameClearScene.cpp" />
     <ClCompile Include="scene\GameScene.cpp" />
     <ClCompile Include="scene\TitleScene.cpp" />
     <ClCompile Include="engine\3d\model\animation\Skin.cpp" />
@@ -289,6 +291,8 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\utility\scene\SceneTransition.h" />
     <ClInclude Include="engine\offscreen\OffScreen.h" />
     <ClInclude Include="scene\BaseScene.h" />
+    <ClInclude Include="scene\GameClearScene.h" />
+    <ClInclude Include="scene\GameOverScene.h" />
     <ClInclude Include="scene\GameScene.h" />
     <ClInclude Include="scene\TitleScene.h" />
     <ClInclude Include="engine\3d\model\animation\Skin.h" />
