@@ -1,5 +1,6 @@
 #include "Skin.h"
 #include <cassert>
+#include <algorithm>
 
 #include "SrvManager.h"
 #include <DirectXCommon.h>
@@ -40,43 +41,65 @@ SkinCluster Skin::CreateSkinCluster(const Skeleton& skeleton, const ModelData& m
 	skinCluster.paletteSrvHandle.second = srvManager_->GetGPUDescriptorHandle(skinClusterSrvIndex_);
 
 	// --- palette用SRV作成 ---
-	srvManager_->CreateSRVforStructuredBuffer(skinClusterSrvIndex_, skinCluster.paletteResource.Get(), UINT(skeleton.joints.size()), sizeof(WellForGPU));
+	srvManager_->CreateSRVforStructuredBuffer(
+		skinClusterSrvIndex_,
+		skinCluster.paletteResource.Get(),
+		UINT(skeleton.joints.size()),
+		sizeof(WellForGPU)
+	);
 
+	// --- モデル全体の頂点数を計算 ---
+	size_t totalVertexCount = 0;
+	for (const auto& mesh : modelData.meshes) {
+		totalVertexCount += mesh.vertices.size();
+	}
 
 	// --- mappedInfluence作成 ---
-	skinCluster.influenceResource = dxCommon->CreateBufferResource(sizeof(VertexInfluence) * modelData.vertices.size());
+	skinCluster.influenceResource = dxCommon->CreateBufferResource(sizeof(VertexInfluence) * totalVertexCount);
 	VertexInfluence* mappedInfluence = nullptr;
 	skinCluster.influenceResource->Map(0, nullptr, reinterpret_cast<void**>(&mappedInfluence));
-	std::memset(mappedInfluence, 0, sizeof(VertexInfluence) * modelData.vertices.size());
-	skinCluster.mappedInfluence = { mappedInfluence,modelData.vertices.size() };
+	std::memset(mappedInfluence, 0, sizeof(VertexInfluence) * totalVertexCount);
+	skinCluster.mappedInfluence = { mappedInfluence,totalVertexCount };
 
 	// --- BufferView作成 ---
 	skinCluster.influenceBufferView.BufferLocation = skinCluster.influenceResource->GetGPUVirtualAddress();
-	skinCluster.influenceBufferView.SizeInBytes = UINT(sizeof(VertexInfluence) * modelData.vertices.size());
+	skinCluster.influenceBufferView.SizeInBytes = UINT(sizeof(VertexInfluence) * totalVertexCount);
 	skinCluster.influenceBufferView.StrideInBytes = sizeof(VertexInfluence);
 
 	// --- inverseBindPoseMatrices作成 ---
 	skinCluster.inverseBindPoseMatrices.resize(skeleton.joints.size());
-	std::generate(skinCluster.inverseBindPoseMatrices.begin(), skinCluster.inverseBindPoseMatrices.end(), []() { return MakeIdentity4x4(); });
+	std::generate(
+		skinCluster.inverseBindPoseMatrices.begin(),
+		skinCluster.inverseBindPoseMatrices.end(),
+		[]() { return MakeIdentity4x4(); }
+	);
 
-	// --- SkinClusterを解析、Influenceの中身を作成 ---
-	for (const auto& jointWeight : modelData.skinClusterData) {
-		auto it = skeleton.jointMap.find(jointWeight.first);
-		if (it == skeleton.jointMap.end()) {
-			continue;
-		}
-		
-		skinCluster.inverseBindPoseMatrices[(*it).second] = jointWeight.second.inverseBindPoseMatrix;
-		for (const auto& vertexWeight : jointWeight.second.vertexWeights) {
-			auto& currentInfluence = skinCluster.mappedInfluence[vertexWeight.vertexIndex];
-			for (uint32_t index = 0; index < kNumMaxInfluence; ++index) {
-				if (currentInfluence.weights[index] == 0.0f) {
-					currentInfluence.weights[index] = vertexWeight.weight;
-					currentInfluence.jointIndices[index] = (*it).second;
-					break;
+	// --- 各メッシュの SkinClusterData を解析 ---
+	size_t vertexOffset = 0;
+	for (const auto& mesh : modelData.meshes) {
+		for (const auto& jointWeight : mesh.skinClusterData) {
+			auto it = skeleton.jointMap.find(jointWeight.first);
+			if (it == skeleton.jointMap.end()) {
+				continue;
+			}
+
+			// inverseBindPoseMatrix 登録
+			skinCluster.inverseBindPoseMatrices[(*it).second] = jointWeight.second.inverseBindPoseMatrix;
+
+			// 頂点の影響度登録
+			for (const auto& vertexWeight : jointWeight.second.vertexWeights) {
+				size_t globalVertexIndex = vertexOffset + vertexWeight.vertexIndex;
+				auto& currentInfluence = skinCluster.mappedInfluence[globalVertexIndex];
+				for (uint32_t index = 0; index < kNumMaxInfluence; ++index) {
+					if (currentInfluence.weights[index] == 0.0f) {
+						currentInfluence.weights[index] = vertexWeight.weight;
+						currentInfluence.jointIndices[index] = (*it).second;
+						break;
+					}
 				}
 			}
 		}
+		vertexOffset += mesh.vertices.size();
 	}
 
 	return skinCluster;
