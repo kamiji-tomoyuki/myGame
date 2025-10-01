@@ -600,14 +600,43 @@ Microsoft::WRL::ComPtr<ID3D12Resource> DirectXCommon::CreateRenderTextureResourc
 	return resource;
 }
 
-Microsoft::WRL::ComPtr<ID3D12Resource> DirectXCommon::UploadTextureData(Microsoft::WRL::ComPtr<ID3D12Resource> texture, const DirectX::ScratchImage& mipImages)
-{
-	std::vector<D3D12_SUBRESOURCE_DATA>subresources;
-	DirectX::PrepareUpload(device.Get(), mipImages.GetImages(), mipImages.GetImageCount(), mipImages.GetMetadata(), subresources);
-	uint64_t intermediateSize = GetRequiredIntermediateSize(texture.Get(), 0, UINT(subresources.size()));
+Microsoft::WRL::ComPtr<ID3D12Resource> DirectXCommon::UploadTextureData(
+	Microsoft::WRL::ComPtr<ID3D12Resource> texture,
+	const DirectX::ScratchImage& mipImages) {
+
+	std::vector<D3D12_SUBRESOURCE_DATA> subresources;
+	DirectX::PrepareUpload(
+		device.Get(),
+		mipImages.GetImages(),
+		mipImages.GetImageCount(),
+		mipImages.GetMetadata(),
+		subresources
+	);
+
+	// subresourcesが空の場合のチェック
+	if (subresources.empty()) {
+		assert(false && "Subresources is empty! Texture data is invalid.");
+		return nullptr;
+	}
+
+	uint64_t intermediateSize = GetRequiredIntermediateSize(
+		texture.Get(),
+		0,
+		UINT(subresources.size())
+	);
+
 	Microsoft::WRL::ComPtr<ID3D12Resource> intermediateResource = CreateBufferResource(intermediateSize);
-	UpdateSubresources(commandList.Get(), texture.Get(), intermediateResource.Get(), 0, 0, UINT(subresources.size()), subresources.data());
-	
+
+	UpdateSubresources(
+		commandList.Get(),
+		texture.Get(),
+		intermediateResource.Get(),
+		0,
+		0,
+		UINT(subresources.size()),
+		subresources.data()
+	);
+
 	D3D12_RESOURCE_BARRIER barrier{};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -616,6 +645,7 @@ Microsoft::WRL::ComPtr<ID3D12Resource> DirectXCommon::UploadTextureData(Microsof
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_GENERIC_READ;
 	commandList->ResourceBarrier(1, &barrier);
+
 	return intermediateResource;
 }
 

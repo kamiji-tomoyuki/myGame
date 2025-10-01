@@ -25,13 +25,10 @@ void TitleScene::Initialize()
 
 	wt1_.Initialize();
 
-	wt1_.translation_ = { -2.0f,0.0f,0.0f };
+	wt1_.translation_ = { -2.0f,0.0f,5.0f };
 
 	walk_ = std::make_unique<Object3d>();
-	walk_->Initialize("Player/player.gltf");
-
-	obb = std::make_unique<Object3d>();
-	obb->Initialize("walk.gltf");
+	walk_->Initialize("Chip2.obj");
 
 	emitter_ = std::make_unique<ParticleEmitter>();
 	emitter_->Initialize("test", "debug/plane.obj");
@@ -39,9 +36,6 @@ void TitleScene::Initialize()
 	json_ = std::make_unique<JsonLoader>();
 	std::string filePath = "scene/test.json";
 	std::string targetName = "ICO球";
-
-	Vector3 position = json_->GetWorldTransform(filePath, targetName);
-	wt1_.translation_ = position;
 }
 
 void TitleScene::Finalize()
@@ -63,7 +57,7 @@ void TitleScene::Update()
 	ChangeScene();
 
 	emitter_->Update(vp_);
-	walk_->UpdateAnimation(roop);
+	walk_->Update(wt1_,vp_);
 
 	wt1_.UpdateMatrix();
 }
@@ -87,7 +81,7 @@ void TitleScene::Draw()
 
 	objCommon_->DrawCommonSetting();
 	//-----3DObjectの描画開始-----
-	
+	walk_->Draw(wt1_, vp_);
 	//--------------------------
 
 	/// Particleの描画準備

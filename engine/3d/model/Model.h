@@ -72,7 +72,7 @@ class Model {
     /// <param name="directoryPath"></param>
     /// <param name="filename"></param>
     /// <returns></returns>
-    static MaterialData LoadMaterialTemplateFile(const std::string &directoryPath, const std::string &filename);
+    static std::map<std::string, MaterialData> LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename);
 
     /// <summary>
     ///  .objファイルの読み取り
@@ -97,15 +97,7 @@ class Model {
 
     uint32_t environmentSrvIndex = 0;
 
-    // vertexResource
-    Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource = nullptr;
-    VertexData *vertexData = nullptr;
-    D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
-
-    // indexResource
-    Microsoft::WRL::ComPtr<ID3D12Resource> indexResource = nullptr;
-    uint32_t *indexData;
-    D3D12_INDEX_BUFFER_VIEW indexBufferView;
+    std::vector<MeshResources> meshResources_;
 
     std::string filename_;
     std::string directorypath_;
