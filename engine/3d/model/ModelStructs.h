@@ -67,13 +67,29 @@ struct JointWeightData {
 	std::vector<VertexWeightData>vertexWeights;
 };
 
-struct ModelData
-{
-	std::map<std::string, JointWeightData>skinClusterData;
+struct MeshData {
 	std::vector<VertexData> vertices;
 	std::vector<uint32_t> indices;
 	MaterialData material;
+	std::map<std::string, JointWeightData> skinClusterData;
+};
+
+struct ModelData {
+	std::vector<MeshData> meshes;
 	Node rootNode;
+};
+
+struct MeshResources {
+	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource;
+	VertexData* vertexData;
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
+
+	Microsoft::WRL::ComPtr<ID3D12Resource> indexResource;
+	uint32_t* indexData;
+	D3D12_INDEX_BUFFER_VIEW indexBufferView;
+
+	uint32_t materialIndex;
+	size_t indexCount;
 };
 
 static const uint32_t kNumMaxInfluence = 4;

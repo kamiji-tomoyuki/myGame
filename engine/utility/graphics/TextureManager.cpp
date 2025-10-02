@@ -62,9 +62,7 @@ void TextureManager::LoadTexture(const std::string& filePath)
     srvManager_->CreateSRVforTexture2D(textureData.srvIndex, textureData.resource.Get(), textureData.metadata, UINT(textureData.metadata.mipLevels));
 }
 
-void TextureManager::LoadModelTexture(const std::string& filePath)
-{
-    // ファイル名を取り出す
+void TextureManager::LoadModelTexture(const std::string& filePath) {
     std::string newFilePath = filePath;
 
     // 読み込み済みテクスチャを検索
@@ -79,29 +77,50 @@ void TextureManager::LoadModelTexture(const std::string& filePath)
     DirectX::ScratchImage image{};
     std::wstring filePathW = StringUtility::ConvertString(newFilePath);
     HRESULT hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
-    assert(SUCCEEDED(hr));
 
-    DirectX::ScratchImage* imageToUse = &image; // 初期値はオリジナルのイメージ
+    // ファイル読み込み失敗時の処理
+    if (FAILED(hr)) {
+        // デフォルトテクスチャにフォールバック
+        newFilePath = "resources/images/white1x1.png";
+        filePathW = StringUtility::ConvertString(newFilePath);
+        hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
+        assert(SUCCEEDED(hr) && "Failed to load default texture");
+    }
+
+    DirectX::ScratchImage* imageToUse = &image;
 
     // ミニマップの作成
     DirectX::ScratchImage mipImages{};
-    hr = DirectX::GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::TEX_FILTER_SRGB, 0, mipImages);
-    if (SUCCEEDED(hr)) {
-        imageToUse = &mipImages; // ミップマップが生成された場合はこれを使用
+    hr = DirectX::GenerateMipMaps(
+        image.GetImages(),
+        image.GetImageCount(),
+        image.GetMetadata(),
+        DirectX::TEX_FILTER_SRGB,
+        0,
+        mipImages
+    );
+
+    // ミップマップ生成が成功した場合のみ使用
+    if (SUCCEEDED(hr) && mipImages.GetImageCount() > 0) {
+        imageToUse = &mipImages;
     }
 
     // テクスチャデータを追加して書き込む
     TextureData& textureData = textureDatas[newFilePath];
-
     textureData.metadata = imageToUse->GetMetadata();
     textureData.resource = dxCommon_->CreateTextureResource(textureData.metadata);
-    textureData.intermediateResource = dxCommon_->UploadTextureData(textureData.resource, *imageToUse); // ミップマップも含めてアップロード
+    textureData.intermediateResource = dxCommon_->UploadTextureData(textureData.resource, *imageToUse);
 
     textureData.srvIndex = srvManager_->Allocate() + kSRVIndexTop;
     textureData.srvHandleCPU = srvManager_->GetCPUDescriptorHandle(textureData.srvIndex);
     textureData.srvHandleGPU = srvManager_->GetGPUDescriptorHandle(textureData.srvIndex);
 
-    srvManager_->CreateSRVforTexture2D(textureData.srvIndex, textureData.resource.Get(), textureData.metadata, UINT(textureData.metadata.mipLevels));
+    srvManager_->CreateSRVforTexture2D(
+        textureData.srvIndex,
+        textureData.resource.Get(),
+        textureData.metadata,
+        UINT(textureData.metadata.mipLevels)
+    );
 }
 
 uint32_t TextureManager::GetModelTextureIndexByFilePath(const std::string& filePath)

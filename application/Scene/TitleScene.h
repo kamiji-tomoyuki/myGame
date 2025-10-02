@@ -64,8 +64,6 @@ private:
 
 	std::unique_ptr<Object3d> walk_;
 
-	std::unique_ptr<Object3d> obb;
-
 	std::unique_ptr<ParticleEmitter> emitter_;
 
 	std::unique_ptr<JsonLoader> json_;
