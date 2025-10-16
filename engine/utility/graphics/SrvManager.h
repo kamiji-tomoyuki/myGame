@@ -8,6 +8,9 @@
 
 class DirectXCommon;
 
+/// <summary>
+/// SRV管理クラス
+/// </summary>
 class SrvManager
 {
 private:

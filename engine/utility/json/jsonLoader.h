@@ -10,7 +10,9 @@
 
 #include <Vector3.h>
 
-// JSONローダー
+/// <summary>
+/// json読込クラス
+/// </summary>
 class JsonLoader {
 private:
 

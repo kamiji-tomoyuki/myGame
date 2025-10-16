@@ -10,6 +10,9 @@
 
 class FollowCamera;
 
+/// <summary>
+/// プレイヤークラス
+/// </summary>
 class Player : public BaseObject
 {
 public:

@@ -14,7 +14,9 @@
 
 using namespace Microsoft::WRL;
 
-// ライン描画
+/// <summary>
+/// ライン描画クラス
+/// </summary>
 class DrawLine3D 
 {
 #pragma region シングルトンインスタンス

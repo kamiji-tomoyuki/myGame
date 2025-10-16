@@ -1,6 +1,9 @@
 #pragma once
 #include <random>
 
+/// <summary>
+/// ランダム値出力用クラス
+/// </summary>
 class Random {
 public:
     // int型のランダムな値を返す（minからmaxまで）

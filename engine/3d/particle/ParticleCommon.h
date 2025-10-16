@@ -2,7 +2,9 @@
 #include "PipeLineManager.h"
 #include "DirectXCommon.h"
 
-// パーティクル
+/// <summary>
+/// パーティクルクラス
+/// </summary>
 class ParticleCommon
 {
 #pragma region シングルトンインスタンス

@@ -5,7 +5,7 @@
 #include <Vector4.h>
 
 /// <summary>
-/// スカイボックスの変換データを管理するクラス
+/// スカイボックス用変換データ管理クラス
 /// </summary>
 class SkyboxTransform {
   public:

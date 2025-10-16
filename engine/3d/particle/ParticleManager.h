@@ -11,7 +11,9 @@
 #include "Vector3.h"
 #include "Vector4.h"
 
-// パーティクル管理
+/// <summary>
+/// パーティクル管理クラス
+/// </summary>
 class ParticleManager {
   public:
     /// <summary>

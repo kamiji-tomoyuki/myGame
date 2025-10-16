@@ -1,6 +1,10 @@
 #pragma once
 #include <cstring>
 #include"Vector3.h"
+
+/// <summary>
+/// Matrix4x4
+/// </summary>
 struct Matrix4x4 {
 public:
 	float m[4][4];

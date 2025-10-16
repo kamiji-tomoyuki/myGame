@@ -2,7 +2,9 @@
 #include "DirectXCommon.h"
 #include "PipeLineManager.h"
 
-// スプライト共通部
+/// <summary>
+/// スプライト共通部クラス
+/// </summary>
 class SpriteCommon
 {
 #pragma region シングルトンインスタンス

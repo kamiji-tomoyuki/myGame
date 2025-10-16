@@ -11,7 +11,9 @@
 #include "Vector4.h"
 #include "Matrix4x4.h"
 
-// ライン描画管理
+/// <summary>
+/// ライン描画管理クラス
+/// </summary>
 class LineManager
 {
 public:

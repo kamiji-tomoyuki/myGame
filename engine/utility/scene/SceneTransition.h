@@ -1,6 +1,10 @@
 #pragma once
 #include"Sprite.h"
 #include"memory"
+
+/// <summary>
+/// シーン遷移クラス
+/// </summary>
 class SceneTransition
 {
 public:

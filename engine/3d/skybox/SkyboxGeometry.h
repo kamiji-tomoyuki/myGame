@@ -5,7 +5,7 @@
 #include <vector>
 
 /// <summary>
-/// スカイボックスのジオメトリ（形状）を管理するクラス
+/// スカイボックス用ジオメトリ管理クラス
 /// </summary>
 class SkyboxGeometry {
   public:

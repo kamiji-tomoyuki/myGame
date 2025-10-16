@@ -2,6 +2,10 @@
 #include"AbstractSceneFactory.h"
 #include"memory"
 #include"SceneTransition.h"
+
+/// <summary>
+/// シーン管理クラス
+/// </summary>
 class SceneManager
 {
 private:

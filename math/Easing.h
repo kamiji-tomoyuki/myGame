@@ -2,6 +2,9 @@
 #include "Vector2.h"
 #include "Vector3.h"
 
+/// <summary>
+/// イージング
+/// </summary>
 struct Easing {
 	float time;
 	float maxTime;

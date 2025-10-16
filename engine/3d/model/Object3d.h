@@ -18,7 +18,9 @@
 class ModelCommon;
 class Object3dCommon;
 
-// オブジェクト3D
+/// <summary>
+/// オブジェクト3Dクラス
+/// </summary>
 class Object3d {
   public: // メンバ関数
     /// <summary>

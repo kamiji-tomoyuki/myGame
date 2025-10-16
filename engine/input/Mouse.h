@@ -7,13 +7,18 @@
 
 #include "Vector2.h"
 
+/// <summary>
+/// マウス移動
+/// </summary>
 struct MouseMove {
 	LONG lX;
 	LONG lY;
 	LONG lZ;
 };
 
-// マウス
+/// <summary>
+/// マウスクラス
+/// </summary>
 class Mouse {
 private:
 

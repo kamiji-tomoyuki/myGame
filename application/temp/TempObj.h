@@ -1,6 +1,9 @@
 #pragma once
 #include "BaseObject.h"
 
+/// <summary>
+/// デバッグ用オブジェクトクラス
+/// </summary>
 class TempObj :public BaseObject
 {
 public:

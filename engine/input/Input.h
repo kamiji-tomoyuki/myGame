@@ -13,10 +13,11 @@
 
 #include "Vector2.h"
 
+/// <summary>
+/// 入力管理クラス
+/// </summary>
 class Input {
-
 private:
-
 	enum class PadType {
 		DirectInput,
 		XInput,

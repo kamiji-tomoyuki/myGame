@@ -1,6 +1,9 @@
 #pragma once
 #include "BaseObject.h"
 
+/// <summary>
+/// 地面クラス
+/// </summary>
 class Ground :public BaseObject
 {
 public:

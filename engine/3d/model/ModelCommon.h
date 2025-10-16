@@ -1,7 +1,9 @@
 #pragma once
 #include "DirectXCommon.h"
 
-// モデル管理
+/// <summary>
+/// モデル共通部クラス
+/// </summary>
 class ModelCommon
 {
 public:

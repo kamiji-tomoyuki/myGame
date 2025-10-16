@@ -5,10 +5,16 @@
 
 #include "Vector4.h"
 
+/// <summary>
+/// オブジェクトカラー用の定数バッファデータ
+/// </summary>
 struct ConstBufferDataObjColor {
 	Vector4 color_;
 };
 
+/// <summary>
+/// オブジェクト用カラー管理クラス
+/// </summary>
 class ObjColor
 {
 public:

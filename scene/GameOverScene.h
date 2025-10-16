@@ -12,6 +12,9 @@
 
 #include "JsonLoader.h"
 
+/// <summary>
+/// ゲームオーバーシーンクラス
+/// </summary>
 class GameOverScene :public BaseScene
 {
 public: // メンバ関数

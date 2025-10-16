@@ -5,7 +5,7 @@
 #include <memory>
 
 /// <summary>
-/// スカイボックス描画の共通設定を管理するクラス
+/// スカイボックス描画共通管理クラス
 /// </summary>
 class SkyboxManager {
   public:

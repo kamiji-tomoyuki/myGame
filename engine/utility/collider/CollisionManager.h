@@ -4,6 +4,9 @@
 #include "list"
 #include "Object3d.h"
 
+/// <summary>
+/// 当たり判定管理クラス
+/// </summary>
 class CollisionManager {
 private:
 	// コライダー

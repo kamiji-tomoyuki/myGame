@@ -2,7 +2,9 @@
 #include "Vector3.h"
 #include "Matrix4x4.h"
 
-// カメラ
+/// <summary>
+/// カメラクラス
+/// </summary>
 class Camera
 {
 public: // メンバ関数

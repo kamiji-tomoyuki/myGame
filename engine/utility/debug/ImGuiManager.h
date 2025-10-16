@@ -2,7 +2,9 @@
 #include"WinApp.h"
 #include"DirectXCommon.h"
 
-// ImGui管理
+/// <summary>
+/// ImGui管理クラス
+/// </summary>
 class ImGuiManager
 {
 private:

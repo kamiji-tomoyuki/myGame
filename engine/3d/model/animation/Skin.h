@@ -3,7 +3,9 @@
 
 #include <cstdint>
 
-// スキニング
+/// <summary>
+/// スキニングクラス
+/// </summary>
 class Skin
 {
 public:

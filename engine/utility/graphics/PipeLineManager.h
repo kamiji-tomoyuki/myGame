@@ -3,6 +3,9 @@
 #include "wrl.h"
 #include <DirectXCommon.h>
 
+/// <summary>
+/// ブレンドモード
+/// </summary>
 enum class BlendMode {
     // ブレンドなし
     kNone,
@@ -18,6 +21,9 @@ enum class BlendMode {
     kScreen,
 };
 
+/// <summary>
+/// オフスクリーン
+/// </summary>
 enum class ShaderMode {
     kNone,
     kGray,
@@ -29,6 +35,9 @@ enum class ShaderMode {
     kBlur,
 };
 
+/// <summary>
+/// パイプライン管理クラス
+/// </summary>
 class PipeLineManager {
   public:
     /// <summary>

@@ -11,12 +11,17 @@
 
 #include "externals/nlohmann/json.hpp"
 
+/// <summary>
+/// ライティングの種類
+/// </summary>
 enum class LightType {
 	Directional,
 	Point,
 };
 
-// ライティング
+/// <summary>
+/// ライティングクラス
+/// </summary>
 class LightGroup
 {
 #pragma region シングルトンインスタンス

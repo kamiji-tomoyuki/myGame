@@ -18,6 +18,9 @@
 
 #include <line/DrawLine3D.h>
 
+/// <summary>
+/// 基盤構造クラス
+/// </summary>
 class Framework {
   public: // メンバ関数
     virtual ~Framework() = default;

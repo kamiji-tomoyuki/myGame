@@ -1,6 +1,9 @@
 #pragma once
 #include"AbstractSceneFactory.h"
 
+/// <summary>
+/// シーン生成クラス
+/// </summary>
 class SceneFactory :public AbstractSceneFactory
 {
 public:
