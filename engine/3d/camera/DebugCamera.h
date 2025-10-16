@@ -5,7 +5,9 @@
 #include "Vector3.h"
 #include "Matrix4x4.h"
 
-// デバッグカメラ
+/// <summary>
+/// デバッグカメラクラス
+/// </summary>
 class DebugCamera
 {
 public:

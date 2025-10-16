@@ -1,7 +1,9 @@
 #pragma once
 #include "ModelStructs.h"
 
-// ボーン
+/// <summary>
+/// ボーンクラス
+/// </summary>
 class Bone
 {
 public:

@@ -1,6 +1,10 @@
 #pragma once
 #include"Object3d.h"
 #include"WorldTransform.h"
+
+/// <summary>
+/// ライン描画クラス
+/// </summary>
 class Liner
 {
 public:

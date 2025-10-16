@@ -22,7 +22,9 @@
 
 #include <unordered_set>
 
-// モデル
+/// <summary>
+/// モデルクラス
+/// </summary>
 class Model {
   public:
     /// <summary>

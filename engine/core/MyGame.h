@@ -7,6 +7,9 @@
 #include "GameClearScene.h"
 #include "GameOverScene.h"
 
+/// <summary>
+///	ゲーム管理クラス
+/// </summary>
 class MyGame : public Framework
 {
 public: // メンバ関数

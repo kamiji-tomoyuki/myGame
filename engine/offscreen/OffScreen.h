@@ -11,7 +11,9 @@
 
 class DirectXCommon;
 
-// オフスクリーン
+/// <summary>
+/// オフスクリーンクラス
+/// </summary>
 class OffScreen
 {
 public:

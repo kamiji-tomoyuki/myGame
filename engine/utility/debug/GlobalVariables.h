@@ -9,7 +9,9 @@
 #include "Vector2.h"
 #include "Vector3.h"
 
-// json
+/// <summary>
+/// json管理クラス
+/// </summary>
 class GlobalVariables {
 public:
 	/// <summary>

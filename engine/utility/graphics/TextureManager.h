@@ -1,11 +1,15 @@
 #pragma once
 #include "d3d12.h"
-#include"DirectXCommon.h"
-#include"externals/DirectXTex/DirectXTex.h"
-#include"SrvManager.h"
+#include "DirectXCommon.h"
+#include "externals/DirectXTex/DirectXTex.h"
+#include "SrvManager.h"
 #include "string"
 #include "unordered_map"
-#include"wrl.h"
+#include "wrl.h"
+
+/// <summary>
+/// テクスチャ管理クラス
+/// </summary>
 class TextureManager
 {
 private:

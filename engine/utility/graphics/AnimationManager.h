@@ -4,6 +4,10 @@
 #include"memory"
 #include"animation/ModelAnimation.h"
 #include <SrvManager.h>
+
+/// <summary>
+/// アニメーション管理クラス
+/// </summary>
 class AnimationManager
 {
 private:

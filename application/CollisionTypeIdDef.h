@@ -2,7 +2,9 @@
 
 #include <cstdint>
 
-// コリジョンID定義
+/// <summary>
+/// コリジョンID定義
+/// </summary>
 enum class CollisionTypeIdDef : uint32_t {
 	kDefault,
 	kPlayer,

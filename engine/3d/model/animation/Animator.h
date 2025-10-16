@@ -9,7 +9,9 @@
 #include <Vector3.h>
 #include <Quaternion.h>
 
-// アニメーション管理
+/// <summary>
+/// アニメーション管理クラス
+/// </summary>
 class Animator
 {
 public:

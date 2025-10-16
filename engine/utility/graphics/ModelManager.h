@@ -3,6 +3,10 @@
 #include "string"
 #include "memory"
 #include"Model.h"
+
+/// <summary>
+/// モデル管理クラス
+/// </summary>
 class ModelManager
 {
 private:

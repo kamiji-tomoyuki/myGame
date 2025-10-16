@@ -5,6 +5,9 @@
 
 class Player;
 
+/// <summary>
+/// プレイヤー(腕)クラス
+/// </summary>
 class PlayerArm : public BaseObject
 {
 public:

@@ -1,6 +1,11 @@
 #pragma once
 #include"ViewProjection.h"
+
 class SceneManager;
+
+/// <summary>
+/// シーン基底クラス
+/// </summary>
 class BaseScene
 {
 public:

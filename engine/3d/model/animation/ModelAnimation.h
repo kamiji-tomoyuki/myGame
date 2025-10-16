@@ -5,7 +5,9 @@
 #include "Bone.h"
 #include "Skin.h"
 
-// アニメーションモデル
+/// <summary>
+/// アニメーションモデルクラス
+/// </summary>
 class ModelAnimation
 {
 public:

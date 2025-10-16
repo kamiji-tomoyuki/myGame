@@ -1,7 +1,7 @@
 #pragma once
 
 /// <summary>
-/// 4次元ベクトル
+/// Vector4
 /// </summary>
 struct Vector4 final {
 	float x;

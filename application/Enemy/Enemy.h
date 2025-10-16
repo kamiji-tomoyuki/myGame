@@ -5,6 +5,9 @@
 
 class Player;
 
+/// <summary>
+/// 敵クラス
+/// </summary>
 class Enemy : public BaseObject
 {
 public:

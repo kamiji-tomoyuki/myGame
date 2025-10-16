@@ -1,7 +1,7 @@
 #pragma once
 #include"cmath"
 /// <summary>
-/// 3次元ベクトル
+/// Vector3
 /// </summary>
 struct Vector3 final {
 	float x;

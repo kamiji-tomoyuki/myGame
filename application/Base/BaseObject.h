@@ -7,6 +7,9 @@
 //std
 #include<string>
 
+/// <summary>
+/// オブジェクト基底クラス
+/// </summary>
 class BaseObject : public Collider {
 protected:
 

@@ -5,10 +5,16 @@
 
 #include "myMath.h"
 
+/// <summary>
+/// ワールド変換用定数バッファデータ
+/// </summary>
 struct ConstBufferDataWorldTransform {
 	Matrix4x4 matWorld;
 };
 
+/// <summary>
+/// ワールド変換クラス
+/// </summary>
 class WorldTransform
 {
 public:
@@ -66,8 +72,4 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Resource>constBuffer_;
 	// マッピング済み
 	ConstBufferDataWorldTransform* constMap = nullptr;
-	//// コピー禁止
-	//WorldTransform(const WorldTransform&) = delete;
-	//WorldTransform& operator=(const WorldTransform&) = delete;
 };
-//static_assert(!std::is_copy_assignable_v<WorldTransform>);

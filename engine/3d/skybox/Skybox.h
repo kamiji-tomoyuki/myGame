@@ -8,7 +8,7 @@
 #include <string>
 
 /// <summary>
-/// スカイボックス
+/// スカイボックスクラス
 /// </summary>
 class Skybox {
   public:

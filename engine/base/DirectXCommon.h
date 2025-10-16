@@ -11,7 +11,9 @@
 
 #include <Vector4.h>
 
-// DirectX基盤
+/// <summary>
+/// DirectX基盤クラス
+/// </summary>
 class DirectXCommon {
 #pragma region シングルトンインスタンス
   private:

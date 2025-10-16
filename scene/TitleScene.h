@@ -12,6 +12,9 @@
 
 #include "JsonLoader.h"
 
+/// <summary>
+/// タイトルシーンクラス
+/// </summary>
 class TitleScene :public BaseScene
 {
 public: // メンバ関数

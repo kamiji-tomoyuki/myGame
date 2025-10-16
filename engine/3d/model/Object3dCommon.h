@@ -1,6 +1,10 @@
 #pragma once
 #include"DirectXCommon.h"
 #include"PipeLineManager.h"
+
+/// <summary>
+/// オブジェクト3D共通部クラス
+/// </summary>
 class Object3dCommon
 {
 #pragma region シングルトンインスタンス

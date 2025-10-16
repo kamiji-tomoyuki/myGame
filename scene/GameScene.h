@@ -19,7 +19,9 @@
 #include <ParticleEmitter.h>
 #include <Skybox.h>
 
-
+/// <summary>
+/// メインゲームシーンクラス
+/// </summary>
 class GameScene : public BaseScene
 {
 public: // メンバ関数

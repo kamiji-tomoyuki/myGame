@@ -12,7 +12,9 @@
 
 class SpriteCommon;
 
-// スプライト
+/// <summary>
+/// スプライトクラス
+/// </summary>
 class Sprite
 {
 public: // メンバ関数

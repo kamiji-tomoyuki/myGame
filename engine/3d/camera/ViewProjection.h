@@ -10,13 +10,18 @@
 #include "Vector3.h"
 #include "Matrix4x4.h"
 
+/// <summary>
+/// 定数バッファデータ(ビュー・プロジェクション)
+/// </summary>
 struct ConstBufferDataViewProjection {
 	Matrix4x4 view;
 	Matrix4x4 projection;
 	Vector3 cameraPos;
 };
 
-// ビュープロジェクション
+/// <summary>
+/// ビュープロジェクションクラス
+/// </summary>
 class ViewProjection
 {
 public:

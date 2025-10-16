@@ -2,6 +2,9 @@
 #include"BaseScene.h"
 #include"string"
 
+/// <summary>
+/// シーン生成用基底クラス
+/// </summary>
 class AbstractSceneFactory 
 {
 public:

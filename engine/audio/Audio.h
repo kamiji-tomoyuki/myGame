@@ -7,7 +7,9 @@
 #include "wrl.h"
 #include <set>
 
-// 音声管理
+/// <summary>
+/// 音声管理クラス
+/// </summary>
 class Audio
 {
 	class VoiceCallback : public IXAudio2VoiceCallback {

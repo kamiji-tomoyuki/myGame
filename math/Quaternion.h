@@ -3,6 +3,9 @@
 #include <cmath>
 #include <numbers>
 
+/// <summary>
+/// Quaternion
+/// </summary>
 class Quaternion final {
 public:
     float x, y, z, w;

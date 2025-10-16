@@ -10,6 +10,9 @@
 #include "imgui.h"
 #endif // _DEBUG
 
+/// <summary>
+/// パーティクルエミッタクラス
+/// </summary>
 class ParticleEmitter {
 public:
     ParticleEmitter();
