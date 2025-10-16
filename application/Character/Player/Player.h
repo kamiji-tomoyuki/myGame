@@ -5,7 +5,7 @@
 
 #include <Arm/PlayerArm.h>
 
-#include <Stage/StageManager.h>
+#include <StageManager.h>
 #include <ParticleEmitter.h>
 
 class FollowCamera;

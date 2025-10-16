@@ -128,11 +128,11 @@ struct MeshResources {
 /// <summary>
 /// 頂点インフルエンス
 /// </summary>
+static const uint32_t kNumMaxInfluence = 4;
 struct VertexInfluence {
 	std::array<float, kNumMaxInfluence> weights;
 	std::array<int32_t, kNumMaxInfluence> jointIndices;
 };
-static const uint32_t kNumMaxInfluence = 4;
 
 /// <summary>
 /// GPU用スケルトン
