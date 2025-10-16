@@ -11,10 +11,10 @@
 #include <Player.h>
 #include <Enemy.h>
 #include <FollowCamera.h>
-#include <Stage/Ground.h>
+#include <Ground.h>
 
 #ifdef _DEBUG
-#include "application/temp/TempObj.h"
+#include "temp/TempObj.h"
 #endif //_DEBUG
 #include <ParticleEmitter.h>
 #include <Skybox.h>
