@@ -20,11 +20,12 @@ void Player::Init()
 
 	// --- ステージマネージャー ---
 	stageManager_ = StageManager::GetInstance();
+	// 初期位置設定
 	stageManager_->Initialize();
 
-	// 初期位置設定
 	Vector3 initialPos = { 0.0f, 0.0f, -15.0f };
 	BaseObject::SetWorldPosition(initialPos);
+	BaseObject::SetScale({ 0.0f,0.0f,0.0f });
 
 	// --- モデルの初期化 ---
 	obj3d_ = std::make_unique<Object3d>();
@@ -36,10 +37,25 @@ void Player::Init()
 	// --- 各ステータスの初期値設定 ---
 	isMove_ = true;
 
-
 	// --- 各エフェクト・演出の初期設定 ---
 	hitEffect_ = std::make_unique<ParticleEmitter>();
 	hitEffect_->Initialize("hitEffect", "debug/ringPlane.obj");
+}
+
+void Player::UpdateStartEffect() {
+	BaseObject::Update();
+	for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+		arm->Update();
+	}
+
+	if (easeT < 1.0f) {
+		easeT += (1.0f / 60.0f) / 1.5f;
+
+		BaseObject::SetScale(Lerp(Vector3{ 0.0f,0.0f,0.0f }, Vector3{ 1.0f,1.0f,1.0f }, easeT));
+	}
+	else {
+		isEnd = true;
+	}
 }
 
 void Player::Update()

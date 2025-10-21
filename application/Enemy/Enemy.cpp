@@ -5,6 +5,7 @@
 #include "Arm/PlayerArm.h"
 
 #include "myMath.h"
+#include <Easing.h>
 
 uint32_t Enemy::nextSerialNumber_ = 0;
 
@@ -19,7 +20,8 @@ Enemy::Enemy()
 void Enemy::Init()
 {
 	BaseObject::Init();
-	BaseObject::SetWorldPosition(Vector3{ 0.0f,2.0f,15.0f });
+	//BaseObject::SetWorldPosition(Vector3{ 0.0f,2.0f,15.0f });
+	BaseObject::SetWorldPosition(Vector3{ 0.0f,6.0f,15.0f });
 
 	float size = 1.0f;
 
@@ -59,6 +61,40 @@ void Enemy::Update(Player* player, const ViewProjection &vp)
 	}
 
 	obj3d_->Update(BaseObject::GetWorldTransform(), vp);
+}
+
+void Enemy::UpdateStartEffect()
+{
+	BaseObject::Update();
+	
+	if (fallTimer_ < kFallDuration_) {
+		// イージングを使った落下演出
+		Vector3 currentPos = EaseOutBounce<Vector3>(
+			fallStartPos_,
+			fallEndPos_,
+			fallTimer_,
+			kFallDuration_
+		);
+
+		BaseObject::SetWorldPosition(currentPos);
+
+		// タイマーを進める
+		fallTimer_++;
+
+		// 落下中は回転させる演出を追加（オプション）
+		float rotationSpeed = 0.1f;
+		Vector3 currentRotation = obj3d_->GetRotation();
+		currentRotation.y += rotationSpeed * (1.0f - (fallTimer_ / kFallDuration_));
+		obj3d_->SetRotation(currentRotation);
+	}
+	else {
+		// 落下完了後は最終位置に固定
+		BaseObject::SetWorldPosition(fallEndPos_);
+
+		// 落下完了フラグ（ヘッダーに追加が必要）
+		// bool isFallComplete_ = true;
+		isFallComplete_ = true;
+	}
 }
 
 void Enemy::UpdateBehavior()

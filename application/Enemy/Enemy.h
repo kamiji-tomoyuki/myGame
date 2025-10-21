@@ -31,6 +31,7 @@ public:
 	/// 更新
 	/// </summary>
 	void Update(Player* player, const ViewProjection &vp);
+	void UpdateStartEffect();
 
 	/// <summary>
 	/// 描画
@@ -69,6 +70,7 @@ public:
 	/// <returns></returns>
 	static void SetSerialNumber(int num) { nextSerialNumber_ = num; }
 	void SetTranslation(const Vector3& translation) { transform_.translation_ = translation; }
+	void SetIsStart(bool isStart) { isStart_ = isStart; }
 
 private:
 
@@ -147,6 +149,16 @@ private:
 	static constexpr float minKnockbackSpeed_ = 0.005f;     // 最小ノックバック速度
 	static constexpr float knockbackDecay_ = 0.98f;         // ノックバック速度減衰率
 	static constexpr float maxTiltAngle_ = 0.3f;            // 最大傾き角度（ラジアン）
+
+	// --- 各エフェクト・演出 ---
+
+	bool isStart_ = false;
+
+	float fallTimer_ = 0.0f;
+	const float kFallDuration_ = 60.0f;  // 1秒間の落下（60FPS想定）
+	Vector3 fallStartPos_ = { 0.0f, 10.0f, 15.0f };  // 落下開始位置（高い位置）
+	Vector3 fallEndPos_ = { 0.0f, 2.0f, 15.0f };     // 落下終了位置
+	bool isFallComplete_ = false;  // 落下完了フラグ
 
 	// シリアルナンバー
 	uint32_t serialNumber_ = 0;

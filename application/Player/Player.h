@@ -43,6 +43,9 @@ public:
 	/// 更新
 	/// </summary>
 	void Update()override;
+	void UpdateStartEffect();
+
+
 	void UpdateAttack();
 
 	/// <summary>
@@ -73,6 +76,7 @@ public:
 	Vector3 GetCenterRotation() const override { return transform_.rotation_; }
 	uint32_t GetSerialNumber() const { return serialNumber_; }
 	Vector3 GetVelocity() const { return velocity_; }
+	bool GetIsEnd() const { return isEnd; }
 
 	/// 各ステータス設定関数
 	/// <returns></returns>
@@ -129,7 +133,12 @@ private:
 	// --- 各エフェクト・演出 ---
 	std::unique_ptr<ParticleEmitter> hitEffect_;
 
-	// シリアルナンバー
+	// 出現演出関連変数
+	bool isStart = false;
+	bool isEnd = false;
+	float easeT = 0.0f;
+
+	// --- シリアルナンバー ---
 	uint32_t serialNumber_ = 0;
 	static inline int nextSerialNumber_ = 0;
 

@@ -19,6 +19,10 @@
 #include <ParticleEmitter.h>
 #include <Skybox.h>
 
+enum class GamePhase {
+	EnemyAppear,  // 敵出現演出
+	Battle,       // 戦闘パート
+};
 
 class GameScene : public BaseScene
 {
@@ -55,6 +59,11 @@ private:
 
 	void CameraUpdate();
 
+	void ChangePhase(GamePhase nextPhase);
+
+	void UpdateStart();
+	void UpdateBattle();
+
 	void ChangeScene();
 private:
 
@@ -63,6 +72,8 @@ private:
 	Object3dCommon* objCommon_;
 	SpriteCommon* spCommon_;
 	ParticleCommon* ptCommon_;
+
+	GamePhase currentPhase_;
 
 	// ビュープロジェクション
 	ViewProjection vp_;
@@ -79,6 +90,9 @@ private:
 
 	// --- 各エフェクト・演出 ---
 	std::unique_ptr<ParticleEmitter> stageWall_;
+
+	bool isStart = false;
+	bool isCameraMoveStart_ = false;
 
 
 #ifdef _DEBUG

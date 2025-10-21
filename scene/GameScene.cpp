@@ -16,6 +16,9 @@ void GameScene::Initialize()
 	debugCamera_->Initialize(&vp_);
 
 	// ===== 各オブジェクトの初期化 =====
+	
+	currentPhase_ = GamePhase::EnemyAppear;
+	
 	// --- プレイヤー ---
 	Player::SetSerialNumber(0);
 	player_ = std::make_unique<Player>();
@@ -25,9 +28,7 @@ void GameScene::Initialize()
 	// --- カメラ ---
 	followCamera_ = std::make_unique<FollowCamera>();
 	followCamera_->Initialize();
-	followCamera_->SetTarget(&player_->GetWorldTransform());
-	// カメラをプレイヤーに設定
-	player_->SetFollowCamera(followCamera_.get());
+	followCamera_->SetPosition({ 0.0f,2.0f,9.0f });
 
 	// --- 敵 ---
 	Enemy::SetSerialNumber(0);
@@ -64,26 +65,29 @@ void GameScene::Update()
 	Debug();
 #endif // _DEBUG
 
+	// --- カメラ ---
+	CameraUpdate();
+
 	// ===== 各オブジェクトの更新 =====
-	// --- 敵 ---
-	enemy_->Update(player_.get(),vp_);
-
-	// --- プレイヤー ---
-	player_->Update();
-
-	// --- ステージ ---
+	// --- フィールド ---
 	skybox_->Update(vp_);
 	ground_->Update();
 
-	// --- カメラ ---
-	CameraUpdate();
+	switch (currentPhase_) {
+	case GamePhase::EnemyAppear:
+		UpdateStart();
+		break;
+
+	case GamePhase::Battle:
+		UpdateBattle();
+		break;
+	}
 
 	// ===== 各エフェクト・演出の更新 =====
 	stageWall_->Update(vp_);
 
 	// ===== シーン切り替え =====
 	ChangeScene();
-
 
 #ifdef _DEBUG
 	// --- Debug時処理 ---
@@ -199,6 +203,41 @@ void GameScene::CameraUpdate()
 		vp_.matProjection_ = followCamera_->GetViewProjection().matProjection_;
 		vp_.TransferMatrix();
 	}
+}
+
+void GameScene::UpdateStart()
+{
+	// ===== 各オブジェクトの更新 =====
+	// --- 敵 ---
+	enemy_->UpdateStartEffect();
+
+	// --- プレイヤー ---
+	player_->UpdateStartEffect();
+
+	// プレイヤー演出が終了し、まだカメラ移動を開始していなければ開始
+	if (player_->GetIsEnd() && !isCameraMoveStart_) {
+		followCamera_->SetTarget(&player_->GetWorldTransform());
+		followCamera_->StartFollowMove();
+		player_->SetFollowCamera(followCamera_.get());
+		isCameraMoveStart_ = true; // フラグON
+	}
+
+	// カメラ移動が終わったらバトル開始
+	if (isCameraMoveStart_ && !followCamera_->IsStartMoving()) {
+		currentPhase_ = GamePhase::Battle;
+		isCameraMoveStart_ = false; // リセット
+	}
+}
+
+void GameScene::UpdateBattle()
+{
+	// ===== 各オブジェクトの更新 =====
+	// --- 敵 ---
+	enemy_->Update(player_.get(), vp_);
+
+	// --- プレイヤー ---
+	player_->Update();
+
 }
 
 void GameScene::ChangeScene()
