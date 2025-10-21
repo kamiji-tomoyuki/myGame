@@ -1,5 +1,6 @@
 #include "Skin.h"
 #include <cassert>
+#include <algorithm>
 
 #include "SrvManager.h"
 #include <DirectXCommon.h>
