@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseObject.h"
+#include <Skybox.h>
 
 class Ground :public BaseObject
 {
@@ -8,7 +9,7 @@ public:
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Init()override;
+	void Init(Skybox* skybox);
 
 	/// <summary>
 	/// 更新

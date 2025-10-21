@@ -28,7 +28,7 @@ void GameScene::Initialize()
 	// --- カメラ ---
 	followCamera_ = std::make_unique<FollowCamera>();
 	followCamera_->Initialize();
-	followCamera_->SetPosition({ 0.0f,2.0f,9.0f });
+	followCamera_->SetPosition({ 0.0f,3.0f,9.0f });
 
 	// --- 敵 ---
 	Enemy::SetSerialNumber(0);
@@ -40,7 +40,8 @@ void GameScene::Initialize()
 	skybox_->Initialize("skybox.dds");
 
 	ground_ = std::make_unique<Ground>();
-	ground_->Init();
+	ground_->Init(skybox_.get());
+
 
 	// ===== 各エフェクト・演出の初期化 =====
 	stageWall_ = std::make_unique<ParticleEmitter>();
@@ -127,7 +128,7 @@ void GameScene::Draw()
 	player_->Draw(vp_);
 	enemy_->Draw(vp_);
 
-	//ground_->Draw(vp_);
+	ground_->Draw(vp_);
 
 	//--------------------------
 
