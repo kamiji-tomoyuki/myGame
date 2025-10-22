@@ -10,162 +10,158 @@
 #include <LightGroup.h>
 #include <line/DrawLine3D.h>
 
-void TitleScene::Initialize()
-{
-	audio_ = Audio::GetInstance();
-	objCommon_ = Object3dCommon::GetInstance();
-	spCommon_ = SpriteCommon::GetInstance();
-	ptCommon_ = ParticleCommon::GetInstance();
-	input_ = Input::GetInstance();
-	vp_.Initialize();
-	vp_.translation_ = { 0.0f,0.0f,-10.0f };
+void TitleScene::Initialize() {
+    audio_ = Audio::GetInstance();
+    objCommon_ = Object3dCommon::GetInstance();
+    spCommon_ = SpriteCommon::GetInstance();
+    ptCommon_ = ParticleCommon::GetInstance();
+    input_ = Input::GetInstance();
+    vp_.Initialize();
+    vp_.translation_ = {0.0f, 0.0f, -10.0f};
 
-	debugCamera_ = std::make_unique<DebugCamera>();
-	debugCamera_->Initialize(&vp_);
+    debugCamera_ = std::make_unique<DebugCamera>();
+    debugCamera_->Initialize(&vp_);
 
-	wt1_.Initialize();
+    wt1_.Initialize();
+    wt2_.Initialize();
 
-	wt1_.translation_ = { -2.0f,0.0f,0.0f };
+    skybox_ = std::make_unique<Skybox>();
+    skybox_->Initialize("skybox.dds");
 
-	walk_ = std::make_unique<Object3d>();
-	walk_->Initialize("Player/player.gltf");
+    player_ = std::make_unique<TitleCharacter>();
+    player_->Init();
 
-	obb = std::make_unique<Object3d>();
-	obb->Initialize("walk.gltf");
+    title2d_ = std::make_unique<Sprite>();
+    title2d_->Initialize("title.png", {0.0f, 0.0f});
 
-	emitter_ = std::make_unique<ParticleEmitter>();
-	emitter_->Initialize("test", "debug/plane.obj");
+    space_ = std::make_unique<Sprite>();
+    space_->Initialize("space.png", {160.0f, 470.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.5f,0.5f});
 
-	json_ = std::make_unique<JsonLoader>();
-	std::string filePath = "scene/test.json";
-	std::string targetName = "ICO球";
-
-	Vector3 position = json_->GetWorldTransform(filePath, targetName);
-	wt1_.translation_ = position;
-}
-
-void TitleScene::Finalize()
-{
+    emitter_ = std::make_unique<ParticleEmitter>();
+    emitter_->Initialize("test", "debug/ringPlane.obj");
 
 }
 
-void TitleScene::Update()
-{
+void TitleScene::Finalize() {
+}
+
+void TitleScene::Update() {
 #ifdef _DEBUG
-	// デバッグ
-	Debug();
+    // デバッグ
+    Debug();
 #endif // _DEBUG
 
-	// カメラ更新
-	CameraUpdate();
+    // カメラ更新
+    CameraUpdate();
 
-	// シーン切り替え
-	ChangeScene();
+    // シーン切り替え
+    ChangeScene();
 
-	emitter_->Update(vp_);
-	walk_->UpdateAnimation(roop);
+    emitter_->Update(vp_);
+    player_->Update();
+   
+    skybox_->Update(vp_);
 
-	wt1_.UpdateMatrix();
+    if (timer_ < 0.0f || timer_ > 1.0f) {
+        add_ *= -1.0f;
+    }
+    timer_ += add_;
+    space_->SetAlpha(Lerp(1.0f, 0.0f, timer_));
+
+    wt1_.UpdateMatrix();
+    wt2_.UpdateMatrix();
 }
 
-void TitleScene::Draw()
-{
-	/// -------描画処理開始-------
+void TitleScene::Draw() {
+    /// -------描画処理開始-------
 
-	emitter_->DrawEmitter();
+    skybox_->Draw();
 
-	/// Spriteの描画準備
-	spCommon_->DrawCommonSetting();
-	//-----Spriteの描画開始-----
+    /// Spriteの描画準備
+    spCommon_->DrawCommonSetting();
+    //-----Spriteの描画開始-----
+    title2d_->Draw();
+    space_->Draw();
+    //------------------------
 
-	//------------------------
+    objCommon_->skinningDrawCommonSetting();
+    //-----アニメーションの描画開始-----
+    //------------------------------
 
-	objCommon_->skinningDrawCommonSetting();
-	//-----アニメーションの描画開始-----
-	
-	//------------------------------
+    objCommon_->DrawCommonSetting();
+    //-----3DObjectの描画開始-----
+    player_->Draw(vp_);
+    //--------------------------
 
-	objCommon_->DrawCommonSetting();
-	//-----3DObjectの描画開始-----
-	
-	//--------------------------
+    /// Particleの描画準備
+    ptCommon_->DrawCommonSetting();
+    //------Particleの描画開始-------
 
-	/// Particleの描画準備
-	ptCommon_->DrawCommonSetting();
-	//------Particleの描画開始-------
-	//emitter_->Draw(Normal);
-	//-----------------------------
+    //-----------------------------
 
-	//-----線描画-----
-	DrawLine3D::GetInstance()->Draw(vp_);
-	//---------------
+    //-----線描画-----
+    DrawLine3D::GetInstance()->Draw(vp_);
+    //---------------
 
-	/// ----------------------------------
+    /// ----------------------------------
 
-	/// -------描画処理終了-------
+    /// -------描画処理終了-------
 }
 
-void TitleScene::DrawForOffScreen()
-{
-	/// -------描画処理開始-------
+void TitleScene::DrawForOffScreen() {
+    /// -------描画処理開始-------
 
-	/// Spriteの描画準備
-	spCommon_->DrawCommonSetting();
-	//-----Spriteの描画開始-----
+    /// Spriteの描画準備
+    spCommon_->DrawCommonSetting();
+    //-----Spriteの描画開始-----
 
-	//------------------------
+    //------------------------
 
-	objCommon_->skinningDrawCommonSetting();
-	//-----アニメーションの描画開始-----
+    objCommon_->skinningDrawCommonSetting();
+    //-----アニメーションの描画開始-----
 
-	//------------------------------
+    //------------------------------
 
-	objCommon_->DrawCommonSetting();
-	//-----3DObjectの描画開始-----
-	
-	//--------------------------
+    objCommon_->DrawCommonSetting();
+    //-----3DObjectの描画開始-----
 
-	/// Particleの描画準備
-	ptCommon_->DrawCommonSetting();
-	//------Particleの描画開始-------
+    //--------------------------
 
-	//-----------------------------
+    /// Particleの描画準備
+    ptCommon_->DrawCommonSetting();
+    //------Particleの描画開始-------
 
+    //-----------------------------
 
-	/// ----------------------------------
+    /// ----------------------------------
 
-	/// -------描画処理終了-------
+    /// -------描画処理終了-------
 }
 
+void TitleScene::Debug() {
+    ImGui::Begin("TitleScene:Debug");
 
-void TitleScene::Debug()
-{
-	ImGui::Begin("TitleScene:Debug");
+    debugCamera_->imgui();
 
-	debugCamera_->imgui();
+    LightGroup::GetInstance()->imgui();
 
-	LightGroup::GetInstance()->imgui();
+    ImGui::Checkbox("roop", &roop);
 
-	ImGui::Checkbox("roop", &roop);
+    ImGui::End();
 
-	ImGui::End();
-
-	emitter_->imgui();
+    emitter_->imgui();
 }
 
-void TitleScene::CameraUpdate()
-{
-	if (debugCamera_->GetActive()) {
-		debugCamera_->Update();
-	}
-	else {
-		vp_.UpdateMatrix();
-	}
+void TitleScene::CameraUpdate() {
+    if (debugCamera_->GetActive()) {
+        debugCamera_->Update();
+    } else {
+        vp_.UpdateMatrix();
+    }
 }
 
-void TitleScene::ChangeScene()
-{
-	if (input_->TriggerKey(DIK_SPACE)) {
-		sceneManager_->NextSceneReservation("GAME");
-	}
+void TitleScene::ChangeScene() {
+    if (input_->TriggerKey(DIK_SPACE)) {
+        sceneManager_->NextSceneReservation("GAME");
+    }
 }

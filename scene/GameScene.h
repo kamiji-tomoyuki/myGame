@@ -94,6 +94,11 @@ private:
 	bool isStart = false;
 	bool isCameraMoveStart_ = false;
 
+	// --- シーン管理 ---
+	bool isClear = false;
+
+	float playT = 0.0f;
+
 
 #ifdef _DEBUG
 	std::unique_ptr<TempObj> obj_;

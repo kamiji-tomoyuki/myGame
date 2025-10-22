@@ -114,6 +114,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\Player\Player.cpp" />
     <ClCompile Include="application\Stage\StageManager.cpp" />
     <ClCompile Include="application\temp\TempObj.cpp" />
+    <ClCompile Include="application\TitleCharacter.cpp" />
     <ClCompile Include="engine\3d\model\animation\ModelAnimation.cpp" />
     <ClCompile Include="engine\3d\skybox\Skybox.cpp" />
     <ClCompile Include="engine\3d\skybox\SkyboxGeometry.cpp" />
@@ -218,6 +219,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\Player\Arm\PlayerArm.h" />
     <ClInclude Include="application\Stage\StageManager.h" />
     <ClInclude Include="application\temp\TempObj.h" />
+    <ClInclude Include="application\TitleCharacter.h" />
     <ClInclude Include="engine\3d\model\animation\ModelAnimation.h" />
     <ClInclude Include="engine\3d\skybox\Skybox.h" />
     <ClInclude Include="engine\3d\skybox\SkyboxGeometry.h" />

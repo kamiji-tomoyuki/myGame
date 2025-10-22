@@ -12,6 +12,8 @@ void GameScene::Initialize()
 	ptCommon_ = ParticleCommon::GetInstance();
 	input_ = Input::GetInstance();
 
+	vp_.Initialize();
+
 	debugCamera_ = std::make_unique<DebugCamera>();
 	debugCamera_->Initialize(&vp_);
 
@@ -81,6 +83,17 @@ void GameScene::Update()
 
 	case GamePhase::Battle:
 		UpdateBattle();
+
+		//////////////////////////////////////////////////
+
+		playT += 1.0f / 60.0f;
+
+		if (playT >= 4.0f) {
+			isClear = true;
+		}
+
+		//////////////////////////////////////////////////
+
 		break;
 	}
 
@@ -246,6 +259,10 @@ void GameScene::ChangeScene()
 	if (enemy_->GetHP() <= 0) {
 		sceneManager_->NextSceneReservation("CLEAR");
 	}
+
+	/*if (isClear) {
+		sceneManager_->NextSceneReservation("TITLE");
+	}*/
 
 #ifdef _DEBUG
 	//if(enemy->)

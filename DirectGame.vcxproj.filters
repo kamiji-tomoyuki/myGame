@@ -371,6 +371,9 @@
     <ClCompile Include="scene\GameOverScene.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
+    <ClCompile Include="application\TitleCharacter.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -631,6 +634,7 @@
     <ClInclude Include="application\Stage\Ground.h" />
     <ClInclude Include="scene\GameClearScene.h" />
     <ClInclude Include="scene\GameOverScene.h" />
+    <ClInclude Include="application\TitleCharacter.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\Particle\Particle.PS.hlsl">
