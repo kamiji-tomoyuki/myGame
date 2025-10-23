@@ -580,9 +580,6 @@
     <ClInclude Include="engine\3d\line\DrawLine3D.h">
       <Filter>ソースファイル\myEngine\3d\line</Filter>
     </ClInclude>
-    <ClInclude Include="math\Quaternion.h">
-      <Filter>ソースファイル\math</Filter>
-    </ClInclude>
     <ClInclude Include="engine\offscreen\OffScreen.h">
       <Filter>ソースファイル\myEngine\offscreen</Filter>
     </ClInclude>
