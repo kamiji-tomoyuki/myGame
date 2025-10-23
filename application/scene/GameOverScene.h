@@ -47,10 +47,19 @@ public: // メンバ関数
 	ViewProjection* GetViewProjection()override { return &vp_; }
 
 private:
+	/// <summary>
+	/// デバック
+	/// </summary>
 	void Debug();
 
+	/// <summary>
+	/// カメラの更新
+	/// </summary>
 	void CameraUpdate();
 
+	/// <summary>
+	/// シーン管理
+	/// </summary>
 	void ChangeScene();
 
 private:

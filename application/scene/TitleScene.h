@@ -44,13 +44,26 @@ public: // メンバ関数
 	/// </summary>
 	void DrawForOffScreen()override;
 
+public:
+
+	/// 各ステータス取得関数
+	/// <returns></returns>
 	ViewProjection* GetViewProjection()override { return &vp_; }
 
 private:
+	/// <summary>
+	/// デバック
+	/// </summary>
 	void Debug();
 
+	/// <summary>
+	/// カメラの更新
+	/// </summary>
 	void CameraUpdate();
 
+	/// <summary>
+	/// シーン管理
+	/// </summary>
 	void ChangeScene();
 
 private:
