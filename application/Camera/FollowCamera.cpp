@@ -18,6 +18,16 @@ void FollowCamera::Initialize()
 
 void FollowCamera::Update()
 {
+	// カメラが固定されている場合は、固定された位置・回転を維持
+	if (isCameraFixed_) {
+		vp_.translation_ = fixedPosition_;
+		vp_.rotation_ = fixedRotation_;
+		destinationAngle = fixedQuaternion_;
+		vp_.UpdateMatrix();
+		return;
+	}
+
+	// 以下は通常の追従処理
 	UpdateGamePad();
 	UpdateKeyboard();
 
@@ -96,6 +106,34 @@ void FollowCamera::StartFollowMove()
 	targetStartPos_ = target_->translation_ + followOffset;
 }
 
+void FollowCamera::SetCameraFixed(bool isFixed)
+{
+	isCameraFixed_ = isFixed;
+
+	// 固定する場合、現在のカメラ位置・回転を記録
+	if (isFixed) {
+		// 追従対象がいる場合は、追従位置を即座に計算して固定
+		if (target_) {
+			targetPos_ = target_->translation_;
+
+			// 回転も追従対象に合わせる
+			destinationAngleY_ = target_->rotation_.y;
+			destinationAngle = Quaternion::MakeRotateAxisAngleQuaternion({ 0,0,-1 }, destinationAngleX_) *
+				Quaternion::MakeRotateAxisAngleQuaternion({ 0,-1,0 }, destinationAngleY_);
+			vp_.rotation_ = destinationAngle.ToEulerAngles();
+
+			// 回転を更新してからオフセットを計算
+			Vector3 offset = MakeOffset();
+			vp_.translation_ = targetPos_ + offset;
+			vp_.UpdateMatrix();
+		}
+
+		fixedPosition_ = vp_.translation_;
+		fixedRotation_ = vp_.rotation_;
+		fixedQuaternion_ = destinationAngle;
+	}
+}
+
 void FollowCamera::UpdateGamePad()
 {
 	//XINPUT_STATE joyState;
@@ -125,7 +163,7 @@ Vector3 FollowCamera::MakeOffset()
 	if (!target_) {
 		return Vector3(0.0f, 0.0f, 0.0f);
 	}
-	 
+
 	Matrix4x4 rotateMatrix = MakeAffineMatrix({ 1, 1, 1 }, vp_.rotation_, {});
 
 	// カメラの回転に合わせて回転

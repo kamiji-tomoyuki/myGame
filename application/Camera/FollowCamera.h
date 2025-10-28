@@ -64,6 +64,17 @@ public:
 	// 追従開始演出中か？
 	bool IsStartMoving() const { return isStartMove_; }
 
+	/// <summary>
+	/// カメラ固定設定
+	/// </summary>
+	/// <param name="isFixed">true: 固定, false: 追従</param>
+	void SetCameraFixed(bool isFixed);
+
+	/// <summary>
+	/// カメラが固定されているか
+	/// </summary>
+	bool IsCameraFixed() const { return isCameraFixed_; }
+
 private:
 
 	/// <summary>
@@ -105,5 +116,11 @@ private:
 	float startMoveDuration_ = 120.0f; // 約2秒
 	Vector3 startPos_;
 	Vector3 targetStartPos_;
+
+	// カメラ固定機能
+	bool isCameraFixed_ = false;
+	Vector3 fixedPosition_{};
+	Vector3 fixedRotation_{};
+	Quaternion fixedQuaternion_{};
 
 };

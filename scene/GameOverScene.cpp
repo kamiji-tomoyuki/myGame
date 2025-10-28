@@ -17,31 +17,39 @@ void GameOverScene::Initialize()
 	spCommon_ = SpriteCommon::GetInstance();
 	ptCommon_ = ParticleCommon::GetInstance();
 	input_ = Input::GetInstance();
+
 	vp_.Initialize();
 	vp_.translation_ = { 0.0f,0.0f,-10.0f };
 
 	debugCamera_ = std::make_unique<DebugCamera>();
 	debugCamera_->Initialize(&vp_);
 
-	wt1_.Initialize();
+	player_ = std::make_unique<Player>();
+	player_->Init();
+	player_->SetViewProjection(&vp_);
+	player_->SetScale({ 1.0f,1.0f,1.0f });
+	player_->SetIsGame(false);
 
-	wt1_.translation_ = { -2.0f,0.0f,0.0f };
+	followCamera_ = std::make_unique<FollowCamera>();
+	followCamera_->Initialize();
+	followCamera_->SetTarget(&player_->GetWorldTransform());
+	followCamera_->SetCameraFixed(true);
 
-	walk_ = std::make_unique<Object3d>();
-	walk_->Initialize("Player/player.gltf");
+	// --- ステージ ---
+	skybox_ = std::make_unique<Skybox>();
+	skybox_->Initialize("skybox.dds");
 
-	obb = std::make_unique<Object3d>();
-	obb->Initialize("walk.gltf");
+	ground_ = std::make_unique<Ground>();
+	ground_->Init(skybox_.get());
 
-	emitter_ = std::make_unique<ParticleEmitter>();
-	emitter_->Initialize("test", "debug/plane.obj");
+	// ===== 各エフェクト・演出の初期化 =====
+	stageWall_ = std::make_unique<ParticleEmitter>();
+	stageWall_->Initialize("stage", "debug/ringPlane.obj");
 
-	json_ = std::make_unique<JsonLoader>();
-	std::string filePath = "scene/test.json";
-	std::string targetName = "ICO球";
 
-	Vector3 position = json_->GetWorldTransform(filePath, targetName);
-	wt1_.translation_ = position;
+	// ===== スプライト =====
+	gameOverTitle_ = std::make_unique<Sprite>();
+	gameOverTitle_->Initialize("gameover.png", { 240.0f, 80.0f }, {1.0f,1.0f,1.0f,1.0f}, {0.5f,0.5f});
 }
 
 void GameOverScene::Finalize()
@@ -62,38 +70,51 @@ void GameOverScene::Update()
 	// シーン切り替え
 	ChangeScene();
 
-	emitter_->Update(vp_);
-	walk_->UpdateAnimation(roop);
+	// --- フィールド ---
+	skybox_->Update(vp_);
+	ground_->Update();
 
-	wt1_.UpdateMatrix();
+	// ===== 各エフェクト・演出の更新 =====
+	stageWall_->Update(vp_);
+
+
+	player_->Update();
 }
 
 void GameOverScene::Draw()
 {
 	/// -------描画処理開始-------
 
-	emitter_->DrawEmitter();
+	skybox_->Draw();
 
 	/// Spriteの描画準備
 	spCommon_->DrawCommonSetting();
 	//-----Spriteの描画開始-----
-
+	gameOverTitle_->Draw();
 	//------------------------
 
 	objCommon_->skinningDrawCommonSetting();
 	//-----アニメーションの描画開始-----
+
+	player_->DrawAnimation(vp_);
 
 	//------------------------------
 
 	objCommon_->DrawCommonSetting();
 	//-----3DObjectの描画開始-----
 
+	player_->Draw(vp_);
+
+	ground_->Draw(vp_);
+
 	//--------------------------
 
 	/// Particleの描画準備
 	ptCommon_->DrawCommonSetting();
 	//------Particleの描画開始-------
-	//emitter_->Draw(Normal);
+
+	stageWall_->Draw(Cylinder);
+
 	//-----------------------------
 
 	//-----線描画-----
@@ -149,8 +170,6 @@ void GameOverScene::Debug()
 	ImGui::Checkbox("roop", &roop);
 
 	ImGui::End();
-
-	emitter_->imgui();
 }
 
 void GameOverScene::CameraUpdate()
@@ -159,7 +178,10 @@ void GameOverScene::CameraUpdate()
 		debugCamera_->Update();
 	}
 	else {
-		vp_.UpdateMatrix();
+		followCamera_->Update();
+		vp_.matView_ = followCamera_->GetViewProjection().matView_;
+		vp_.matProjection_ = followCamera_->GetViewProjection().matProjection_;
+		vp_.TransferMatrix();
 	}
 }
 

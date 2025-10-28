@@ -85,6 +85,7 @@ public:
 	static void SetSerialNumber(int num) { nextSerialNumber_ = num; }
 	void SetTranslation(const Vector3& translation) { transform_.translation_ = translation; }
 	void SetVelocity(const Vector3& velocity) { velocity_ = velocity; }
+	void SetIsGame(const bool isGame) { isGame_ = isGame; }
 
 private:
 
@@ -109,6 +110,7 @@ private:
 	std::array<std::unique_ptr<PlayerArm>, kModelNum> arms_;
 
 	// --- 各ステータス ---
+	bool isGame_ = true;
 	bool isAlive_ = true;
 
 	// Behavior

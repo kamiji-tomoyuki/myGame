@@ -10,7 +10,11 @@
 #include "SpriteCommon.h"
 #include "WorldTransform.h"
 
-#include "JsonLoader.h"
+#include "Player.h"
+#include "Skybox.h"
+#include <Stage/Ground.h>
+#include "FollowCamera.h"
+#include "Sprite.h"
 
 class GameOverScene :public BaseScene
 {
@@ -62,13 +66,18 @@ private:
 
 	WorldTransform wt1_;
 
-	std::unique_ptr<Object3d> walk_;
+	std::unique_ptr<Player> player_;
 
-	std::unique_ptr<Object3d> obb;
+	std::unique_ptr<Skybox> skybox_;
+	std::unique_ptr<Ground> ground_;
 
-	std::unique_ptr<ParticleEmitter> emitter_;
+	std::unique_ptr<FollowCamera> followCamera_;
 
-	std::unique_ptr<JsonLoader> json_;
+	// --- 各エフェクト・演出 ---
+	std::unique_ptr<ParticleEmitter> stageWall_;
+
+	// --- スプライト ---
+	std::unique_ptr<Sprite> gameOverTitle_;
 
 	bool roop = true;
 };

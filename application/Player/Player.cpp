@@ -62,26 +62,49 @@ void Player::Update()
 {
 	BaseObject::Update();
 
-	if (isAlive_) {
-		// 移動
-		hitEffect_->SetPosition(BaseObject::GetWorldPosition());
-		Move();
+	if (isGame_) {
+		if (isAlive_) {
+			// 移動
+			hitEffect_->SetPosition(BaseObject::GetWorldPosition());
+			Move();
 
-		// 攻撃処理の更新
-		UpdateAttack();
-	}
+			// 攻撃処理の更新
+			UpdateAttack();
+		}
 
-	// アニメーションの再生
-	obj3d_->UpdateAnimation(true);
+		// アニメーションの再生
+		obj3d_->UpdateAnimation(true);
 
-	// 腕の更新
-	for (const std::unique_ptr<PlayerArm>& arm : arms_) {
-		arm->Update();
-	}
+		// 腕の更新
+		for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+			arm->Update();
+		}
 
 #ifdef _DEBUG
-	hitEffect_->Update(*vp_);
+		hitEffect_->Update(*vp_);
 #endif // _DEBUG
+	}
+
+
+	else {
+		// ゲームオーバー時の演出	
+		// アニメーションの再生
+		obj3d_->UpdateAnimation(true);
+
+		BaseObject::SetRotation(Vector3(BaseObject::GetWorldRotation().x, BaseObject::GetWorldRotation().y + 0.5f, BaseObject::GetWorldRotation().z));
+		
+		if (BaseObject::GetWorldSize().x >= 0.0f) {
+			BaseObject::SetScale(Vector3(BaseObject::GetWorldSize().x - 0.02f, BaseObject::GetWorldSize().y - 0.02f, BaseObject::GetWorldSize().z - 0.02f));
+		}
+		else {
+			isAlive_ = false;
+		}
+
+		// 腕の更新
+		for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+			arm->Update();
+		}
+	}
 }
 
 void Player::UpdateAttack()
