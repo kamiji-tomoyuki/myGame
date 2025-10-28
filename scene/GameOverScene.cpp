@@ -2,6 +2,7 @@
 #include "ImGuiManager.h"
 #include "SceneManager.h"
 #include "SrvManager.h"
+#include "Easing.h"
 
 #ifdef _DEBUG
 #include <imgui.h>
@@ -30,6 +31,10 @@ void GameOverScene::Initialize()
 	player_->SetScale({ 1.0f,1.0f,1.0f });
 	player_->SetIsGame(false);
 
+	enemy_ = std::make_unique<Enemy>();
+	enemy_->Init();
+	enemy_->SetIsGame(false);
+
 	followCamera_ = std::make_unique<FollowCamera>();
 	followCamera_->Initialize();
 	followCamera_->SetTarget(&player_->GetWorldTransform());
@@ -49,7 +54,10 @@ void GameOverScene::Initialize()
 
 	// ===== スプライト =====
 	gameOverTitle_ = std::make_unique<Sprite>();
-	gameOverTitle_->Initialize("gameover.png", { 240.0f, 80.0f }, {1.0f,1.0f,1.0f,1.0f}, {0.5f,0.5f});
+	gameOverTitle_->Initialize("gameover.png", kTitleStartPos, { 1.0f,1.0f,1.0f,0.0f }, { 0.5f,0.5f });
+
+	// タイマー初期化
+	titleAnimationTimer_ = 0.0f;
 }
 
 void GameOverScene::Finalize()
@@ -67,6 +75,9 @@ void GameOverScene::Update()
 	// カメラ更新
 	CameraUpdate();
 
+	// タイトル演出の更新
+	UpdateTitleAnimation();
+
 	// シーン切り替え
 	ChangeScene();
 
@@ -79,6 +90,7 @@ void GameOverScene::Update()
 
 
 	player_->Update();
+	enemy_->Update(player_.get(), vp_);
 }
 
 void GameOverScene::Draw()
@@ -97,6 +109,7 @@ void GameOverScene::Draw()
 	//-----アニメーションの描画開始-----
 
 	player_->DrawAnimation(vp_);
+	enemy_->DrawAnimation(vp_);
 
 	//------------------------------
 
@@ -104,6 +117,7 @@ void GameOverScene::Draw()
 	//-----3DObjectの描画開始-----
 
 	player_->Draw(vp_);
+	enemy_->Draw(vp_);
 
 	ground_->Draw(vp_);
 
@@ -169,6 +183,13 @@ void GameOverScene::Debug()
 
 	ImGui::Checkbox("roop", &roop);
 
+	// タイトル演出のデバッグ表示
+	ImGui::Text("Title Animation Timer: %.2f", titleAnimationTimer_);
+	ImGui::Text("Floating Timer: %.2f", floatingTimer_);
+	Vector2 currentPos = gameOverTitle_->GetPosition();
+	ImGui::Text("Title Position: (%.1f, %.1f)", currentPos.x, currentPos.y);
+	ImGui::Text("Title Alpha: %.2f", gameOverTitle_->GetColor().w);
+
 	ImGui::End();
 }
 
@@ -189,5 +210,41 @@ void GameOverScene::ChangeScene()
 {
 	if (input_->TriggerKey(DIK_SPACE)) {
 		sceneManager_->NextSceneReservation("TITLE");
+	}
+}
+
+void GameOverScene::UpdateTitleAnimation()
+{
+	// タイマー更新
+	titleAnimationTimer_ += 1.0f / 60.0f; // 60FPS想定
+
+	// 位置の更新(3秒かけて移動、EaseOutQuadで減速)
+	if (titleAnimationTimer_ <= kTitleMoveTime) {
+		Vector2 newPos = EaseOutQuad(kTitleStartPos, kTitleEndPos, titleAnimationTimer_, kTitleMoveTime);
+		gameOverTitle_->SetPosition(newPos);
+	}
+	else {
+		// 移動完了後はふわふわアニメーション
+		floatingTimer_ += 1.0f / 60.0f;
+
+		// サイクルタイムで正規化(0.0~1.0のループ)
+		float normalizedTime = std::fmodf(floatingTimer_, kFloatingCycleTime) / kFloatingCycleTime;
+
+		// EaseInOutSineで滑らかな上下動(0→1→0の動き)
+		float offset = EaseInOutSine(-kFloatingAmplitude, kFloatingAmplitude, normalizedTime, 1.0f);
+
+		Vector2 floatingPos = kTitleEndPos;
+		floatingPos.y += offset;
+		gameOverTitle_->SetPosition(floatingPos);
+	}
+
+	// 透明度の更新(2.5秒かけてフェードイン)
+	if (titleAnimationTimer_ <= kTitleFadeTime) {
+		float alpha = EaseOutQuad(0.0f, 1.0f, titleAnimationTimer_, kTitleFadeTime);
+		gameOverTitle_->SetAlpha(alpha);
+	}
+	else {
+		// フェード完了後は完全不透明に固定
+		gameOverTitle_->SetAlpha(1.0f);
 	}
 }

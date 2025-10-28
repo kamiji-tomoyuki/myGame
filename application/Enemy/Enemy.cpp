@@ -43,30 +43,70 @@ void Enemy::Init()
 	maxChargeCount_ = 1;  // 通常時は1回
 }
 
-void Enemy::Update(Player* player, const ViewProjection &vp)
+void Enemy::Update(Player* player, const ViewProjection& vp)
 {
-	player_ = player;
-	BaseObject::Update();
+	if (isGame_) {
+		player_ = player;
 
-	// プレイヤーのラッシュ攻撃状態をチェック
-	CheckPlayerRushStatus();
+		// プレイヤーのラッシュ攻撃状態をチェック
+		CheckPlayerRushStatus();
 
-	// ラッシュ攻撃を受けている時の処理
-	if (isBeingRushed_) {
-		UpdateRushKnockback();
+		// ラッシュ攻撃を受けている時の処理
+		if (isBeingRushed_) {
+			UpdateRushKnockback();
+		}
+		else {
+			// 行動状態の更新
+			UpdateBehavior();
+		}
 	}
+
 	else {
-		// 行動状態の更新
-		UpdateBehavior();
+		// ジャンプを繰り返す
+		// ジャンプの周期を計算（40フレームで1サイクル）
+
+		BaseObject::SetScale(Vector3(1.5f, 1.5f, 1.5f));
+
+		const float kJumpCycle = 40.0f;
+		const float kJumpHeight = 2.0f;  // ジャンプの高さ
+
+		const Vector3 jumpEndPos = { 0.0f, 2.0f, 4.0f };
+
+		// 現在のジャンプフェーズを計算（0.0〜1.0）
+		float jumpPhase = fmod(fallTimer_, kJumpCycle) / kJumpCycle;
+
+		// sin波を使って滑らかなジャンプモーションを作成
+		// 0→1→0の動きになるようにsin関数を使用
+		float jumpOffset = sin(jumpPhase * 3.14159265f) * kJumpHeight;
+
+		// 地面の位置（jumpEndPos_.y）にジャンプオフセットを加える
+		Vector3 currentPos = jumpEndPos;
+		currentPos.y += jumpOffset;
+
+		BaseObject::SetWorldPosition(currentPos);
+
+		// 回転のアニメーション（オプション）
+		Vector3 currentRotation = obj3d_->GetRotation();
+		currentRotation.y += 0.05f;  // ゆっくり回転
+		obj3d_->SetRotation(currentRotation);
+
+		// タイマーを進める
+		fallTimer_++;
+
+		// タイマーがオーバーフローしないようにリセット
+		if (fallTimer_ >= kJumpCycle * 1000.0f) {
+			fallTimer_ = 0.0f;
+		}
 	}
 
+	BaseObject::Update();
 	obj3d_->Update(BaseObject::GetWorldTransform(), vp);
 }
 
 void Enemy::UpdateStartEffect()
 {
 	BaseObject::Update();
-	
+
 	if (fallTimer_ < kFallDuration_) {
 		// イージングを使った落下演出
 		Vector3 currentPos = EaseOutBounce<Vector3>(

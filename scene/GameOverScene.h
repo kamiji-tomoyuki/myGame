@@ -11,6 +11,7 @@
 #include "WorldTransform.h"
 
 #include "Player.h"
+#include <Enemy.h>
 #include "Skybox.h"
 #include <Stage/Ground.h>
 #include "FollowCamera.h"
@@ -54,6 +55,9 @@ private:
 
 	void ChangeScene();
 
+	// タイトル演出の更新
+	void UpdateTitleAnimation();
+
 private:
 	Audio* audio_;
 	Input* input_;
@@ -67,6 +71,7 @@ private:
 	WorldTransform wt1_;
 
 	std::unique_ptr<Player> player_;
+	std::unique_ptr<Enemy> enemy_;
 
 	std::unique_ptr<Skybox> skybox_;
 	std::unique_ptr<Ground> ground_;
@@ -78,6 +83,18 @@ private:
 
 	// --- スプライト ---
 	std::unique_ptr<Sprite> gameOverTitle_;
+
+	// --- タイトル演出用 ---
+	float titleAnimationTimer_ = 0.0f;
+	const float kTitleMoveTime = 3.0f;      // 移動時間
+	const float kTitleFadeTime = 2.5f;      // フェード時間
+	const Vector2 kTitleStartPos = { 240.0f, 0.0f };
+	const Vector2 kTitleEndPos = { 240.0f, 180.0f };
+
+	// ふわふわ
+	float floatingTimer_ = 0.0f;
+	const float kFloatingCycleTime = 2.0f;  // 1サイクルの時間
+	const float kFloatingAmplitude = 10.0f; // 揺れ幅(ピクセル)
 
 	bool roop = true;
 };

@@ -71,6 +71,7 @@ public:
 	static void SetSerialNumber(int num) { nextSerialNumber_ = num; }
 	void SetTranslation(const Vector3& translation) { transform_.translation_ = translation; }
 	void SetIsStart(bool isStart) { isStart_ = isStart; }
+	void SetIsGame(const bool isGame) { isGame_ = isGame; }
 
 private:
 
@@ -108,6 +109,7 @@ private:
 	const ViewProjection* vp_ = nullptr;
 
 	// --- 各ステータス ---
+	bool isGame_ = true;
 	bool isAlive_ = true;
 
 	// HP
