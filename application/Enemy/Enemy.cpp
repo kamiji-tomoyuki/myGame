@@ -45,6 +45,7 @@ void Enemy::Init()
 
 void Enemy::Update(Player* player, const ViewProjection& vp)
 {
+	HP_ -= 2;
 	if (isGame_) {
 		player_ = player;
 
@@ -260,6 +261,11 @@ void Enemy::CheckPlayerRushStatus()
 	// プレイヤーの腕の状態をチェックしてラッシュ判定
 	bool playerIsRushing = false;
 
+	// プレイヤーの両腕をチェックして、どちらかがラッシュ状態ならtrue
+	// (Playerクラスに腕へのアクセサがない場合は、OnCollisionでの判定のみに依存)
+	// ここでは、OnCollisionで設定された isBeingRushed_ の状態を維持し、
+	// 一定時間経過で自動的に解除する方式に変更します
+
 	// ラッシュ攻撃が開始された瞬間の処理
 	if (!wasBeingRushed && isBeingRushed_) {
 		StartRushKnockback();
@@ -273,6 +279,12 @@ void Enemy::CheckPlayerRushStatus()
 
 void Enemy::StartRushKnockback()
 {
+	//------------------------------------------
+	if (HP_ < 0) {
+		isAlive_ = false;
+	}
+	//------------------------------------------
+
 	isBeingRushed_ = true;
 	rushKnockbackTimer_ = 0;
 
@@ -299,7 +311,16 @@ void Enemy::UpdateRushKnockback()
 {
 	rushKnockbackTimer_++;
 
-	// 現在のBaseObjectの回転を取得（Y軸回転が含まれる）
+	// 一定時間経過したら自動的にラッシュ状態を解除
+	// プレイヤーのラッシュ攻撃時間は120フレーム(kRushDuration)なので、
+	// 余裕を持って150フレームで解除
+	static constexpr uint32_t kMaxRushKnockbackDuration = 150;
+	if (rushKnockbackTimer_ >= kMaxRushKnockbackDuration) {
+		EndRushKnockback();
+		return;
+	}
+
+	// 現在のBaseObjectの回転を取得(Y軸回転が含まれる)
 	Vector3 currentRotation = BaseObject::GetWorldRotation();
 
 	// 後ろに傾く処理
@@ -365,6 +386,12 @@ void Enemy::OnCollision(Collider* other)
 	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kPlayer)) {
 		Player* player = static_cast<Player*>(other);
 
+		//------------------------------------------
+		if (HP_ < 0) {
+			isAlive_ = false;
+		}
+		//------------------------------------------
+
 		// 重複処理を避けるため、シリアル番号の小さい方で処理
 		if (GetSerialNumber() > player->GetSerialNumber()) {
 			return;
@@ -378,13 +405,26 @@ void Enemy::OnCollision(Collider* other)
 	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kPArm)) {
 		PlayerArm* arm = static_cast<PlayerArm*>(other);
 
+		//------------------------------------------
+		if (HP_ < 0) {
+			isAlive_ = false;
+		}
+		//------------------------------------------
+
 		// ラッシュ攻撃中の場合
 		if (arm->GetBehavior() == PlayerArm::Behavior::kRush) {
-			isBeingRushed_ = true;
-
+			
 			// まだラッシュ攻撃を受け始めていない場合は初期化
-			if (rushKnockbackTimer_ == 0) {
+			if (!isBeingRushed_) {
+				isBeingRushed_ = true;
 				StartRushKnockback();
+			}
+			// すでにラッシュ中の場合はタイマーを更新して継続
+			else {
+				// タイマーを少し戻すことで、ラッシュが続いている間は解除されない
+				if (rushKnockbackTimer_ > 30) {
+					rushKnockbackTimer_ = 30;
+				}
 			}
 		}
 	}

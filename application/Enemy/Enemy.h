@@ -64,6 +64,7 @@ public:
 	static uint32_t GetNextSerialNumber() { return nextSerialNumber_; }
 	float GetShortDistance() { return shortDistance_; }
 	uint32_t GetHP() { return HP_; }
+	bool GetIsAlive() { return isAlive_; }
 	Behavior GetBehavior() const { return behavior_; }
 
 	/// 各ステータス設定関数

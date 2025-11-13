@@ -5,6 +5,7 @@
 #include "Input.h"
 #include "Object3dCommon.h"
 #include "ParticleCommon.h"
+#include "Sprite.h"
 #include "SpriteCommon.h"
 #include "ViewProjection.h"
 
@@ -59,8 +60,6 @@ private:
 
 	void CameraUpdate();
 
-	void ChangePhase(GamePhase nextPhase);
-
 	void UpdateStart();
 	void UpdateBattle();
 
@@ -98,6 +97,9 @@ private:
 	bool isClear = false;
 
 	float playT = 0.0f;
+
+	// --- スプライト ---
+	std::unique_ptr<Sprite> UI_;
 
 
 #ifdef _DEBUG

@@ -44,11 +44,13 @@ void GameScene::Initialize()
 	ground_ = std::make_unique<Ground>();
 	ground_->Init(skybox_.get());
 
-
 	// ===== 各エフェクト・演出の初期化 =====
 	stageWall_ = std::make_unique<ParticleEmitter>();
 	stageWall_->Initialize("stage", "debug/ringPlane.obj");
 
+	// ===== スプライト =====
+	UI_ = std::make_unique<Sprite>();
+	UI_->Initialize("gameUI.png", { 40.0f, 530.0f });
 
 #ifdef _DEBUG
 	obj_ = std::make_unique<TempObj>();
@@ -120,6 +122,8 @@ void GameScene::Draw()
 	spCommon_->DrawCommonSetting();
 	//-----Spriteの描画開始-----
 
+	UI_->Draw();
+
 	//------------------------
 
 	objCommon_->skinningDrawCommonSetting();
@@ -150,6 +154,7 @@ void GameScene::Draw()
 	//------Particleの描画開始-------
 	stageWall_->Draw(Cylinder);
 	player_->DrawParticle(vp_);
+	//enemy_->DrawParticle(vp_);  // 敵のパーティクルも描画
 	//-----------------------------
 
 	//-----線描画-----
@@ -256,7 +261,7 @@ void GameScene::UpdateBattle()
 
 void GameScene::ChangeScene()
 {
-	if (enemy_->GetHP() <= 0) {
+	if (!enemy_->GetIsAlive()) {
 		sceneManager_->NextSceneReservation("CLEAR");
 	}
 

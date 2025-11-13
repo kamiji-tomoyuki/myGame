@@ -166,6 +166,6 @@ void GameClearScene::CameraUpdate()
 void GameClearScene::ChangeScene()
 {
 	if (input_->TriggerKey(DIK_SPACE)) {
-		sceneManager_->NextSceneReservation("TITLE");
+		//sceneManager_->NextSceneReservation("TITLE");
 	}
 }

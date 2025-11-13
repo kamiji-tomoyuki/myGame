@@ -28,6 +28,7 @@ public:
 	enum class Behavior {
 		kRoot,		// 通常
 		kAttack,	// 攻撃
+		kDodge,		// 回避
 	};
 
 public:
@@ -44,7 +45,6 @@ public:
 	/// </summary>
 	void Update()override;
 	void UpdateStartEffect();
-
 
 	void UpdateAttack();
 
@@ -77,6 +77,7 @@ public:
 	uint32_t GetSerialNumber() const { return serialNumber_; }
 	Vector3 GetVelocity() const { return velocity_; }
 	bool GetIsEnd() const { return isEnd; }
+	bool IsDodging() const { return behavior_ == Behavior::kDodge; }
 
 	/// 各ステータス設定関数
 	/// <returns></returns>
@@ -99,8 +100,20 @@ private:
 	/// </summary>
 	void Move();
 
+	/// <summary>
+	/// 回避処理
+	/// </summary>
+	void StartDodge(const Vector3& direction);
+	void UpdateDodge();
+
+	/// <summary>
+	/// 被弾処理
+	/// </summary>
+	void TakeDamage(const Vector3& hitPosition);
+	void UpdateHitReaction();
+
 private:
-	
+
 	// --- モデル ---
 	std::unique_ptr<Object3d> obj3d_;
 
@@ -129,11 +142,31 @@ private:
 
 	// Attack関連変数
 	bool isAttack_ = false;
-	uint32_t globalComboCount_ = 0;  // プレイヤー全体のコンボカウント
-	uint32_t globalComboTimer_ = 0;  // プレイヤー全体のコンボタイマー
+	uint32_t globalComboCount_ = 0;
+	uint32_t globalComboTimer_ = 0;
+
+	// Dodge関連変数
+	static constexpr int kDodgeDuration_ = 30;
+	static constexpr float kDodgeSpeed_ = 0.3f;
+	static constexpr float kDodgeTiltAngle_ = 0.52f;
+	static constexpr int kDodgeTiltInDuration_ = 10;
+	static constexpr int kDodgeTiltOutDuration_ = 10;
+	int dodgeTimer_ = 0;
+	Vector3 dodgeDirection_{};
+	Vector3 dodgeStartRotation_{};
+	Vector3 dodgeTiltRotation_{};
+
+	// 被弾リアクション関連変数
+	bool isHitReacting_ = false;
+	int hitReactionTimer_ = 0;
+	Vector3 hitShakeOffset_{};
+	Vector3 originalPosition_{};
+	static constexpr int kHitReactionDuration_ = 15;  // 被弾リアクション時間
+	static constexpr float kHitShakeIntensity_ = 0.15f;  // シェイクの強度
 
 	// --- 各エフェクト・演出 ---
 	std::unique_ptr<ParticleEmitter> hitEffect_;
+	std::unique_ptr<ParticleEmitter> damageEffect_;  // 被弾用パーティクル
 
 	// 出現演出関連変数
 	bool isStart = false;
