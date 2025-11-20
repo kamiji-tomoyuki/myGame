@@ -18,6 +18,15 @@ public:
 		kCooldown,	// クールダウン
 	};
 
+	/// <summary>
+	/// ゲーム状態
+	/// </summary>
+	enum class GameState {
+		kPlaying,		// ゲームプレイ中
+		kGameOver,		// ゲームオーバー
+		kGameClear,		// ゲームクリア
+	};
+
 public:
 
 	Enemy();
@@ -30,7 +39,7 @@ public:
 	/// <summary>
 	/// 更新
 	/// </summary>
-	void Update(Player* player, const ViewProjection &vp);
+	void Update(Player* player, const ViewProjection& vp);
 	void UpdateStartEffect();
 
 	/// <summary>
@@ -66,13 +75,14 @@ public:
 	uint32_t GetHP() { return HP_; }
 	bool GetIsAlive() { return isAlive_; }
 	Behavior GetBehavior() const { return behavior_; }
+	GameState GetGameState() const { return gameState_; }
 
 	/// 各ステータス設定関数
 	/// <returns></returns>
 	static void SetSerialNumber(int num) { nextSerialNumber_ = num; }
 	void SetTranslation(const Vector3& translation) { transform_.translation_ = translation; }
 	void SetIsStart(bool isStart) { isStart_ = isStart; }
-	void SetIsGame(const bool isGame) { isGame_ = isGame; }
+	void SetGameState(GameState state) { gameState_ = state; }
 
 private:
 
@@ -100,6 +110,16 @@ private:
 	void EndRushKnockback();
 	void RecoverRotation();
 
+	/// <summary>
+	/// ゲームオーバー演出
+	/// </summary>
+	void UpdateGameOverEffect();
+
+	/// <summary>
+	/// ゲームクリア演出
+	/// </summary>
+	void UpdateGameClearEffect();
+
 private:
 	// --- 参照 ---
 	Player* player_;
@@ -110,8 +130,10 @@ private:
 	const ViewProjection* vp_ = nullptr;
 
 	// --- 各ステータス ---
-	bool isGame_ = true;
 	bool isAlive_ = true;
+
+	// ゲーム状態
+	GameState gameState_ = GameState::kPlaying;
 
 	// HP
 	uint32_t kMaxHP_ = 1000;
@@ -127,41 +149,43 @@ private:
 	float maxSpeed_ = 0.08f;
 
 	// 突進攻撃関連変数
-	uint32_t chargeTimer_ = 0;              // 突進準備タイマー
-	uint32_t chargeDuration_ = 0;           // 突進継続時間
-	uint32_t cooldownTimer_ = 0;            // クールダウンタイマー
-	uint32_t chargeCount_ = 0;              // 現在の突進回数
-	uint32_t maxChargeCount_ = 1;           // 最大突進回数
-	Vector3 chargeDirection_ = { 0.0f, 0.0f, 1.0f }; // 突進方向
-	Vector3 chargeStartPos_ = { 0.0f, 0.0f, 0.0f };  // 突進開始位置
+	uint32_t chargeTimer_ = 0;
+	uint32_t chargeDuration_ = 0;
+	uint32_t cooldownTimer_ = 0;
+	uint32_t chargeCount_ = 0;
+	uint32_t maxChargeCount_ = 1;
+	Vector3 chargeDirection_ = { 0.0f, 0.0f, 1.0f };
+	Vector3 chargeStartPos_ = { 0.0f, 0.0f, 0.0f };
 
-	static constexpr uint32_t kChargePreparationTime_ = 180;  // 突進準備時間（3秒 @ 60FPS）
-	static constexpr uint32_t kChargeDuration_ = 60;          // 突進継続時間（1秒 @ 60FPS）
-	static constexpr uint32_t kCooldownTime_ = 300;           // クールダウン時間（5秒 @ 60FPS）
-	static constexpr float kChargeSpeed_ = 0.3f;              // 突進速度
-	static constexpr float kChargeRange_ = 15.0f;             // 突進可能距離
+	static constexpr uint32_t kChargePreparationTime_ = 180;
+	static constexpr uint32_t kChargeDuration_ = 60;
+	static constexpr uint32_t kCooldownTime_ = 300;
+	static constexpr float kChargeSpeed_ = 0.3f;
+	static constexpr float kChargeRange_ = 15.0f;
 
 	// 被弾時のノックバック
-	bool isBeingRushed_ = false;              // ラッシュ攻撃を受けているかどうか
-	uint32_t rushKnockbackTimer_ = 0;         // ラッシュノックバックタイマー
-	Vector3 knockbackDirection_ = { 0.0f, 0.0f, 1.0f }; // ノックバック方向
-	float knockbackSpeed_ = 0.02f;            // 現在のノックバック速度
-	Vector3 originalRotation_;                // 元の回転角度
+	bool isBeingRushed_ = false;
+	uint32_t rushKnockbackTimer_ = 0;
+	Vector3 knockbackDirection_ = { 0.0f, 0.0f, 1.0f };
+	float knockbackSpeed_ = 0.02f;
+	Vector3 originalRotation_;
 
-	static constexpr float initialKnockbackSpeed_ = 0.02f;  // 初期ノックバック速度
-	static constexpr float minKnockbackSpeed_ = 0.005f;     // 最小ノックバック速度
-	static constexpr float knockbackDecay_ = 0.98f;         // ノックバック速度減衰率
-	static constexpr float maxTiltAngle_ = 0.3f;            // 最大傾き角度（ラジアン）
+	static constexpr float initialKnockbackSpeed_ = 0.02f;
+	static constexpr float minKnockbackSpeed_ = 0.005f;
+	static constexpr float knockbackDecay_ = 0.98f;
+	static constexpr float maxTiltAngle_ = 0.3f;
 
 	// --- 各エフェクト・演出 ---
-
 	bool isStart_ = false;
 
 	float fallTimer_ = 0.0f;
-	const float kFallDuration_ = 60.0f;  // 1秒間の落下（60FPS想定）
-	Vector3 fallStartPos_ = { 0.0f, 10.0f, 15.0f };  // 落下開始位置（高い位置）
-	Vector3 fallEndPos_ = { 0.0f, 2.0f, 15.0f };     // 落下終了位置
-	bool isFallComplete_ = false;  // 落下完了フラグ
+	const float kFallDuration_ = 60.0f;
+	Vector3 fallStartPos_ = { 0.0f, 10.0f, 15.0f };
+	Vector3 fallEndPos_ = { 0.0f, 2.0f, 15.0f };
+	bool isFallComplete_ = false;
+
+	// ゲームクリア演出関連変数
+	float clearEffectTimer_ = 0.0f;
 
 	// シリアルナンバー
 	uint32_t serialNumber_ = 0;

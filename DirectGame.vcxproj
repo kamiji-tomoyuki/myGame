@@ -111,6 +111,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
   <ItemGroup>
     <ClCompile Include="application\Camera\FollowCamera.cpp" />
     <ClCompile Include="application\Enemy\Enemy.cpp" />
+    <ClCompile Include="application\Event\ClearEvent.cpp" />
     <ClCompile Include="application\Player\Player.cpp" />
     <ClCompile Include="application\Stage\StageManager.cpp" />
     <ClCompile Include="application\temp\TempObj.cpp" />
@@ -215,6 +216,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\Camera\FollowCamera.h" />
     <ClInclude Include="application\CollisionTypeIdDef.h" />
     <ClInclude Include="application\Enemy\Enemy.h" />
+    <ClInclude Include="application\Event\ClearEvent.h" />
     <ClInclude Include="application\Player\Player.h" />
     <ClInclude Include="application\Player\Arm\PlayerArm.h" />
     <ClInclude Include="application\Stage\StageManager.h" />

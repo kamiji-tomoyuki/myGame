@@ -29,11 +29,13 @@ void GameOverScene::Initialize()
 	player_->Init();
 	player_->SetViewProjection(&vp_);
 	player_->SetScale({ 1.0f,1.0f,1.0f });
-	player_->SetIsGame(false);
+	// ゲームオーバー状態に設定
+	player_->SetGameState(Player::GameState::kGameOver);
 
 	enemy_ = std::make_unique<Enemy>();
 	enemy_->Init();
-	enemy_->SetIsGame(false);
+	// ゲームオーバー状態に設定
+	enemy_->SetGameState(Enemy::GameState::kGameOver);
 
 	followCamera_ = std::make_unique<FollowCamera>();
 	followCamera_->Initialize();
@@ -50,7 +52,6 @@ void GameOverScene::Initialize()
 	// ===== 各エフェクト・演出の初期化 =====
 	stageWall_ = std::make_unique<ParticleEmitter>();
 	stageWall_->Initialize("stage", "debug/ringPlane.obj");
-
 
 	// ===== スプライト =====
 	gameOverTitle_ = std::make_unique<Sprite>();

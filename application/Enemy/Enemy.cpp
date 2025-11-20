@@ -20,9 +20,8 @@ Enemy::Enemy()
 void Enemy::Init()
 {
 	BaseObject::Init();
-	//BaseObject::SetWorldPosition(Vector3{ 0.0f,2.0f,15.0f });
-	BaseObject::SetWorldPosition(Vector3{ 0.0f,6.0f,15.0f });
-
+	BaseObject::SetWorldPosition(Vector3{ 0.0f,2.0f,15.0f });
+	
 	float size = 1.0f;
 
 	Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kEnemy));
@@ -46,7 +45,11 @@ void Enemy::Init()
 void Enemy::Update(Player* player, const ViewProjection& vp)
 {
 	HP_ -= 2;
-	if (isGame_) {
+
+	// ゲーム状態に応じた更新処理
+	switch (gameState_) {
+	case GameState::kPlaying:
+		// ゲームプレイ中の処理
 		player_ = player;
 
 		// プレイヤーのラッシュ攻撃状態をチェック
@@ -60,48 +63,89 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 			// 行動状態の更新
 			UpdateBehavior();
 		}
-	}
+		break;
 
-	else {
-		// ジャンプを繰り返す
-		// ジャンプの周期を計算（40フレームで1サイクル）
+	case GameState::kGameOver:
+		// ゲームオーバー演出
+		UpdateGameOverEffect();
+		break;
 
-		BaseObject::SetScale(Vector3(1.5f, 1.5f, 1.5f));
-
-		const float kJumpCycle = 40.0f;
-		const float kJumpHeight = 2.0f;  // ジャンプの高さ
-
-		const Vector3 jumpEndPos = { 0.0f, 2.0f, 4.0f };
-
-		// 現在のジャンプフェーズを計算（0.0〜1.0）
-		float jumpPhase = fmod(fallTimer_, kJumpCycle) / kJumpCycle;
-
-		// sin波を使って滑らかなジャンプモーションを作成
-		// 0→1→0の動きになるようにsin関数を使用
-		float jumpOffset = sin(jumpPhase * 3.14159265f) * kJumpHeight;
-
-		// 地面の位置（jumpEndPos_.y）にジャンプオフセットを加える
-		Vector3 currentPos = jumpEndPos;
-		currentPos.y += jumpOffset;
-
-		BaseObject::SetWorldPosition(currentPos);
-
-		// 回転のアニメーション（オプション）
-		Vector3 currentRotation = obj3d_->GetRotation();
-		currentRotation.y += 0.05f;  // ゆっくり回転
-		obj3d_->SetRotation(currentRotation);
-
-		// タイマーを進める
-		fallTimer_++;
-
-		// タイマーがオーバーフローしないようにリセット
-		if (fallTimer_ >= kJumpCycle * 1000.0f) {
-			fallTimer_ = 0.0f;
-		}
+	case GameState::kGameClear:
+		// ゲームクリア演出
+		UpdateGameClearEffect();
+		break;
 	}
 
 	BaseObject::Update();
 	obj3d_->Update(BaseObject::GetWorldTransform(), vp);
+}
+
+void Enemy::UpdateGameOverEffect()
+{
+	// ゲームオーバー時はジャンプし続ける演出
+
+	BaseObject::SetScale(Vector3(1.5f, 1.5f, 1.5f));
+
+	const float kJumpCycle = 40.0f;
+	const float kJumpHeight = 2.0f;  // ジャンプの高さ
+
+	const Vector3 jumpEndPos = { 0.0f, 2.0f, 4.0f };
+
+	// 現在のジャンプフェーズを計算（0.0～1.0）
+	float jumpPhase = fmod(fallTimer_, kJumpCycle) / kJumpCycle;
+
+	// sin波を使って滑らかなジャンプモーションを作成
+	float jumpOffset = sin(jumpPhase * 3.14159265f) * kJumpHeight;
+
+	// 地面の位置にジャンプオフセットを加える
+	Vector3 currentPos = jumpEndPos;
+	currentPos.y += jumpOffset;
+
+	BaseObject::SetWorldPosition(currentPos);
+
+	// 回転のアニメーション
+	Vector3 currentRotation = obj3d_->GetRotation();
+	currentRotation.y += 0.05f;  // ゆっくり回転
+	obj3d_->SetRotation(currentRotation);
+
+	// タイマーを進める
+	fallTimer_++;
+
+	// タイマーがオーバーフローしないようにリセット
+	if (fallTimer_ >= kJumpCycle * 1000.0f) {
+		fallTimer_ = 0.0f;
+	}
+}
+
+void Enemy::UpdateGameClearEffect()
+{
+	const float kWaitTime = 1.2f * 60.0f;
+
+	clearEffectTimer_++;
+
+	// 待機時間中は何もしない
+	if (clearEffectTimer_ < kWaitTime) {
+		return;
+	}
+
+	// 待機後、回転しながら縮小
+	// 回転速度を上げる
+	Vector3 currentRotation = obj3d_->GetRotation();
+	currentRotation.y += 0.5f;  // ゲームオーバー時のプレイヤーと同じ速度
+	obj3d_->SetRotation(currentRotation);
+	BaseObject::SetRotation(currentRotation);
+
+	// 縮小処理
+	Vector3 currentScale = BaseObject::GetWorldSize();
+	if (currentScale.x >= 0.0f) {
+		BaseObject::SetScale(Vector3(
+			currentScale.x - 0.02f,
+			currentScale.y - 0.02f,
+			currentScale.z - 0.02f));
+	}
+	else {
+		isAlive_ = false;
+	}
 }
 
 void Enemy::UpdateStartEffect()

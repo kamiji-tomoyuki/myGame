@@ -26,6 +26,7 @@ void GameScene::Initialize()
 	player_ = std::make_unique<Player>();
 	player_->Init();
 	player_->SetViewProjection(&vp_);
+	player_->SetGameState(Player::GameState::kPlaying);
 
 	// --- カメラ ---
 	followCamera_ = std::make_unique<FollowCamera>();
@@ -36,6 +37,7 @@ void GameScene::Initialize()
 	Enemy::SetSerialNumber(0);
 	enemy_ = std::make_unique<Enemy>();
 	enemy_->Init();
+	enemy_->SetGameState(Enemy::GameState::kPlaying);
 
 	// --- ステージ ---
 	skybox_ = std::make_unique<Skybox>();

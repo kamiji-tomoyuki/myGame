@@ -31,6 +31,15 @@ public:
 		kDodge,		// 回避
 	};
 
+	/// <summary>
+	/// ゲーム状態
+	/// </summary>
+	enum class GameState {
+		kPlaying,		// ゲームプレイ中
+		kGameOver,		// ゲームオーバー
+		kGameClear,		// ゲームクリア
+	};
+
 public:
 
 	Player();
@@ -78,6 +87,7 @@ public:
 	Vector3 GetVelocity() const { return velocity_; }
 	bool GetIsEnd() const { return isEnd; }
 	bool IsDodging() const { return behavior_ == Behavior::kDodge; }
+	GameState GetGameState() const { return gameState_; }
 
 	/// 各ステータス設定関数
 	/// <returns></returns>
@@ -86,7 +96,7 @@ public:
 	static void SetSerialNumber(int num) { nextSerialNumber_ = num; }
 	void SetTranslation(const Vector3& translation) { transform_.translation_ = translation; }
 	void SetVelocity(const Vector3& velocity) { velocity_ = velocity; }
-	void SetIsGame(const bool isGame) { isGame_ = isGame; }
+	void SetGameState(GameState state) { gameState_ = state; }
 
 private:
 
@@ -112,6 +122,16 @@ private:
 	void TakeDamage(const Vector3& hitPosition);
 	void UpdateHitReaction();
 
+	/// <summary>
+	/// ゲームオーバー演出
+	/// </summary>
+	void UpdateGameOverEffect();
+
+	/// <summary>
+	/// ゲームクリア演出
+	/// </summary>
+	void UpdateGameClearEffect();
+
 private:
 
 	// --- モデル ---
@@ -123,8 +143,10 @@ private:
 	std::array<std::unique_ptr<PlayerArm>, kModelNum> arms_;
 
 	// --- 各ステータス ---
-	bool isGame_ = true;
 	bool isAlive_ = true;
+
+	// ゲーム状態
+	GameState gameState_ = GameState::kPlaying;
 
 	// Behavior
 	Behavior behavior_ = Behavior::kRoot;
@@ -161,17 +183,23 @@ private:
 	int hitReactionTimer_ = 0;
 	Vector3 hitShakeOffset_{};
 	Vector3 originalPosition_{};
-	static constexpr int kHitReactionDuration_ = 15;  // 被弾リアクション時間
-	static constexpr float kHitShakeIntensity_ = 0.15f;  // シェイクの強度
+	static constexpr int kHitReactionDuration_ = 15;
+	static constexpr float kHitShakeIntensity_ = 0.15f;
 
 	// --- 各エフェクト・演出 ---
 	std::unique_ptr<ParticleEmitter> hitEffect_;
-	std::unique_ptr<ParticleEmitter> damageEffect_;  // 被弾用パーティクル
+	std::unique_ptr<ParticleEmitter> damageEffect_;
 
 	// 出現演出関連変数
 	bool isStart = false;
 	bool isEnd = false;
 	float easeT = 0.0f;
+
+	// ゲームクリア演出関連変数
+	float clearEffectTimer_ = 0.0f;
+	const float kJumpCycle_ = 40.0f;
+	const float kJumpHeight_ = 2.0f;
+	Vector3 clearStartPos_{};
 
 	// --- シリアルナンバー ---
 	uint32_t serialNumber_ = 0;

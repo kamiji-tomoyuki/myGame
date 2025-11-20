@@ -36,6 +36,7 @@ void Player::Init()
 
 	// --- 各ステータスの初期値設定 ---
 	isMove_ = true;
+	gameState_ = GameState::kPlaying;
 
 	// --- 各エフェクト・演出の初期設定 ---
 	hitEffect_ = std::make_unique<ParticleEmitter>();
@@ -61,11 +62,16 @@ void Player::UpdateStartEffect() {
 	}
 }
 
+// Player::Update() を以下のように変更
+
 void Player::Update()
 {
 	BaseObject::Update();
 
-	if (isGame_) {
+	// ゲーム状態に応じた更新処理
+	switch (gameState_) {
+	case GameState::kPlaying:
+		// ゲームプレイ中の処理
 		if (isAlive_) {
 			// 被弾リアクション中の処理
 			if (isHitReacting_) {
@@ -90,28 +96,94 @@ void Player::Update()
 		for (const std::unique_ptr<PlayerArm>& arm : arms_) {
 			arm->Update();
 		}
+		break;
+
+	case GameState::kGameOver:
+		// ゲームオーバー演出
+		UpdateGameOverEffect();
+		break;
+
+	case GameState::kGameClear:
+		// ゲームクリア演出
+		UpdateGameClearEffect();
+		break;
+	}
 
 #ifdef _DEBUG
-		hitEffect_->Update(*vp_);
-		damageEffect_->Update(*vp_);
+	hitEffect_->Update(*vp_);
+	damageEffect_->Update(*vp_);
 #endif // _DEBUG
+}
+
+void Player::UpdateGameOverEffect()
+{
+	// ゲームオーバー時の演出
+	obj3d_->UpdateAnimation(true);
+
+	// 回転しながら縮小
+	BaseObject::SetRotation(Vector3(
+		BaseObject::GetWorldRotation().x,
+		BaseObject::GetWorldRotation().y + 0.5f,
+		BaseObject::GetWorldRotation().z));
+
+	if (BaseObject::GetWorldSize().x >= 0.0f) {
+		BaseObject::SetScale(Vector3(
+			BaseObject::GetWorldSize().x - 0.02f,
+			BaseObject::GetWorldSize().y - 0.02f,
+			BaseObject::GetWorldSize().z - 0.02f));
 	}
 	else {
-		// ゲームオーバー時の演出	
-		obj3d_->UpdateAnimation(true);
+		isAlive_ = false;
+	}
 
-		BaseObject::SetRotation(Vector3(BaseObject::GetWorldRotation().x, BaseObject::GetWorldRotation().y + 0.5f, BaseObject::GetWorldRotation().z));
+	// 腕も更新
+	for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+		arm->Update();
+	}
+}
 
-		if (BaseObject::GetWorldSize().x >= 0.0f) {
-			BaseObject::SetScale(Vector3(BaseObject::GetWorldSize().x - 0.02f, BaseObject::GetWorldSize().y - 0.02f, BaseObject::GetWorldSize().z - 0.02f));
-		}
-		else {
-			isAlive_ = false;
-		}
+void Player::UpdateGameClearEffect()
+{
+	// ゲームクリア時はジャンプし続ける演出
+	obj3d_->UpdateAnimation(true);
 
-		for (const std::unique_ptr<PlayerArm>& arm : arms_) {
-			arm->Update();
-		}
+	// ジャンプの周期を計算（40フレームで1サイクル）
+	const float kJumpCycle = 40.0f;
+	const float kJumpHeight = 2.0f;  // ジャンプの高さ
+
+	// 初回実行時に開始位置を保存
+	if (clearEffectTimer_ == 0.0f) {
+		clearStartPos_ = BaseObject::GetWorldPosition();
+	}
+
+	// 現在のジャンプフェーズを計算（0.0～1.0）
+	float jumpPhase = fmod(clearEffectTimer_, kJumpCycle) / kJumpCycle;
+
+	// sin波を使って滑らかなジャンプモーションを作成
+	float jumpOffset = sin(jumpPhase * 3.14159265f) * kJumpHeight;
+
+	// 地面の位置にジャンプオフセットを加える
+	Vector3 currentPos = clearStartPos_;
+	currentPos.y += jumpOffset;
+
+	BaseObject::SetWorldPosition(currentPos);
+
+	// 回転のアニメーション（オプション）
+	Vector3 currentRotation = BaseObject::GetWorldRotation();
+	currentRotation.y += 0.05f;  // ゆっくり回転
+	BaseObject::SetRotation(currentRotation);
+
+	// タイマーを進める
+	clearEffectTimer_++;
+
+	// タイマーがオーバーフローしないようにリセット
+	if (clearEffectTimer_ >= kJumpCycle * 1000.0f) {
+		clearEffectTimer_ = 0.0f;
+	}
+
+	// 腕も更新
+	for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+		arm->Update();
 	}
 }
 
@@ -327,6 +399,14 @@ void Player::ImGui()
 		BaseObject::GetWorldPosition().x,
 		BaseObject::GetWorldPosition().y,
 		BaseObject::GetWorldPosition().z);
+
+	const char* gameStateStr = "Unknown";
+	switch (gameState_) {
+	case GameState::kPlaying: gameStateStr = "Playing"; break;
+	case GameState::kGameOver: gameStateStr = "GameOver"; break;
+	case GameState::kGameClear: gameStateStr = "GameClear"; break;
+	}
+	ImGui::Text("Game State: %s", gameStateStr);
 
 	ImGui::Text("Behavior: %s",
 		behavior_ == Behavior::kRoot ? "Root" :
