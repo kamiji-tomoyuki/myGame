@@ -40,12 +40,23 @@ void Enemy::Init()
 	behavior_ = Behavior::kRoot;
 	chargeTimer_ = 0;
 	maxChargeCount_ = 1;  // 通常時は1回
+
+	// 軌跡パーティクルの初期化
+	trailEffect_ = std::make_unique<ParticleEmitter>();
+	trailEffect_->Initialize("enemyTrail", "debug/plane.obj");
+
+	Vector3 initialFootPos = BaseObject::GetWorldPosition();
+	initialFootPos.y += kFootOffsetY_;
+	lastTrailPosition_ = initialFootPos;
+
+	originalRotation_ = obj3d_->GetRotation();
+	behavior_ = Behavior::kRoot;
+	chargeTimer_ = 0;
+	maxChargeCount_ = 1;
 }
 
 void Enemy::Update(Player* player, const ViewProjection& vp)
 {
-	HP_ -= 2;
-
 	// ゲーム状態に応じた更新処理
 	switch (gameState_) {
 	case GameState::kPlaying:
@@ -78,6 +89,9 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 
 	BaseObject::Update();
 	obj3d_->Update(BaseObject::GetWorldTransform(), vp);
+
+	// 軌跡パーティクルの更新
+	trailEffect_->UpdateOnce(vp);
 }
 
 void Enemy::UpdateGameOverEffect()
@@ -252,6 +266,9 @@ void Enemy::UpdateCharge()
 	Vector3 chargeVelocity = chargeDirection_ * kChargeSpeed_;
 	BaseObject::SetWorldPosition(GetCenterPosition() + chargeVelocity);
 
+	// 軌跡パーティクルの発生処理
+	UpdateTrailEffect();
+
 	// 突進時間が終了した場合
 	if (chargeDuration_ >= kChargeDuration_) {
 		EndCharge();
@@ -412,6 +429,27 @@ void Enemy::RecoverRotation()
 	obj3d_->SetRotation(newRotation);
 }
 
+void Enemy::UpdateTrailEffect()
+{
+	Vector3 currentPos = GetCenterPosition();
+
+	// 足元の位置を計算
+	Vector3 footPosition = currentPos;
+	footPosition.y += kFootOffsetY_;
+
+	float distanceMoved = (footPosition - lastTrailPosition_).Length();
+
+	// 一定距離移動したらパーティクルを発生
+	if (distanceMoved >= trailEmitDistance_) {
+		// 移動している場合のみパーティクルを発生
+		if (velocity_.Length() > 0.01f) {
+			trailEffect_->SetPosition(footPosition);
+			trailEffect_->SetActive(false);
+		}
+		lastTrailPosition_ = footPosition;
+	}
+}
+
 void Enemy::Draw(const ViewProjection& viewProjection)
 {
 	obj3d_->Draw(BaseObject::GetWorldTransform(), viewProjection);
@@ -420,6 +458,16 @@ void Enemy::Draw(const ViewProjection& viewProjection)
 void Enemy::DrawAnimation(const ViewProjection& viewProjection)
 {
 
+}
+
+void Enemy::DrawParticle(const ViewProjection& viewProjection)
+{
+	trailEffect_->Draw(Normal);
+}
+
+void Enemy::ImGui()
+{
+	trailEffect_->imgui();
 }
 
 void Enemy::OnCollision(Collider* other)
@@ -600,4 +648,6 @@ void Enemy::Approach()
 			// obj3d_の回転はUpdateRushKnockbackで設定されるため、ここでは設定しない
 		}
 	}
+
+	UpdateTrailEffect();
 }

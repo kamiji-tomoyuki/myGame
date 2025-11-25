@@ -45,6 +45,13 @@ void Player::Init()
 	// 被弾用パーティクル
 	damageEffect_ = std::make_unique<ParticleEmitter>();
 	damageEffect_->Initialize("playerDamage", "debug/ringPlane.obj");
+
+	// 軌跡パーティクルの初期化
+	trailEffect_ = std::make_unique<ParticleEmitter>();
+	trailEffect_->Initialize("playerTrail", "debug/plane.obj");
+	Vector3 initialFootPos = BaseObject::GetWorldPosition();
+	initialFootPos.y += kFootOffsetY_;
+	lastTrailPosition_ = initialFootPos;
 }
 
 void Player::UpdateStartEffect() {
@@ -61,8 +68,6 @@ void Player::UpdateStartEffect() {
 		isEnd = true;
 	}
 }
-
-// Player::Update() を以下のように変更
 
 void Player::Update()
 {
@@ -112,6 +117,7 @@ void Player::Update()
 #ifdef _DEBUG
 	hitEffect_->Update(*vp_);
 	damageEffect_->Update(*vp_);
+	trailEffect_->UpdateOnce(*vp_);
 #endif // _DEBUG
 }
 
@@ -316,6 +322,28 @@ void Player::UpdateDodge()
 	}
 }
 
+void Player::UpdateTrailEffect()
+{
+	Vector3 currentPos = BaseObject::GetWorldPosition();
+
+	// 足元の位置を計算
+	Vector3 footPosition = currentPos;
+	footPosition.y += kFootOffsetY_;  // Y座標を足元に調整
+
+	float distanceMoved = (footPosition - lastTrailPosition_).Length();
+
+	// 一定距離移動したらパーティクルを発生
+	if (distanceMoved >= trailEmitDistance_) {
+		// 移動している場合のみパーティクルを発生
+		if (velocity_.Length() > 0.01f) {
+			trailEffect_->SetPosition(footPosition);  // 足元の位置を設定
+			trailEffect_->SetActive(false);
+			isTrailActive_ = true;
+		}
+		lastTrailPosition_ = footPosition;  // 足元の位置を記録
+	}
+}
+
 void Player::TakeDamage(const Vector3& hitPosition)
 {
 	// すでに被弾リアクション中または回避中なら無視
@@ -380,12 +408,14 @@ void Player::DrawParticle(const ViewProjection& viewProjection)
 {
 	hitEffect_->Draw(Ring);
 	damageEffect_->Draw(Ring);
+	trailEffect_->Draw(Normal);
 }
 
 void Player::ImGui()
 {
 	hitEffect_->imgui();
 	damageEffect_->imgui();
+	trailEffect_->imgui();
 
 	for (size_t i = 0; i < arms_.size(); ++i) {
 		if (arms_[i]) {
@@ -567,4 +597,6 @@ void Player::Move()
 	}
 
 	BaseObject::SetWorldPosition(newPos);
+
+	UpdateTrailEffect();
 }

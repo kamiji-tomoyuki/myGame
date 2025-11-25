@@ -117,6 +117,11 @@ private:
 	void UpdateDodge();
 
 	/// <summary>
+	/// 演出用処理
+	/// </summary>
+	void UpdateTrailEffect();
+
+	/// <summary>
 	/// 被弾処理
 	/// </summary>
 	void TakeDamage(const Vector3& hitPosition);
@@ -200,6 +205,13 @@ private:
 	const float kJumpCycle_ = 40.0f;
 	const float kJumpHeight_ = 2.0f;
 	Vector3 clearStartPos_{};
+
+	// 軌跡パーティクル関連変数
+	std::unique_ptr<ParticleEmitter> trailEffect_;
+	Vector3 lastTrailPosition_{};
+	float trailEmitDistance_ = 0.5f;  // パーティクルを発生させる移動距離の閾値
+	bool isTrailActive_ = false;
+	static constexpr float kFootOffsetY_ = -0.8f;
 
 	// --- シリアルナンバー ---
 	uint32_t serialNumber_ = 0;

@@ -3,6 +3,8 @@
 #include "WorldTransform.h"
 #include "ViewProjection.h"
 
+#include <ParticleEmitter.h>
+
 class Player;
 
 class Enemy : public BaseObject
@@ -47,6 +49,12 @@ public:
 	/// </summary>
 	void Draw(const ViewProjection& viewProjection) override;
 	void DrawAnimation(const ViewProjection& viewProjection);
+	void DrawParticle(const ViewProjection& viewProjection);
+
+	/// <summary>
+	/// ImGui
+	/// </summary>
+	void ImGui();
 
 public:
 
@@ -109,6 +117,11 @@ private:
 	void UpdateRushKnockback();
 	void EndRushKnockback();
 	void RecoverRotation();
+
+	/// <summary>
+	/// 軌跡パーティクル更新
+	/// </summary>
+	void UpdateTrailEffect();
 
 	/// <summary>
 	/// ゲームオーバー演出
@@ -183,6 +196,12 @@ private:
 	Vector3 fallStartPos_ = { 0.0f, 10.0f, 15.0f };
 	Vector3 fallEndPos_ = { 0.0f, 2.0f, 15.0f };
 	bool isFallComplete_ = false;
+
+	// 軌跡パーティクル関連変数
+	std::unique_ptr<ParticleEmitter> trailEffect_;
+	Vector3 lastTrailPosition_{};
+	float trailEmitDistance_ = 0.5f;
+	static constexpr float kFootOffsetY_ = -0.8f;
 
 	// ゲームクリア演出関連変数
 	float clearEffectTimer_ = 0.0f;

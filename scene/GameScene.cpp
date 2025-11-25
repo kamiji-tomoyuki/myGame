@@ -156,7 +156,7 @@ void GameScene::Draw()
 	//------Particleの描画開始-------
 	stageWall_->Draw(Cylinder);
 	player_->DrawParticle(vp_);
-	//enemy_->DrawParticle(vp_);  // 敵のパーティクルも描画
+	enemy_->DrawParticle(vp_);
 	//-----------------------------
 
 	//-----線描画-----
@@ -210,6 +210,7 @@ void GameScene::Debug()
 
 	stageWall_->imgui();
 	player_->ImGui();
+	enemy_->ImGui();
 	ground_->DebugTransform("ground");
 }
 

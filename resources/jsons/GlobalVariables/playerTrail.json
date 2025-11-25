@@ -1,0 +1,95 @@
+{
+    "playerTrail": {
+        "AllScale Max": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "AllScale Min": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Emit rotation": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Emit scale": [
+            0.10000000149011612,
+            0.10000000149011612,
+            0.10000000149011612
+        ],
+        "Emit translation": [
+            -0.2901589274406433,
+            -0.800000011920929,
+            -26.331796646118164
+        ],
+        "Particle EndAcce": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Particle EndRote": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Particle EndScale": [
+            1.0,
+            1.0,
+            1.0
+        ],
+        "Particle StartAcce": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Particle StartRote": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Particle StartScale": [
+            1.0,
+            1.0,
+            1.0
+        ],
+        "RotationVelo Max": [
+            0.07000000029802322,
+            0.07000000029802322,
+            0.07000000029802322
+        ],
+        "RotationVelo Min": [
+            -0.07000000029802322,
+            -0.07000000029802322,
+            -0.07000000029802322
+        ],
+        "Scale Max": 0.0,
+        "Scale Min": 0.0,
+        "alphaMax": 1.0,
+        "alphaMin": 1.0,
+        "count": 1,
+        "emitFrequency": 3.490000009536743,
+        "isAcceMultiply": false,
+        "isAllRamdomScale": false,
+        "isBillBoard": true,
+        "isRamdomColor": false,
+        "isRandomRotate": false,
+        "isRandomScale": false,
+        "isSinMove": false,
+        "isVisible": true,
+        "lifeTimeMax": 0.7400000095367432,
+        "lifeTimeMin": 0.7400000095367432,
+        "maxVelocity": [
+            0.0,
+            1.5,
+            0.0
+        ],
+        "minVelocity": [
+            0.0,
+            0.0,
+            0.0
+        ]
+    }
+}
