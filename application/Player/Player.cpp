@@ -114,10 +114,11 @@ void Player::Update()
 		break;
 	}
 
+	trailEffect_->UpdateOnce(*vp_);
+
 #ifdef _DEBUG
 	hitEffect_->Update(*vp_);
 	damageEffect_->Update(*vp_);
-	trailEffect_->UpdateOnce(*vp_);
 #endif // _DEBUG
 }
 
@@ -265,7 +266,7 @@ void Player::StartDodge(const Vector3& direction)
 			dodgeTiltRotation_ = Vector3(0.0f, 0.0f, kDodgeTiltAngle_);
 		}
 	}
-
+	
 	if (absWorldX > 0.3f && absWorldZ > 0.3f) {
 		float xTilt = worldZ > 0.0f ? kDodgeTiltAngle_ * 0.7f : -kDodgeTiltAngle_ * 0.7f;
 		float zTilt = worldX > 0.0f ? -kDodgeTiltAngle_ * 0.7f : kDodgeTiltAngle_ * 0.7f;
@@ -293,7 +294,7 @@ void Player::UpdateDodge()
 	else {
 		tiltProgress = 1.0f;
 	}
-
+	
 	Vector3 currentTilt = dodgeTiltRotation_ * tiltProgress;
 
 	Vector3 currentRotation;
@@ -312,7 +313,7 @@ void Player::UpdateDodge()
 			newPos = stageManager_->ClampToStageBounds(newPos);
 		}
 	}
-
+	
 	BaseObject::SetWorldPosition(newPos);
 
 	if (dodgeTimer_ >= kDodgeDuration_) {
