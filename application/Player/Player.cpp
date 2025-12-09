@@ -116,6 +116,9 @@ void Player::Update()
 
 	trailEffect_->UpdateOnce(*vp_);
 
+	// コライダーのワールドトランスフォームを更新
+	Collider::UpdateWorldTransform();
+
 #ifdef _DEBUG
 	hitEffect_->Update(*vp_);
 	damageEffect_->Update(*vp_);
@@ -425,6 +428,24 @@ void Player::ImGui()
 	}
 
 	ImGui::Begin("Player Debug");
+
+	// HP表示（色付き）
+	float hpRatio = static_cast<float>(HP_) / static_cast<float>(kMaxHP_);
+	ImVec4 hpColor;
+	if (hpRatio > 0.5f) {
+		hpColor = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // 緑
+	}
+	else if (hpRatio > 0.25f) {
+		hpColor = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // 黄色
+	}
+	else {
+		hpColor = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // 赤
+	}
+	ImGui::TextColored(hpColor, "HP: %d / %d (%.1f%%)", HP_, kMaxHP_, hpRatio * 100.0f);
+	ImGui::ProgressBar(hpRatio, ImVec2(0.0f, 0.0f));
+
+	ImGui::Separator();
+
 	ImGui::Text("Player Rotation Y: %.2f", BaseObject::GetTransform().rotation_.y);
 	ImGui::Text("Player Position: (%.2f, %.2f, %.2f)",
 		BaseObject::GetWorldPosition().x,
@@ -483,10 +504,6 @@ void Player::OnCollision(Collider* other)
 	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kEnemy)) {
 		Enemy* enemy = static_cast<Enemy*>(other);
 
-		if (GetSerialNumber() > enemy->GetSerialNumber()) {
-			return;
-		}
-
 		// 回避中は当たり判定を無視
 		if (behavior_ == Behavior::kDodge) {
 			return;
@@ -497,9 +514,51 @@ void Player::OnCollision(Collider* other)
 			return;
 		}
 
-		// 被弾処理を呼び出す
-		Vector3 hitPos = (GetCenterPosition() + enemy->GetCenterPosition()) * 0.5f;
-		TakeDamage(hitPos);
+#ifdef _DEBUG
+		// デバッグ用：衝突検出のログ
+		OutputDebugStringA("Player-Enemy Collision Detected!\n");
+#endif
+
+		// 敵が突進攻撃中の場合、大ダメージと強いリアクション
+		if (enemy->GetBehavior() == Enemy::Behavior::kAttack) {
+#ifdef _DEBUG
+			OutputDebugStringA("Enemy is Charging! Taking damage!\n");
+#endif
+			// 大ダメージを受ける
+			uint32_t chargeDamage = 100;
+			if (HP_ > chargeDamage) {
+				HP_ -= chargeDamage;
+			}
+			else {
+				HP_ = 0;
+				// HPが0になったらゲームオーバー処理
+				gameState_ = GameState::kGameOver;
+			}
+
+			// 被弾処理を呼び出す（震えるリアクション）
+			Vector3 hitPos = (GetCenterPosition() + enemy->GetCenterPosition()) * 0.5f;
+			TakeDamage(hitPos);
+
+			// 突進攻撃の場合はノックバック処理を追加
+			Vector3 knockbackDirection = (GetCenterPosition() - enemy->GetCenterPosition()).Normalize();
+			velocity_ += knockbackDirection * 0.5f; // ノックバック速度
+		}
+		// 通常の接触の場合、小ダメージと軽いリアクション
+		else {
+			// 小ダメージを受ける
+			uint32_t contactDamage = 10;
+			if (HP_ > contactDamage) {
+				HP_ -= contactDamage;
+			}
+			else {
+				HP_ = 0;
+				gameState_ = GameState::kGameOver;
+			}
+
+			// 被弾処理を呼び出す
+			Vector3 hitPos = (GetCenterPosition() + enemy->GetCenterPosition()) * 0.5f;
+			TakeDamage(hitPos);
+		}
 
 		// ステージ境界チェック
 		Vector3 playerPos = BaseObject::GetWorldPosition();

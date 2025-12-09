@@ -21,7 +21,7 @@ void Enemy::Init()
 {
 	BaseObject::Init();
 	BaseObject::SetWorldPosition(Vector3{ 0.0f,2.0f,15.0f });
-	
+
 	float size = 1.0f;
 
 	Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kEnemy));
@@ -105,7 +105,7 @@ void Enemy::UpdateGameOverEffect()
 
 	const Vector3 jumpEndPos = { 0.0f, 2.0f, 4.0f };
 
-	// 現在のジャンプフェーズを計算（0.0～1.0）
+	// 現在のジャンプフェーズを計算(0.0~1.0)
 	float jumpPhase = fmod(fallTimer_, kJumpCycle) / kJumpCycle;
 
 	// sin波を使って滑らかなジャンプモーションを作成
@@ -180,7 +180,7 @@ void Enemy::UpdateStartEffect()
 		// タイマーを進める
 		fallTimer_++;
 
-		// 落下中は回転させる演出を追加（オプション）
+		// 落下中は回転させる演出を追加(オプション)
 		float rotationSpeed = 0.1f;
 		Vector3 currentRotation = obj3d_->GetRotation();
 		currentRotation.y += rotationSpeed * (1.0f - (fallTimer_ / kFallDuration_));
@@ -190,7 +190,7 @@ void Enemy::UpdateStartEffect()
 		// 落下完了後は最終位置に固定
 		BaseObject::SetWorldPosition(fallEndPos_);
 
-		// 落下完了フラグ（ヘッダーに追加が必要）
+		// 落下完了フラグ(ヘッダーに追加が必要)
 		// bool isFallComplete_ = true;
 		isFallComplete_ = true;
 	}
@@ -348,6 +348,15 @@ void Enemy::StartRushKnockback()
 
 	isBeingRushed_ = true;
 	rushKnockbackTimer_ = 0;
+	confusionShakeAmount_ = maxShakeAngle_;
+
+	// 元の回転を保存（ふらつきから戻るための基準）
+	originalRotation_ = obj3d_->GetRotation();
+
+	// プレイヤーのY座標を固定用に保存
+	if (player_ != nullptr) {
+		fixedYPosition_ = player_->GetCenterPosition().y;
+	}
 
 	// ラッシュ攻撃中は突進攻撃を中断
 	if (behavior_ == Behavior::kAttack) {
@@ -356,14 +365,14 @@ void Enemy::StartRushKnockback()
 		chargeCount_ = 0;
 	}
 
-	// プレイヤーから敵への方向を計算（後退方向）
+	// プレイヤーから敵への方向を計算(後退方向)
 	if (player_ != nullptr) {
 		Vector3 direction = GetCenterPosition() - player_->GetCenterPosition();
 		if (direction.Length() > 0.0f) {
 			knockbackDirection_ = direction.Normalize();
 		}
 		else {
-			knockbackDirection_ = Vector3(0.0f, 0.0f, 1.0f); // デフォルト方向
+			knockbackDirection_ = Vector3(0.0f, 0.0f, 1.0f);
 		}
 	}
 }
@@ -373,30 +382,61 @@ void Enemy::UpdateRushKnockback()
 	rushKnockbackTimer_++;
 
 	// 一定時間経過したら自動的にラッシュ状態を解除
-	// プレイヤーのラッシュ攻撃時間は120フレーム(kRushDuration)なので、
-	// 余裕を持って150フレームで解除
 	static constexpr uint32_t kMaxRushKnockbackDuration = 150;
 	if (rushKnockbackTimer_ >= kMaxRushKnockbackDuration) {
 		EndRushKnockback();
 		return;
 	}
 
-	// 現在のBaseObjectの回転を取得(Y軸回転が含まれる)
-	Vector3 currentRotation = BaseObject::GetWorldRotation();
+	// 混乱度合いの計算（被弾直後は激しく、時間経過で減衰）
+	float shakeFactor = 1.0f - (static_cast<float>(rushKnockbackTimer_) / static_cast<float>(kMaxRushKnockbackDuration));
+	shakeFactor = max(0.0f, shakeFactor);
 
-	// 後ろに傾く処理
-	float tiltAmount = sin(static_cast<float>(rushKnockbackTimer_) * 0.1f) * maxTiltAngle_;
+	// より激しい混乱演出のため、最初の方は減衰を緩やかに
+	shakeFactor = shakeFactor * shakeFactor; // 二乗で急激な減衰を緩和
+	shakeFactor = std::pow(shakeFactor, 0.7f); // さらに調整
 
-	// 元の回転にY軸回転を保持したまま、X軸の傾きを追加
-	Vector3 objRotation = currentRotation;
-	objRotation.x = originalRotation_.x + tiltAmount; // X軸で後ろに傾く
+	float timer = static_cast<float>(rushKnockbackTimer_);
 
-	obj3d_->SetRotation(objRotation);
+	// === X軸回転（前後にふらつく）===
+	float xShake1 = sin(timer * 0.19f) * maxTiltAngle_ * 1.5f;
+	float xShake2 = cos(timer * 0.31f) * maxTiltAngle_ * 0.8f;
+	float totalXShake = (xShake1 + xShake2) * shakeFactor;
 
-	// 後退処理
+	// === Z軸回転（左右に傾く - よろめき感）===
+	float zShake1 = sin(timer * 0.22f) * maxTiltAngle_ * 1.0f;
+	float zShake2 = cos(timer * 0.37f) * maxTiltAngle_ * 0.5f;
+	float totalZShake = (zShake1 + zShake2) * shakeFactor;
+
+	// 現在のBaseObjectの回転を取得
+	Vector3 baseRotation = BaseObject::GetWorldRotation();
+
+	// ふらつき回転を加える
+	Vector3 confusedRotation = baseRotation;
+	confusedRotation.x = originalRotation_.x + totalXShake; // 前後のふらつき
+	confusedRotation.z = originalRotation_.z + totalZShake; // 左右への傾き（よろめき）
+
+	// BaseObjectの回転を更新
+	BaseObject::SetRotation(confusedRotation);
+
+	// obj3d_の回転も同じに設定
+	obj3d_->SetRotation(confusedRotation);
+
+	// === 後退処理（ふらつきながら後退）===
 	Vector3 knockbackVelocity = knockbackDirection_ * knockbackSpeed_;
+
+	// ふらつきによる横ブレを追加（混乱して真っ直ぐ下がれない）
+	float lateralShake = sin(timer * 0.28f) * 0.02f * shakeFactor;
+	Vector3 rightDir = Vector3(-knockbackDirection_.z, 0.0f, knockbackDirection_.x); // 右方向ベクトル
+	knockbackVelocity += rightDir * lateralShake;
+
 	Vector3 currentPos = GetCenterPosition();
-	BaseObject::SetWorldPosition(currentPos + knockbackVelocity);
+
+	// XとZのみ更新、Y座標は固定
+	Vector3 newPos = currentPos + knockbackVelocity;
+	newPos.y = fixedYPosition_;  // Y座標をプレイヤーと同じ高さに固定
+
+	BaseObject::SetWorldPosition(newPos);
 
 	// 速度を減衰させて段々と後退速度を落とす
 	knockbackSpeed_ *= knockbackDecay_;
@@ -409,7 +449,8 @@ void Enemy::EndRushKnockback()
 {
 	isBeingRushed_ = false;
 	rushKnockbackTimer_ = 0;
-	knockbackSpeed_ = initialKnockbackSpeed_; // 初期値に戻す
+	knockbackSpeed_ = initialKnockbackSpeed_;
+	confusionShakeAmount_ = 0.0f;
 }
 
 void Enemy::RecoverRotation()
@@ -418,7 +459,7 @@ void Enemy::RecoverRotation()
 	Vector3 currentRotation = obj3d_->GetRotation();
 	Vector3 baseRotation = BaseObject::GetWorldRotation();
 
-	// X軸とZ軸のみを元に戻す（Y軸はApproachで管理）
+	// X軸とZ軸のみを元に戻す(Y軸はApproachで管理)
 	float lerpFactor = 0.05f;
 	Vector3 newRotation = {
 		currentRotation.x + (originalRotation_.x - currentRotation.x) * lerpFactor,
@@ -484,9 +525,13 @@ void Enemy::OnCollision(Collider* other)
 		}
 		//------------------------------------------
 
-		// 重複処理を避けるため、シリアル番号の小さい方で処理
-		if (GetSerialNumber() > player->GetSerialNumber()) {
-			return;
+		// 突進攻撃中の場合、プレイヤーにダメージを与える
+		if (behavior_ == Behavior::kAttack) {
+			// プレイヤーが回避中でない場合のみダメージ
+			if (!player->IsDodging()) {
+				// ダメージ処理はPlayer側で行うため、ここではフラグのみ設定
+				// 実際のダメージ処理はPlayer::OnCollisionで実行される
+			}
 		}
 
 		// 衝突時の反発処理
@@ -505,7 +550,7 @@ void Enemy::OnCollision(Collider* other)
 
 		// ラッシュ攻撃中の場合
 		if (arm->GetBehavior() == PlayerArm::Behavior::kRush) {
-			
+
 			// まだラッシュ攻撃を受け始めていない場合は初期化
 			if (!isBeingRushed_) {
 				isBeingRushed_ = true;
@@ -546,13 +591,13 @@ void Enemy::HandleCollisionWithPlayer(Player* player)
 			overlap *= 2.0f; // 突進時は押し出し力を強化
 		}
 
-		// プレイヤーのみを押し出し（敵は動かない）
+		// プレイヤーのみを押し出し(敵は動かない)
 		Vector3 pushVector = direction * overlap;
 
 		// プレイヤーを敵から離す方向に押し出し
 		player->SetTranslation(playerPos - pushVector);
 
-		// プレイヤーの速度を調整（敵の方向への移動を止める）
+		// プレイヤーの速度を調整(敵の方向への移動を止める)
 		Vector3 playerVelocity = player->GetVelocity();
 
 		// 敵の方向への速度成分を除去
@@ -564,7 +609,7 @@ void Enemy::HandleCollisionWithPlayer(Player* player)
 			player->SetVelocity(playerVelocity);
 		}
 
-		// 敵の接近を一時的に停止（突進中は除く）
+		// 敵の接近を一時的に停止(突進中は除く)
 		if (behavior_ != Behavior::kAttack) {
 			velocity_ *= 0.1f;
 		}
@@ -607,12 +652,12 @@ void Enemy::Approach()
 		BaseObject::SetWorldPosition(GetCenterPosition() + velocity_);
 	}
 
-	// プレイヤーの方向を向く処理（距離に関係なく実行）
+	// プレイヤーの方向を向く処理(距離に関係なく実行)
 	if (distanceToPlayer > 0.0001f) { // より小さな閾値を使用
 		// 正規化された方向ベクトルを取得
 		Vector3 normalizedDirection = targetDirection.Normalize();
 
-		// プレイヤーの方向を向く（Y軸回転を計算）
+		// プレイヤーの方向を向く(Y軸回転を計算)
 		float targetRotationY = std::atan2(normalizedDirection.x, normalizedDirection.z);
 
 		// 現在の回転を取得
@@ -622,7 +667,7 @@ void Enemy::Approach()
 		// 角度差を計算し、最短経路で回転するよう正規化
 		float angleDiff = targetRotationY - currentRotationY;
 
-		// 角度を-π〜πの範囲に正規化（最短経路での回転）
+		// 角度を-π~πの範囲に正規化(最短経路での回転)
 		const float PI = 3.14159265359f;
 		while (angleDiff > PI) {
 			angleDiff -= 2.0f * PI;
@@ -642,7 +687,7 @@ void Enemy::Approach()
 			obj3d_->SetRotation(BaseObject::GetWorldRotation());
 		}
 		else {
-			// ラッシュ攻撃中でもY軸回転は更新（ただし傾きは UpdateRushKnockback で管理）
+			// ラッシュ攻撃中でもY軸回転は更新(ただし傾きは UpdateRushKnockback で管理)
 			Vector3 newRotation = Vector3(currentRotation.x, newRotationY, currentRotation.z);
 			BaseObject::SetRotation(newRotation);
 			// obj3d_の回転はUpdateRushKnockbackで設定されるため、ここでは設定しない

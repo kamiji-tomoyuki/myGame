@@ -2,7 +2,7 @@
     "Collider": {
         "aabbCollision": false,
         "obbCollision": false,
-        "sphereCollision": false,
+        "sphereCollision": true,
         "visible": true
     }
 }

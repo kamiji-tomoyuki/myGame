@@ -176,17 +176,21 @@ private:
 	static constexpr float kChargeSpeed_ = 0.3f;
 	static constexpr float kChargeRange_ = 15.0f;
 
-	// 被弾時のノックバック
+	// 被弾時のノックバック（強化版）
 	bool isBeingRushed_ = false;
 	uint32_t rushKnockbackTimer_ = 0;
 	Vector3 knockbackDirection_ = { 0.0f, 0.0f, 1.0f };
-	float knockbackSpeed_ = 0.02f;
+	float knockbackSpeed_ = 0.08f;  // 0.02f → 0.08f (4倍に増加)
 	Vector3 originalRotation_;
+	float confusionShakeAmount_ = 0.0f;
+	float fixedYPosition_ = 0.0f;  // Y座標固定用
 
-	static constexpr float initialKnockbackSpeed_ = 0.02f;
-	static constexpr float minKnockbackSpeed_ = 0.005f;
-	static constexpr float knockbackDecay_ = 0.98f;
-	static constexpr float maxTiltAngle_ = 0.3f;
+	static constexpr float initialKnockbackSpeed_ = 0.08f;  // 0.02f → 0.08f
+	static constexpr float minKnockbackSpeed_ = 0.015f;     // 0.005f → 0.015f
+	static constexpr float knockbackDecay_ = 0.96f;         // 0.98f → 0.96f (より急激に減速)
+	static constexpr float maxTiltAngle_ = 0.5f;            // 0.3f → 0.5f (傾きも強化)
+	static constexpr float maxShakeAngle_ = 1.5f;           // 1.0f → 1.5f
+	static constexpr float shakeFrequency_ = 0.3f;
 
 	// --- 各エフェクト・演出 ---
 	bool isStart_ = false;
