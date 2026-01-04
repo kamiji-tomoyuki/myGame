@@ -15,9 +15,10 @@ public:
 	/// 状態
 	/// </summary>
 	enum class Behavior {
-		kRoot,		// 通常 (接近)
-		kAttack,	// 攻撃 (突進)
-		kCooldown,	// クールダウン
+		kRoot,			// 通常 (接近)
+		kAttack,		// 攻撃 (突進)
+		kRangedAttack,	// 遠距離攻撃
+		kCooldown,		// クールダウン
 	};
 
 	/// <summary>
@@ -27,6 +28,21 @@ public:
 		kPlaying,		// ゲームプレイ中
 		kGameOver,		// ゲームオーバー
 		kGameClear,		// ゲームクリア
+	};
+
+	/// <summary>
+	/// 遠距離攻撃用のジオグリフとトゲ
+	/// </summary>
+	struct RangedAttackInstance {
+		Vector3 position;			// 出現位置
+		uint32_t warningTimer = 0;	// 警告表示タイマー
+		uint32_t spikeTimer = 0;	// トゲ出現タイマー
+		bool isWarningActive = false;
+		bool isSpikeActive = false;
+		float spikeHeight = 0.0f;	// トゲの高さ
+
+		std::unique_ptr<Object3d> warningCircle;	// 赤い円形ジオグリフ
+		std::unique_ptr<Object3d> spike;			// トゲモデル
 	};
 
 public:
@@ -50,6 +66,7 @@ public:
 	void Draw(const ViewProjection& viewProjection) override;
 	void DrawAnimation(const ViewProjection& viewProjection);
 	void DrawParticle(const ViewProjection& viewProjection);
+	void DrawRangedAttack(const ViewProjection& viewProjection);
 
 	/// <summary>
 	/// ImGui
@@ -84,6 +101,7 @@ public:
 	bool GetIsAlive() { return isAlive_; }
 	Behavior GetBehavior() const { return behavior_; }
 	GameState GetGameState() const { return gameState_; }
+	const std::vector<RangedAttackInstance>& GetRangedAttacks() const { return rangedAttacks_; }
 
 	/// 各ステータス設定関数
 	/// <returns></returns>
@@ -108,6 +126,15 @@ private:
 	void EndCharge();
 	void StartCooldown();
 	void UpdateCooldown();
+
+	/// <summary>
+	/// 遠距離攻撃関連
+	/// </summary>
+	void StartRangedAttack();
+	void UpdateRangedAttack();
+	void EndRangedAttack();
+	void UpdateRangedAttackInstances();
+	void CheckRangedAttackCollision();
 
 	/// <summary>
 	/// ラッシュ攻撃関連処理
@@ -174,23 +201,39 @@ private:
 	static constexpr uint32_t kChargeDuration_ = 60;
 	static constexpr uint32_t kCooldownTime_ = 300;
 	static constexpr float kChargeSpeed_ = 0.3f;
-	static constexpr float kChargeRange_ = 15.0f;
+	static constexpr float kChargeRange_ = 10.0f;
 
-	// 被弾時のノックバック（強化版）
+	// 遠距離攻撃関連変数
+	uint32_t rangedAttackTimer_ = 0;
+	uint32_t rangedAttackPhase_ = 0;
+	Vector3 rangedAttackTargetPos_ = { 0.0f, 0.0f, 0.0f };
+	std::vector<RangedAttackInstance> rangedAttacks_;
+
+	static constexpr uint32_t kRangedAttackPreparationTime_ = 45;	// 予備動作時間
+	static constexpr uint32_t kRangedAttackInterval_ = 40;			// ジオグリフ出現間隔
+	static constexpr uint32_t kRangedAttackCount_ = 3;				// 攻撃回数
+	static constexpr uint32_t kWarningDuration_ = 30;				// 警告表示時間
+	static constexpr uint32_t kSpikeDuration_ = 40;		
+	static constexpr uint32_t kSpikeRiseDuration_ = 15;				// トゲの上昇時間
+	static constexpr uint32_t kSpikeHoldDuration_ = 30;				// トゲの持続時間
+	static constexpr uint32_t kSpikeFallDuration_ = 20;				// トゲの下降時間// トゲの持続時間
+	static constexpr float kSpikeMaxHeight_ = 3.0f;				// トゲの最大高さ
+	static constexpr float kSpikeRiseSpeed_ = 0.2f;				// トゲの上昇速度
+	static constexpr float kWarningCircleRadius_ = 2.0f;			// 警告円の半径
+	static constexpr float kRangedAttackRange_ = 20.0f;			// 遠距離攻撃の射程
+	static constexpr float kRangedAttackTiltAngle_ = 0.4f;		// 予備動作時の前傾角度
+
+	// 被弾時のノックバック
 	bool isBeingRushed_ = false;
 	uint32_t rushKnockbackTimer_ = 0;
 	Vector3 knockbackDirection_ = { 0.0f, 0.0f, 1.0f };
-	float knockbackSpeed_ = 0.08f;  // 0.02f → 0.08f (4倍に増加)
+	float knockbackSpeed_ = 0.02f;
 	Vector3 originalRotation_;
-	float confusionShakeAmount_ = 0.0f;
-	float fixedYPosition_ = 0.0f;  // Y座標固定用
 
-	static constexpr float initialKnockbackSpeed_ = 0.08f;  // 0.02f → 0.08f
-	static constexpr float minKnockbackSpeed_ = 0.015f;     // 0.005f → 0.015f
-	static constexpr float knockbackDecay_ = 0.96f;         // 0.98f → 0.96f (より急激に減速)
-	static constexpr float maxTiltAngle_ = 0.5f;            // 0.3f → 0.5f (傾きも強化)
-	static constexpr float maxShakeAngle_ = 1.5f;           // 1.0f → 1.5f
-	static constexpr float shakeFrequency_ = 0.3f;
+	static constexpr float initialKnockbackSpeed_ = 0.02f;
+	static constexpr float minKnockbackSpeed_ = 0.005f;
+	static constexpr float knockbackDecay_ = 0.98f;
+	static constexpr float maxTiltAngle_ = 0.3f;
 
 	// --- 各エフェクト・演出 ---
 	bool isStart_ = false;
