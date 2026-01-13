@@ -319,7 +319,7 @@ void GameScene::ChangeScene()
 	}
 
 	if (player_->GetGameState() == Player::GameState::kGameOver) {
-		sceneManager_->NextSceneReservation("GAMEOVER");
+		sceneManager_->NextSceneReservation("OVER");
 	}
 
 #ifdef _DEBUG
