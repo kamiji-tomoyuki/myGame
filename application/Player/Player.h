@@ -89,6 +89,16 @@ public:
 	bool IsDodging() const { return behavior_ == Behavior::kDodge; }
 	GameState GetGameState() const { return gameState_; }
 
+	/// UI表示判定用メソッド
+	bool CanRightPunch() const;   // 右パンチ可能か
+	bool CanLeftPunch() const;    // 左パンチ可能か
+	bool CanRush() const;         // ラッシュ可能か
+
+	// 攻撃実行中判定用メソッド
+	bool IsRightPunchActive() const;   // 右パンチ実行中か
+	bool IsLeftPunchActive() const;    // 左パンチ実行中か
+	bool IsRushActive() const;         // ラッシュ実行中か
+
 	/// 各ステータス設定関数
 	/// <returns></returns>
 	void SetFollowCamera(FollowCamera* followCamera) { followCamera_ = followCamera; }

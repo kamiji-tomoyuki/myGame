@@ -18,9 +18,9 @@ void GameScene::Initialize()
 	debugCamera_->Initialize(&vp_);
 
 	// ===== 各オブジェクトの初期化 =====
-	
+
 	currentPhase_ = GamePhase::EnemyAppear;
-	
+
 	// --- プレイヤー ---
 	Player::SetSerialNumber(0);
 	player_ = std::make_unique<Player>();
@@ -53,6 +53,16 @@ void GameScene::Initialize()
 	// ===== スプライト =====
 	UI_ = std::make_unique<Sprite>();
 	UI_->Initialize("gameUI.png", { 40.0f, 530.0f });
+
+	// 攻撃UI初期化
+	attackUI_Right_ = std::make_unique<Sprite>();
+	attackUI_Right_->Initialize("gameUIRight.png", { 40.0f, 530.0f });
+
+	attackUI_Left_ = std::make_unique<Sprite>();
+	attackUI_Left_->Initialize("gameUILeft.png", { 40.0f, 530.0f });
+
+	attackUI_Rush_ = std::make_unique<Sprite>();
+	attackUI_Rush_->Initialize("gameUIRush.png", { 40.0f, 530.0f });
 
 #ifdef _DEBUG
 	obj_ = std::make_unique<TempObj>();
@@ -87,17 +97,7 @@ void GameScene::Update()
 
 	case GamePhase::Battle:
 		UpdateBattle();
-
-		//////////////////////////////////////////////////
-
-		playT += 1.0f / 60.0f;
-
-		if (playT >= 4.0f) {
-			isClear = true;
-		}
-
-		//////////////////////////////////////////////////
-
+		UpdateAttackUI();  // 攻撃UIの更新
 		break;
 	}
 
@@ -114,6 +114,18 @@ void GameScene::Update()
 
 }
 
+void GameScene::UpdateAttackUI()
+{
+	// プレイヤーが存在しない場合は何もしない
+	if (!player_) {
+		return;
+	}
+
+	// プレイヤーの腕の状態を取得
+	// 右腕と左腕の情報を取得する必要があるため、Playerクラスに
+	// 腕の状態を取得するメソッドが必要です
+}
+
 void GameScene::Draw()
 {
 	/// -------描画処理開始-------
@@ -124,7 +136,45 @@ void GameScene::Draw()
 	spCommon_->DrawCommonSetting();
 	//-----Spriteの描画開始-----
 
+	// ベースUIを描画
 	UI_->Draw();
+
+	// プレイヤーの攻撃状態に応じて攻撃UIを重ねて描画
+	if (player_ && currentPhase_ == GamePhase::Battle) {
+		// 右パンチUI
+		if (player_->CanRightPunch()) {
+			// 実行中なら暗くする
+			if (player_->IsRightPunchActive()) {
+				attackUI_Right_->SetColor(Vector3(0.4f, 0.4f, 0.4f));
+			}
+			else {
+				attackUI_Right_->SetColor(Vector3(1.0f, 1.0f, 1.0f));
+			}
+			attackUI_Right_->Draw();
+		}
+		// 左パンチUI
+		else if (player_->CanLeftPunch()) {
+			// 実行中なら暗くする
+			if (player_->IsLeftPunchActive()) {
+				attackUI_Left_->SetColor(Vector3(0.4f, 0.4f, 0.4f));
+			}
+			else {
+				attackUI_Left_->SetColor(Vector3(1.0f, 1.0f, 1.0f));
+			}
+			attackUI_Left_->Draw();
+		}
+		// ラッシュUI
+		else if (player_->CanRush()) {
+			// 実行中なら暗くする
+			if (player_->IsRushActive()) {
+				attackUI_Rush_->SetColor(Vector3(0.4f, 0.4f, 0.4f));
+			}
+			else {
+				attackUI_Rush_->SetColor(Vector3(1.0f, 1.0f, 1.0f));
+			}
+			attackUI_Rush_->Draw();
+		}
+	}
 
 	//------------------------
 
@@ -268,11 +318,10 @@ void GameScene::ChangeScene()
 		sceneManager_->NextSceneReservation("CLEAR");
 	}
 
-	/*if (isClear) {
-		sceneManager_->NextSceneReservation("TITLE");
-	}*/
+	if (player_->GetGameState() == Player::GameState::kGameOver) {
+		sceneManager_->NextSceneReservation("GAMEOVER");
+	}
 
 #ifdef _DEBUG
-	//if(enemy->)
 #endif // _DEBUG
 }

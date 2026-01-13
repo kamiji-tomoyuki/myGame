@@ -6,6 +6,7 @@
 
 #include "myMath.h"
 #include <Enemy.h>
+#include <EnemyAttackManager.h>
 #include <random>
 
 Player::Player()
@@ -157,7 +158,7 @@ void Player::UpdateGameClearEffect()
 	// ゲームクリア時はジャンプし続ける演出
 	obj3d_->UpdateAnimation(true);
 
-	// ジャンプの周期を計算（40フレームで1サイクル）
+	// ジャンプの周期を計算(40フレームで1サイクル)
 	const float kJumpCycle = 40.0f;
 	const float kJumpHeight = 2.0f;  // ジャンプの高さ
 
@@ -166,7 +167,7 @@ void Player::UpdateGameClearEffect()
 		clearStartPos_ = BaseObject::GetWorldPosition();
 	}
 
-	// 現在のジャンプフェーズを計算（0.0～1.0）
+	// 現在のジャンプフェーズを計算(0.0~1.0)
 	float jumpPhase = fmod(clearEffectTimer_, kJumpCycle) / kJumpCycle;
 
 	// sin波を使って滑らかなジャンプモーションを作成
@@ -178,7 +179,7 @@ void Player::UpdateGameClearEffect()
 
 	BaseObject::SetWorldPosition(currentPos);
 
-	// 回転のアニメーション（オプション）
+	// 回転のアニメーション(オプション)
 	Vector3 currentRotation = BaseObject::GetWorldRotation();
 	currentRotation.y += 0.05f;  // ゆっくり回転
 	BaseObject::SetRotation(currentRotation);
@@ -269,7 +270,7 @@ void Player::StartDodge(const Vector3& direction)
 			dodgeTiltRotation_ = Vector3(0.0f, 0.0f, kDodgeTiltAngle_);
 		}
 	}
-	
+
 	if (absWorldX > 0.3f && absWorldZ > 0.3f) {
 		float xTilt = worldZ > 0.0f ? kDodgeTiltAngle_ * 0.7f : -kDodgeTiltAngle_ * 0.7f;
 		float zTilt = worldX > 0.0f ? -kDodgeTiltAngle_ * 0.7f : kDodgeTiltAngle_ * 0.7f;
@@ -297,7 +298,7 @@ void Player::UpdateDodge()
 	else {
 		tiltProgress = 1.0f;
 	}
-	
+
 	Vector3 currentTilt = dodgeTiltRotation_ * tiltProgress;
 
 	Vector3 currentRotation;
@@ -316,7 +317,7 @@ void Player::UpdateDodge()
 			newPos = stageManager_->ClampToStageBounds(newPos);
 		}
 	}
-	
+
 	BaseObject::SetWorldPosition(newPos);
 
 	if (dodgeTimer_ >= kDodgeDuration_) {
@@ -429,7 +430,7 @@ void Player::ImGui()
 
 	ImGui::Begin("Player Debug");
 
-	// HP表示（色付き）
+	// HP表示(色付き)
 	float hpRatio = static_cast<float>(HP_) / static_cast<float>(kMaxHP_);
 	ImVec4 hpColor;
 	if (hpRatio > 0.5f) {
@@ -514,20 +515,13 @@ void Player::OnCollision(Collider* other)
 			return;
 		}
 
-#ifdef _DEBUG
-		// デバッグ用：衝突検出のログ
-		OutputDebugStringA("Player-Enemy Collision Detected!\n");
-#endif
+		// 敵が攻撃中の場合、大ダメージと強いリアクション
+		if (enemy->IsAttacking()) {
 
-		// 敵が突進攻撃中の場合、大ダメージと強いリアクション
-		if (enemy->GetBehavior() == Enemy::Behavior::kAttack) {
-#ifdef _DEBUG
-			OutputDebugStringA("Enemy is Charging! Taking damage!\n");
-#endif
 			// 大ダメージを受ける
-			uint32_t chargeDamage = 100;
-			if (HP_ > chargeDamage) {
-				HP_ -= chargeDamage;
+			uint32_t attackDamage = 100;
+			if (HP_ > attackDamage) {
+				HP_ -= attackDamage;
 			}
 			else {
 				HP_ = 0;
@@ -535,11 +529,11 @@ void Player::OnCollision(Collider* other)
 				gameState_ = GameState::kGameOver;
 			}
 
-			// 被弾処理を呼び出す（震えるリアクション）
+			// 被弾処理を呼び出す(震えるリアクション)
 			Vector3 hitPos = (GetCenterPosition() + enemy->GetCenterPosition()) * 0.5f;
 			TakeDamage(hitPos);
 
-			// 突進攻撃の場合はノックバック処理を追加
+			// 攻撃中の場合はノックバック処理を追加
 			Vector3 knockbackDirection = (GetCenterPosition() - enemy->GetCenterPosition()).Normalize();
 			velocity_ += knockbackDirection * 0.5f; // ノックバック速度
 		}
@@ -569,6 +563,124 @@ void Player::OnCollision(Collider* other)
 	}
 
 	transform_.UpdateMatrix();
+}
+
+bool Player::CanRightPunch() const
+{
+	// 回避中、被弾リアクション中の場合は不可
+	if (behavior_ == Behavior::kDodge || isHitReacting_) {
+		return false;
+	}
+
+	// ラッシュ攻撃可能な状態なら右パンチUIは表示しない
+	if (arms_[kLArm] && arms_[kLArm]->CanStartRush()) {
+		return false;
+	}
+
+	// 左パンチコンボ待機中なら右パンチUIは表示しない
+	if (arms_[kRArm] &&
+		arms_[kRArm]->CanCombo() &&
+		arms_[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch) {
+		return false;
+	}
+
+	// 右パンチ実行中なら表示
+	if (IsRightPunchActive()) {
+		return true;
+	}
+
+	// 両腕が攻撃中またはラッシュ中かチェック
+	bool anyAttacking = false;
+	for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+		if (arm->GetBehavior() == PlayerArm::Behavior::kAttack ||
+			arm->GetBehavior() == PlayerArm::Behavior::kRush) {
+			anyAttacking = true;
+			break;
+		}
+	}
+
+	// 攻撃中でなければ右パンチ可能
+	return !anyAttacking;
+}
+
+bool Player::CanLeftPunch() const
+{
+	// 回避中、被弾リアクション中の場合は不可
+	if (behavior_ == Behavior::kDodge || isHitReacting_) {
+		return false;
+	}
+
+	// ラッシュ攻撃可能な状態なら左パンチUIは表示しない
+	if (arms_[kLArm] && arms_[kLArm]->CanStartRush()) {
+		return false;
+	}
+
+	// 左パンチ実行中なら表示
+	if (IsLeftPunchActive()) {
+		return true;
+	}
+
+	// 右パンチ後のコンボ待機中（攻撃モーション終了後も含む）
+	if (arms_[kRArm] &&
+		arms_[kRArm]->CanCombo() &&
+		arms_[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch) {
+		return true;
+	}
+
+	return false;
+}
+
+bool Player::CanRush() const
+{
+	// 回避中、被弾リアクション中の場合は不可
+	if (behavior_ == Behavior::kDodge || isHitReacting_) {
+		return false;
+	}
+
+	// ラッシュ実行中なら表示
+	if (IsRushActive()) {
+		return true;
+	}
+
+	// 左パンチ後のラッシュ待機中（攻撃モーション終了後も含む）
+	if (arms_[kLArm] && arms_[kLArm]->CanStartRush()) {
+		return true;
+	}
+
+	return false;
+}
+
+bool Player::IsRightPunchActive() const
+{
+	// 右腕が右パンチで攻撃中
+	if (arms_[kRArm] &&
+		arms_[kRArm]->GetBehavior() == PlayerArm::Behavior::kAttack &&
+		arms_[kRArm]->GetCurrentAttackType() == PlayerArm::AttackType::kRightPunch) {
+		return true;
+	}
+	return false;
+}
+
+bool Player::IsLeftPunchActive() const
+{
+	// 左腕が左パンチで攻撃中
+	if (arms_[kLArm] &&
+		arms_[kLArm]->GetBehavior() == PlayerArm::Behavior::kAttack &&
+		arms_[kLArm]->GetCurrentAttackType() == PlayerArm::AttackType::kLeftPunch) {
+		return true;
+	}
+	return false;
+}
+
+bool Player::IsRushActive() const
+{
+	// どちらかの腕がラッシュ中
+	for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+		if (arm->GetBehavior() == PlayerArm::Behavior::kRush) {
+			return true;
+		}
+	}
+	return false;
 }
 
 void Player::InitArm()

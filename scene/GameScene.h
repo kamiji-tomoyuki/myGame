@@ -64,6 +64,12 @@ private:
 	void UpdateBattle();
 
 	void ChangeScene();
+
+	/// <summary>
+	/// 攻撃UIの更新
+	/// </summary>
+	void UpdateAttackUI();
+
 private:
 
 	Audio* audio_;
@@ -96,10 +102,11 @@ private:
 	// --- シーン管理 ---
 	bool isClear = false;
 
-	float playT = 0.0f;
-
 	// --- スプライト ---
 	std::unique_ptr<Sprite> UI_;
+	std::unique_ptr<Sprite> attackUI_Right_;   // 右フック用UI
+	std::unique_ptr<Sprite> attackUI_Left_;    // 左フック用UI
+	std::unique_ptr<Sprite> attackUI_Rush_;    // ラッシュ用UI
 
 
 #ifdef _DEBUG

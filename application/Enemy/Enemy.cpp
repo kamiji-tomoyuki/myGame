@@ -3,6 +3,9 @@
 #include "CollisionTypeIdDef.h"
 #include "Player.h"
 #include "Arm/PlayerArm.h"
+#include "EnemyAttackManager.h"
+#include "EnemyAttackMelee.h"
+#include "EnemyAttackRanged.h"
 
 #include "myMath.h"
 #include <Easing.h>
@@ -37,22 +40,10 @@ void Enemy::Init()
 
 	// --- 各ステータスの初期値設定 ---
 	originalRotation_ = obj3d_->GetRotation();
-	behavior_ = Behavior::kRoot;
-	chargeTimer_ = 0;
-	maxChargeCount_ = 1;  // 通常時は1回
 
-	// 軌跡パーティクルの初期化
-	trailEffect_ = std::make_unique<ParticleEmitter>();
-	trailEffect_->Initialize("enemyTrail", "debug/plane.obj");
-
-	Vector3 initialFootPos = BaseObject::GetWorldPosition();
-	initialFootPos.y += kFootOffsetY_;
-	lastTrailPosition_ = initialFootPos;
-
-	originalRotation_ = obj3d_->GetRotation();
-	behavior_ = Behavior::kRoot;
-	chargeTimer_ = 0;
-	maxChargeCount_ = 1;
+	// --- 攻撃管理の初期化 ---
+	attackManager_ = std::make_unique<EnemyAttackManager>();
+	attackManager_->Initialize();
 }
 
 void Enemy::Update(Player* player, const ViewProjection& vp)
@@ -72,8 +63,12 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 			UpdateRushKnockback();
 		}
 		else {
-			// 行動状態の更新
-			UpdateBehavior();
+			// 通常時は接近処理
+			Approach();
+			RecoverRotation();
+
+			// 攻撃管理の更新
+			attackManager_->Update(this, player);
 		}
 		break;
 
@@ -91,31 +86,10 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 	BaseObject::Update();
 	obj3d_->Update(BaseObject::GetWorldTransform(), vp);
 
-	// 軌跡パーティクルの更新
-	trailEffect_->UpdateOnce(vp);
-
-	// 遠距離攻撃のモデル更新
-	if (vp_ != nullptr) {
-		for (auto& attack : rangedAttacks_) {
-			if (attack.warningCircle) {
-				WorldTransform warningTransform;
-				warningTransform.Initialize();
-				warningTransform.translation_ = attack.position;
-				warningTransform.rotation_ = attack.warningCircle->GetRotation();
-				warningTransform.scale_ = attack.warningCircle->GetSize();
-				warningTransform.UpdateMatrix();
-				attack.warningCircle->Update(warningTransform, vp);
-			}
-
-			if (attack.spike) {
-				WorldTransform spikeTransform;
-				spikeTransform.Initialize();
-				spikeTransform.translation_ = attack.position;
-				spikeTransform.translation_.y += attack.spikeHeight * 0.5f;
-				spikeTransform.scale_ = attack.spike->GetSize();
-				spikeTransform.UpdateMatrix();
-				attack.spike->Update(spikeTransform, vp);
-			}
+	// 攻撃管理のビュープロジェクション更新
+	if (vp_ != nullptr && attackManager_) {
+		if (auto* rangedAttack = attackManager_->GetRangedAttack()) {
+			rangedAttack->UpdateViewProjection(vp);
 		}
 	}
 }
@@ -206,7 +180,7 @@ void Enemy::UpdateStartEffect()
 		// タイマーを進める
 		fallTimer_++;
 
-		// 落下中は回転させる演出を追加(オプション)
+		// 落下中は回転させる演出を追加 (オプション)
 		float rotationSpeed = 0.1f;
 		Vector3 currentRotation = obj3d_->GetRotation();
 		currentRotation.y += rotationSpeed * (1.0f - (fallTimer_ / kFallDuration_));
@@ -216,324 +190,8 @@ void Enemy::UpdateStartEffect()
 		// 落下完了後は最終位置に固定
 		BaseObject::SetWorldPosition(fallEndPos_);
 
-		// 落下完了フラグ(ヘッダーに追加が必要)
-		// bool isFallComplete_ = true;
+		// 落下完了フラグ
 		isFallComplete_ = true;
-	}
-}
-
-void Enemy::UpdateBehavior()
-{
-	switch (behavior_) {
-	case Behavior::kRoot:
-		// 通常時は接近処理
-		Approach();
-
-		// 通常の回転に戻す処理
-		RecoverRotation();
-
-		// 攻撃準備タイマー更新
-		chargeTimer_++;
-		if (chargeTimer_ >= kChargePreparationTime_) {
-			// プレイヤーとの距離をチェック
-			if (player_ != nullptr) {
-				float distanceToPlayer = (player_->GetCenterPosition() - GetCenterPosition()).Length();
-
-				// 近距離(15.0f以内)なら突進攻撃
-				if (distanceToPlayer <= kChargeRange_) {
-					StartCharge();
-				}
-				else {
-				// 遠距離(15.0f超)なら遠距離攻撃
-					StartRangedAttack();
-				}
-			}
-		}
-		break;
-
-	case Behavior::kAttack:
-		UpdateCharge();
-		break;
-
-	case Behavior::kRangedAttack:
-		UpdateRangedAttack();
-		break;
-
-	case Behavior::kCooldown:
-		UpdateCooldown();
-		break;
-	}
-}
-
-void Enemy::StartCharge()
-{
-	behavior_ = Behavior::kAttack;
-	chargeDuration_ = 0;
-	chargeCount_++;
-
-	// HPが半分以下の場合は最大突進回数を2回に設定
-	if (HP_ <= kMaxHP_ / 2) {
-		maxChargeCount_ = 2;
-	}
-
-	// プレイヤーへの方向を計算
-	if (player_ != nullptr) {
-		Vector3 targetPos = player_->GetCenterPosition();
-		Vector3 currentPos = GetCenterPosition();
-		chargeDirection_ = (targetPos - currentPos).Normalize();
-		chargeStartPos_ = currentPos;
-
-		// プレイヤーの方向を向く
-		float targetRotationY = std::atan2(chargeDirection_.x, chargeDirection_.z);
-		BaseObject::SetRotationY(targetRotationY);
-		obj3d_->SetRotation(BaseObject::GetWorldRotation());
-	}
-}
-
-void Enemy::UpdateCharge()
-{
-	chargeDuration_++;
-
-	// 突進移動
-	Vector3 chargeVelocity = chargeDirection_ * kChargeSpeed_;
-	BaseObject::SetWorldPosition(GetCenterPosition() + chargeVelocity);
-
-	// 軌跡パーティクルの発生処理
-	UpdateTrailEffect();
-
-	// 突進時間が終了した場合
-	if (chargeDuration_ >= kChargeDuration_) {
-		EndCharge();
-	}
-}
-
-void Enemy::EndCharge()
-{
-	// まだ突進回数が残っている場合
-	if (chargeCount_ < maxChargeCount_) {
-		// 次の突進の準備
-		behavior_ = Behavior::kRoot;
-		chargeTimer_ = kChargePreparationTime_ - 30; // 短い間隔で次の突進
-		chargeDuration_ = 0;
-	}
-	else {
-		// 全ての突進が終了した場合はクールダウン開始
-		StartCooldown();
-	}
-}
-
-void Enemy::StartCooldown()
-{
-	behavior_ = Behavior::kCooldown;
-	cooldownTimer_ = 0;
-	chargeCount_ = 0;  // 突進回数をリセット
-}
-
-void Enemy::StartRangedAttack()
-{
-	behavior_ = Behavior::kRangedAttack;
-	rangedAttackTimer_ = 0;
-	rangedAttackPhase_ = 0;
-	rangedAttacks_.clear();
-
-	// プレイヤーの方向を向く
-	if (player_ != nullptr) {
-		Vector3 targetPos = player_->GetCenterPosition();
-		Vector3 currentPos = GetCenterPosition();
-		Vector3 direction = (targetPos - currentPos).Normalize();
-
-		float targetRotationY = std::atan2(direction.x, direction.z);
-		BaseObject::SetRotationY(targetRotationY);
-		obj3d_->SetRotation(BaseObject::GetWorldRotation());
-	}
-
-	// 移動を停止（硬直状態）
-	velocity_ = Vector3(0.0f, 0.0f, 0.0f);
-}
-
-void Enemy::UpdateRangedAttack()
-{
-	rangedAttackTimer_++;
-
-	// 硬直状態を維持（移動しない）
-	velocity_ = Vector3(0.0f, 0.0f, 0.0f);
-
-	// 予備動作フェーズ
-	if (rangedAttackTimer_ < kRangedAttackPreparationTime_) {
-		// 前傾姿勢のアニメーション
-		float tiltProgress = static_cast<float>(rangedAttackTimer_) / kRangedAttackPreparationTime_;
-		float tiltAmount = tiltProgress * kRangedAttackTiltAngle_;
-
-		Vector3 currentRotation = BaseObject::GetWorldRotation();
-		Vector3 objRotation = currentRotation;
-		objRotation.x = originalRotation_.x + tiltAmount;
-		obj3d_->SetRotation(objRotation);
-	}
-	// ジオグリフ生成フェーズ
-	else {
-		uint32_t attackPhaseTimer = rangedAttackTimer_ - kRangedAttackPreparationTime_;
-
-		// 各攻撃の生成タイミング（間隔をあけて3つ生成）
-		if (attackPhaseTimer % kRangedAttackInterval_ == 0 && rangedAttackPhase_ < kRangedAttackCount_) {
-			RangedAttackInstance newAttack;
-
-			// プレイヤーの現在位置を取得（各トゲごとに更新）
-			Vector3 currentPlayerPos = Vector3(0.0f, 0.0f, 0.0f);
-			if (player_ != nullptr) {
-				currentPlayerPos = player_->GetCenterPosition();
-			}
-
-			// プレイヤーの足元に出現
-			newAttack.position = currentPlayerPos;
-			newAttack.position.y = 0.1f; // 地面の高さ
-			newAttack.isWarningActive = true;
-
-			// 警告円の初期化（個別に新しいオブジェクトを作成）
-			newAttack.warningCircle = std::make_unique<Object3d>();
-			newAttack.warningCircle->Initialize("debug/ground.obj");
-			newAttack.warningCircle->SetSize({ kWarningCircleRadius_, 1.0f, kWarningCircleRadius_ });
-			newAttack.warningCircle->SetRotation({ 1.57f, 0.0f, 0.0f }); // X軸90度回転で地面に
-
-			// トゲモデルの初期化（個別に新しいオブジェクトを作成）
-			newAttack.spike = std::make_unique<Object3d>();
-			newAttack.spike->Initialize("Enemy/Cube.obj");
-			newAttack.spike->SetSize({ 1.0f, 0.0f, 1.0f }); // 初期は高さ0
-
-			rangedAttacks_.push_back(std::move(newAttack));
-			rangedAttackPhase_++;
-		}
-	}
-
-	// 既存の攻撃インスタンスを更新
-	UpdateRangedAttackInstances();
-
-	// 全ての攻撃が終了したかチェック
-	bool allFinished = rangedAttackPhase_ >= kRangedAttackCount_;
-	if (allFinished) {
-		bool anyActive = false;
-		for (const auto& attack : rangedAttacks_) {
-			if (attack.isWarningActive || attack.isSpikeActive) {
-				anyActive = true;
-				break;
-			}
-		}
-		if (!anyActive) {
-			EndRangedAttack();
-		}
-	}
-}
-
-void Enemy::UpdateRangedAttackInstances()
-{
-	for (auto& attack : rangedAttacks_) {
-		// 警告円の更新
-		if (attack.isWarningActive) {
-			attack.warningTimer++;
-
-			if (attack.warningTimer >= kWarningDuration_) {
-				attack.isWarningActive = false;
-				attack.isSpikeActive = true;
-				attack.spikeTimer = 0;
-			}
-		}
-
-		// トゲの更新
-		if (attack.isSpikeActive) {
-			attack.spikeTimer++;
-
-			// トゲの上昇アニメーション
-			if (attack.spikeTimer < kSpikeRiseDuration_) {
-				// 上昇フェーズ
-				float riseProgress = static_cast<float>(attack.spikeTimer) / kSpikeRiseDuration_;
-				attack.spikeHeight = riseProgress * kSpikeMaxHeight_;
-			}
-			// トゲの持続
-			else if (attack.spikeTimer < kSpikeRiseDuration_ + kSpikeHoldDuration_) {
-				// 最大高さを維持
-				attack.spikeHeight = kSpikeMaxHeight_;
-			}
-			// トゲの下降アニメーション
-			else if (attack.spikeTimer < kSpikeRiseDuration_ + kSpikeHoldDuration_ + kSpikeFallDuration_) {
-				// 下降フェーズ
-				uint32_t fallTimer = attack.spikeTimer - (kSpikeRiseDuration_ + kSpikeHoldDuration_);
-				float fallProgress = static_cast<float>(fallTimer) / kSpikeFallDuration_;
-				attack.spikeHeight = kSpikeMaxHeight_ * (1.0f - fallProgress);
-			}
-			else {
-				// 完全に引っ込んだら非アクティブに
-				attack.isSpikeActive = false;
-				attack.spikeHeight = 0.0f;
-			}
-
-			// トゲのサイズ更新
-			attack.spike->SetSize({ 1.0f, attack.spikeHeight, 1.0f });
-		}
-	}
-
-	// 当たり判定チェック
-	CheckRangedAttackCollision();
-}
-
-void Enemy::EndRangedAttack()
-{
-	// 姿勢を元に戻す
-	Vector3 currentRotation = BaseObject::GetWorldRotation();
-	currentRotation.x = originalRotation_.x;
-	BaseObject::SetRotation(currentRotation);
-	obj3d_->SetRotation(currentRotation);
-
-	// クールダウンに移行
-	StartCooldown();
-
-	// 攻撃データをクリア
-	rangedAttacks_.clear();
-	rangedAttackPhase_ = 0;
-	rangedAttackTimer_ = 0;
-}
-
-void Enemy::UpdateCooldown()
-{
-	cooldownTimer_++;
-
-	// 通常の接近処理を継続
-	Approach();
-	RecoverRotation();
-
-	// クールダウン時間が終了した場合
-	if (cooldownTimer_ >= kCooldownTime_) {
-		behavior_ = Behavior::kRoot;
-		chargeTimer_ = 0;
-		cooldownTimer_ = 0;
-	}
-}
-
-void Enemy::CheckRangedAttackCollision()
-{
-	if (player_ == nullptr) return;
-
-	Vector3 playerPos = player_->GetCenterPosition();
-
-	for (const auto& attack : rangedAttacks_) {
-		if (!attack.isSpikeActive) continue;
-
-		// トゲが十分に伸びている場合のみ判定
-		if (attack.spikeHeight < kSpikeMaxHeight_ * 0.5f) continue;
-
-		// 円形の当たり判定
-		float distanceXZ = std::sqrt(
-			std::pow(playerPos.x - attack.position.x, 2.0f) +
-			std::pow(playerPos.z - attack.position.z, 2.0f)
-		);
-
-		// プレイヤーがトゲの範囲内にいる場合
-		if (distanceXZ <= kWarningCircleRadius_ &&
-			playerPos.y <= attack.position.y + kSpikeMaxHeight_) {
-			// プレイヤーにダメージを与える処理
-			// プレイヤーが回避中でない場合のみダメージ
-			if (!player_->IsDodging()) {
-				//player_->TakeDamage(attack.position);
-			}
-		}
 	}
 }
 
@@ -542,14 +200,6 @@ void Enemy::CheckPlayerRushStatus()
 	if (player_ == nullptr) return;
 
 	bool wasBeingRushed = isBeingRushed_;
-
-	// プレイヤーの腕の状態をチェックしてラッシュ判定
-	bool playerIsRushing = false;
-
-	// プレイヤーの両腕をチェックして、どちらかがラッシュ状態ならtrue
-	// (Playerクラスに腕へのアクセサがない場合は、OnCollisionでの判定のみに依存)
-	// ここでは、OnCollisionで設定された isBeingRushed_ の状態を維持し、
-	// 一定時間経過で自動的に解除する方式に変更します
 
 	// ラッシュ攻撃が開始された瞬間の処理
 	if (!wasBeingRushed && isBeingRushed_) {
@@ -573,16 +223,9 @@ void Enemy::StartRushKnockback()
 	isBeingRushed_ = true;
 	rushKnockbackTimer_ = 0;
 
-	// ラッシュ攻撃中は突進攻撃を中断
-	if (behavior_ == Behavior::kAttack) {
-		behavior_ = Behavior::kCooldown;
-		cooldownTimer_ = 0;
-		chargeCount_ = 0;
-	}
-
-	// 遠距離攻撃中も中断
-	if (behavior_ == Behavior::kRangedAttack) {
-		EndRangedAttack();
+	// ラッシュ攻撃中は攻撃を中断
+	if (attackManager_) {
+		attackManager_->InterruptByRush();
 	}
 
 	// プレイヤーから敵への方向を計算(後退方向)
@@ -658,31 +301,16 @@ void Enemy::RecoverRotation()
 	obj3d_->SetRotation(newRotation);
 }
 
-void Enemy::UpdateTrailEffect()
-{
-	Vector3 currentPos = GetCenterPosition();
-
-	// 足元の位置を計算
-	Vector3 footPosition = currentPos;
-	footPosition.y += kFootOffsetY_;
-
-	float distanceMoved = (footPosition - lastTrailPosition_).Length();
-
-	// 一定距離移動したらパーティクルを発生
-	if (distanceMoved >= trailEmitDistance_) {
-		// 移動している場合のみパーティクルを発生
-		if (velocity_.Length() > 0.01f) {
-			trailEffect_->SetPosition(footPosition);
-			trailEffect_->SetActive(false);
-		}
-		lastTrailPosition_ = footPosition;
-	}
-}
-
 void Enemy::Draw(const ViewProjection& viewProjection)
 {
 	obj3d_->Draw(BaseObject::GetWorldTransform(), viewProjection);
-	DrawRangedAttack(viewProjection);
+
+	// 攻撃の描画
+	if (attackManager_) {
+		if (auto* rangedAttack = attackManager_->GetRangedAttack()) {
+			rangedAttack->Draw(viewProjection);
+		}
+	}
 }
 
 void Enemy::DrawAnimation(const ViewProjection& viewProjection)
@@ -692,45 +320,17 @@ void Enemy::DrawAnimation(const ViewProjection& viewProjection)
 
 void Enemy::DrawParticle(const ViewProjection& viewProjection)
 {
-	trailEffect_->Draw(Normal);
-}
-
-void Enemy::DrawRangedAttack(const ViewProjection& viewProjection)
-{
-	for (const auto& attack : rangedAttacks_) {
-		if (attack.isWarningActive && attack.warningCircle) {
-			WorldTransform warningTransform;
-			warningTransform.Initialize();
-			warningTransform.translation_ = attack.position;
-			warningTransform.rotation_ = attack.warningCircle->GetRotation();
-			warningTransform.scale_ = attack.warningCircle->GetSize();
-			warningTransform.UpdateMatrix();
-
-			// 赤色で描画
-			ObjColor redColor;
-			redColor.Initialize();
-			redColor.SetColor(Vector4(1.0f, 0.0f, 0.0f, 0.6f));
-			redColor.TransferMatrix();
-
-			//attack.warningCircle->Draw(warningTransform, viewProjection, &redColor);
-		}
-
-		if (attack.isSpikeActive && attack.spike) {
-			WorldTransform spikeTransform;
-			spikeTransform.Initialize();
-			spikeTransform.translation_ = attack.position;
-			spikeTransform.translation_.y += attack.spikeHeight * 0.5f;
-			spikeTransform.scale_ = attack.spike->GetSize();
-			spikeTransform.UpdateMatrix();
-
-			attack.spike->Draw(spikeTransform, viewProjection);
+	// 攻撃のパーティクル描画
+	if (attackManager_) {
+		if (auto* meleeAttack = attackManager_->GetMeleeAttack()) {
+			meleeAttack->DrawTrailEffect();
 		}
 	}
 }
 
 void Enemy::ImGui()
 {
-	trailEffect_->imgui();
+	// ImGui処理
 }
 
 void Enemy::OnCollision(Collider* other)
@@ -803,10 +403,9 @@ void Enemy::HandleCollisionWithPlayer(Player* player)
 		// 重なり量
 		float overlap = totalRadius - distance;
 
-		// 突進攻撃中の場合はより強い押し出し処理
-		if (behavior_ == Behavior::kAttack) {
-			// プレイヤーに大きなダメージやノックバックを与える処理をここに追加可能
-			overlap *= 2.0f; // 突進時は押し出し力を強化
+		// 攻撃中の場合はより強い押し出し処理
+		if (attackManager_ && attackManager_->IsAttacking()) {
+			overlap *= 2.0f; // 攻撃時は押し出し力を強化
 		}
 
 		// プレイヤーのみを押し出し(敵は動かない)
@@ -827,8 +426,8 @@ void Enemy::HandleCollisionWithPlayer(Player* player)
 			player->SetVelocity(playerVelocity);
 		}
 
-		// 敵の接近を一時的に停止(突進中は除く)
-		if (behavior_ != Behavior::kAttack) {
+		// 敵の接近を一時的に停止(攻撃中は除く)
+		if (!attackManager_ || !attackManager_->IsAttacking()) {
 			velocity_ *= 0.1f;
 		}
 
@@ -840,6 +439,14 @@ void Enemy::HandleCollisionWithPlayer(Player* player)
 void Enemy::TakeDamage(uint32_t damage)
 {
 	HP_ -= damage;
+}
+
+bool Enemy::IsAttacking() const
+{
+	if (attackManager_) {
+		return attackManager_->IsAttacking();
+	}
+	return false;
 }
 
 void Enemy::Approach()
@@ -911,6 +518,4 @@ void Enemy::Approach()
 			// obj3d_の回転はUpdateRushKnockbackで設定されるため、ここでは設定しない
 		}
 	}
-
-	UpdateTrailEffect();
 }
