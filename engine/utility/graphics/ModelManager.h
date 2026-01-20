@@ -28,6 +28,11 @@ public:
 	void Finalize();
 
 	/// <summary>
+	///　削除
+	/// </summary>
+	void Destroy();
+
+	/// <summary>
 	/// シングルトンインスタンスの取得
 	/// </summary>
 	/// <returns></returns>
@@ -45,6 +50,11 @@ public:
 	/// </summary>
 	/// <param name="filePath"></param>
 	void LoadModel(const std::string& filePath);
+
+	/// <summary>
+	/// モデルキャッシュをクリア（シーン切り替え時用）
+	/// </summary>
+	void ClearModels();
 
 public:
 

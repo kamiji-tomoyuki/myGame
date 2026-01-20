@@ -42,6 +42,12 @@ void ModelManager::LoadModel(const std::string& filePath)
     models.insert(std::make_pair(filePath, std::move(model)));
 }
 
+void ModelManager::ClearModels()
+{
+    // モデルマップをクリア
+    models.clear();
+}
+
 Model* ModelManager::FindModel(const std::string& filePath)
 {
     // .gltfファイルの場合はファイルパスにユニークな識別子を使って検索
@@ -73,14 +79,31 @@ Model* ModelManager::FindModel(const std::string& filePath)
 
 void ModelManager::Initialize(SrvManager* srvManager)
 {
-	modelCommon = new ModelCommon;
-	modelCommon->Initialize();
-	this->srvManager = srvManager;
+    // 既に初期化されている場合は一旦クリア
+    if (modelCommon != nullptr) {
+        delete modelCommon;
+        modelCommon = nullptr;
+    }
 
+    models.clear();
+
+    modelCommon = new ModelCommon;
+    modelCommon->Initialize();
+    this->srvManager = srvManager;
 }
 
 void ModelManager::Finalize()
 {
 	delete instance;
 	instance = nullptr;
+}
+
+void ModelManager::Destroy()
+{
+    if (instance != nullptr) {
+        instance->Finalize();
+        delete instance;
+        instance = nullptr;
+        OutputDebugStringA("[ModelManager] Instance destroyed\n");
+    }
 }

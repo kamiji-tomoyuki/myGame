@@ -2,6 +2,9 @@
 #include <cassert>
 #include <ImGuiManager.h>
 #include"GlobalVariables.h"
+#include <ModelManager.h>
+#include <Player.h>
+#include <Enemy.h>
 
 SceneManager* SceneManager::instance = nullptr;
 
@@ -137,7 +140,16 @@ void SceneManager::SceneChange()
 		if (scene_) {
 			scene_->Finalize();
 			delete scene_;
+			scene_ = nullptr;
 		}
+
+		// シーン切り替え時にシリアルナンバーをリセット
+		Player::SetSerialNumber(0);
+		Enemy::SetSerialNumber(0);
+		
+		// モデルキャッシュをクリア
+		ModelManager::GetInstance()->ClearModels();
+
 		// シーンの切り替え
 		scene_ = nextScene_;
 		nextScene_ = nullptr;
@@ -147,6 +159,8 @@ void SceneManager::SceneChange()
 
 		// 次のシーンを初期化する
 		scene_->Initialize();
+
 		transition_->SetFadeOutStart(true);
+
 	}
 }
