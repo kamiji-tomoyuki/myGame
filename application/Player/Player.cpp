@@ -92,6 +92,9 @@ void Player::Update()
 				hitEffect_->SetPosition(BaseObject::GetWorldPosition());
 				Move();
 				UpdateAttack();
+
+				// ロックオン処理
+				UpdateLockOn();
 			}
 		}
 
@@ -124,6 +127,54 @@ void Player::Update()
 	hitEffect_->Update(*vp_);
 	damageEffect_->Update(*vp_);
 #endif // _DEBUG
+}
+
+void Player::UpdateLockOn()
+{
+	// Rキーでロックオン切り替え
+	if (Input::GetInstance()->TriggerKey(DIK_R)) {
+		isLockOn_ = !isLockOn_;
+	}
+
+	// ロックオンが有効で敵が存在する場合
+	if (isLockOn_ && enemy_ != nullptr) {
+		Vector3 playerPos = GetCenterPosition();
+		Vector3 enemyPos = enemy_->GetCenterPosition();
+
+		// 敵への方向を計算
+		Vector3 direction = enemyPos - playerPos;
+
+		// 距離が十分ある場合のみ回転処理
+		// 正規化された方向ベクトルを取得
+		Vector3 normalizedDirection = direction.Normalize();
+
+		// 敵の方向を向く(Y軸回転を計算)
+		float targetRotationY = std::atan2(normalizedDirection.x, normalizedDirection.z);
+
+		// 現在の回転を取得
+		Vector3 currentRotation = GetCenterRotation();
+		float currentRotationY = currentRotation.y;
+
+		// 角度差を計算し、最短経路で回転するよう正規化
+		float angleDiff = targetRotationY - currentRotationY;
+
+		// 角度を-π~πの範囲に正規化(最短経路での回転)
+		const float PI = 3.14159265359f;
+		while (angleDiff > PI) {
+			angleDiff -= 2.0f * PI;
+		}
+		while (angleDiff < -PI) {
+			angleDiff += 2.0f * PI;
+		}
+
+		// 新しい回転角度を線形補間で計算
+		float lerpFactor = 0.2f; // 補間係数(回転速度)
+		float newRotationY = currentRotationY + angleDiff * lerpFactor;
+
+		// 回転を設定
+		BaseObject::SetRotation(Vector3(currentRotation.x, newRotationY, currentRotation.z));
+
+	}
 }
 
 void Player::UpdateGameOverEffect()
@@ -465,6 +516,10 @@ void Player::ImGui()
 		behavior_ == Behavior::kRoot ? "Root" :
 		behavior_ == Behavior::kAttack ? "Attack" :
 		behavior_ == Behavior::kDodge ? "Dodge" : "Unknown");
+
+	// ロックオン情報
+	ImGui::Separator();
+	ImGui::Text("Lock-On: %s", isLockOn_ ? "ON" : "OFF");
 
 	// 被弾リアクション情報
 	ImGui::Separator();

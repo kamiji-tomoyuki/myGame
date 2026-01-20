@@ -9,6 +9,7 @@
 #include <ParticleEmitter.h>
 
 class FollowCamera;
+class Enemy;
 
 class Player : public BaseObject
 {
@@ -107,6 +108,7 @@ public:
 	void SetTranslation(const Vector3& translation) { transform_.translation_ = translation; }
 	void SetVelocity(const Vector3& velocity) { velocity_ = velocity; }
 	void SetGameState(GameState state) { gameState_ = state; }
+	void SetEnemy(Enemy* enemy) { enemy_ = enemy; }
 
 private:
 
@@ -119,6 +121,11 @@ private:
 	/// 移動
 	/// </summary>
 	void Move();
+
+	/// <summary>
+	/// ロックオン処理
+	/// </summary>
+	void UpdateLockOn();
 
 	/// <summary>
 	/// 回避処理
@@ -200,6 +207,10 @@ private:
 	Vector3 originalPosition_{};
 	static constexpr int kHitReactionDuration_ = 15;
 	static constexpr float kHitShakeIntensity_ = 0.15f;
+
+	// ロックオン関連変数
+	bool isLockOn_ = false;
+	Enemy* enemy_ = nullptr;
 
 	// --- 各エフェクト・演出 ---
 	std::unique_ptr<ParticleEmitter> hitEffect_;

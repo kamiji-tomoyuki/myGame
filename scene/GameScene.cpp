@@ -39,6 +39,8 @@ void GameScene::Initialize()
 	enemy_->Init();
 	enemy_->SetGameState(Enemy::GameState::kPlaying);
 
+	player_->SetEnemy(enemy_.get());
+
 	// --- ステージ ---
 	skybox_ = std::make_unique<Skybox>();
 	skybox_->Initialize("skybox.dds");
@@ -321,6 +323,13 @@ void GameScene::ChangeScene()
 	if (player_->GetGameState() == Player::GameState::kGameOver) {
 		sceneManager_->NextSceneReservation("OVER");
 	}
+
+
+	//-----------------------------
+	if (Input::GetInstance()->TriggerKey(DIK_R)) {
+		
+	}
+	//-----------------------------
 
 #ifdef _DEBUG
 #endif // _DEBUG
