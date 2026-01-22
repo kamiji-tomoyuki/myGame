@@ -13,7 +13,7 @@
 #include "Player.h"
 #include <Enemy.h>
 #include "Skybox.h"
-#include <Stage/Ground.h>
+#include <Ground.h>
 #include "FollowCamera.h"
 #include "Sprite.h"
 

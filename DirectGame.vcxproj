@@ -110,14 +110,13 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="application\Camera\FollowCamera.cpp" />
-    <ClCompile Include="application\Enemy\Enemy.cpp" />
-    <ClCompile Include="application\Enemy\EnemyAttackManager.cpp" />
-    <ClCompile Include="application\Enemy\EnemyAttackMelee.cpp" />
-    <ClCompile Include="application\Enemy\EnemyAttackRanged.cpp" />
-    <ClCompile Include="application\Event\ClearEvent.cpp" />
-    <ClCompile Include="application\Player\Player.cpp" />
-    <ClCompile Include="application\Stage\StageManager.cpp" />
-    <ClCompile Include="application\temp\TempObj.cpp" />
+    <ClCompile Include="application\Character\Enemy\Enemy.cpp" />
+    <ClCompile Include="application\Character\Enemy\EnemyAttackManager.cpp" />
+    <ClCompile Include="application\Character\Enemy\EnemyAttackMelee.cpp" />
+    <ClCompile Include="application\Character\Enemy\EnemyAttackRanged.cpp" />
+    <ClCompile Include="application\Character\Player\Player.cpp" />
+    <ClCompile Include="application\Field\StageManager.cpp" />
+    <ClCompile Include="application\Other\temp\TempObj.cpp" />
     <ClCompile Include="application\TitleCharacter.cpp" />
     <ClCompile Include="engine\3d\model\animation\ModelAnimation.cpp" />
     <ClCompile Include="engine\3d\skybox\Skybox.cpp" />
@@ -217,12 +216,21 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\Camera\FollowCamera.h" />
+    <ClInclude Include="application\Character\Enemy\Enemy.h" />
+    <ClInclude Include="application\Character\Enemy\EnemyAttackManager.h" />
+    <ClInclude Include="application\Character\Enemy\EnemyAttackMelee.h" />
+    <ClInclude Include="application\Character\Enemy\EnemyAttackRanged.h" />
+    <ClInclude Include="application\Character\Player\Arm\PlayerArm.h" />
+    <ClInclude Include="application\Character\Player\Player.h" />
     <ClInclude Include="application\CollisionTypeIdDef.h" />
     <ClInclude Include="application\Enemy\Enemy.h" />
     <ClInclude Include="application\Enemy\EnemyAttackManager.h" />
     <ClInclude Include="application\Enemy\EnemyAttackMelee.h" />
     <ClInclude Include="application\Enemy\EnemyAttackRanged.h" />
     <ClInclude Include="application\Event\ClearEvent.h" />
+    <ClInclude Include="application\Field\StageManager.h" />
+    <ClInclude Include="application\Other\CollisionTypeIdDef.h" />
+    <ClInclude Include="application\Other\temp\TempObj.h" />
     <ClInclude Include="application\Player\Player.h" />
     <ClInclude Include="application\Player\Arm\PlayerArm.h" />
     <ClInclude Include="application\Stage\StageManager.h" />

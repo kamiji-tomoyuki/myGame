@@ -23,7 +23,7 @@ void ModelManager::LoadModel(const std::string& filePath)
 
         // モデルの生成とファイル読み込み、初期化
         model_ = std::make_unique<Model>();
-        model_->Initialize(modelCommon, "resources/images/", filePath);
+        model_->Initialize(modelCommon, "resources/models/", filePath);
         model_->SetSrv(srvManager);
 
         // モデルをmapコンテナに格納する

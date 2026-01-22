@@ -1,5 +1,5 @@
 #pragma once
-#include "application/Base/BaseObject.h"
+#include "BaseObject.h"
 
 class TitleCharacter : public BaseObject {
   public:
