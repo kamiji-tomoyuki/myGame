@@ -6,6 +6,8 @@
 
 #include "myMath.h"
 #include <Enemy.h>
+#include <EnemyAttackManager.h>
+#include <random>
 
 Player::Player()
 {
@@ -22,9 +24,9 @@ void Player::Init()
 	stageManager_ = StageManager::GetInstance();
 	stageManager_->Initialize();
 
-	// 初期位置設定
 	Vector3 initialPos = { 0.0f, 0.0f, -15.0f };
 	BaseObject::SetWorldPosition(initialPos);
+	BaseObject::SetScale({ 0.0f,0.0f,0.0f });
 
 	// --- モデルの初期化 ---
 	obj3d_ = std::make_unique<Object3d>();
@@ -35,47 +37,222 @@ void Player::Init()
 
 	// --- 各ステータスの初期値設定 ---
 	isMove_ = true;
-
+	gameState_ = GameState::kPlaying;
 
 	// --- 各エフェクト・演出の初期設定 ---
 	hitEffect_ = std::make_unique<ParticleEmitter>();
 	hitEffect_->Initialize("hitEffect", "debug/ringPlane.obj");
+
+	// 被弾用パーティクル
+	damageEffect_ = std::make_unique<ParticleEmitter>();
+	damageEffect_->Initialize("playerDamage", "debug/ringPlane.obj");
+
+	// 軌跡パーティクルの初期化
+	trailEffect_ = std::make_unique<ParticleEmitter>();
+	trailEffect_->Initialize("playerTrail", "debug/plane.obj");
+	Vector3 initialFootPos = BaseObject::GetWorldPosition();
+	initialFootPos.y += kFootOffsetY_;
+	lastTrailPosition_ = initialFootPos;
+}
+
+void Player::UpdateStartEffect() {
+	BaseObject::Update();
+	for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+		arm->Update();
+	}
+
+	if (easeT < 1.0f) {
+		easeT += (1.0f / 60.0f) / 1.5f;
+		BaseObject::SetScale(Lerp(Vector3{ 0.0f,0.0f,0.0f }, Vector3{ 1.0f,1.0f,1.0f }, easeT));
+	}
+	else {
+		isEnd = true;
+	}
 }
 
 void Player::Update()
 {
 	BaseObject::Update();
 
-	if (isAlive_) {
-		// 移動
-		hitEffect_->SetPosition(BaseObject::GetWorldPosition());
-		Move();
+	// ゲーム状態に応じた更新処理
+	switch (gameState_) {
+	case GameState::kPlaying:
+		// ゲームプレイ中の処理
+		if (isAlive_) {
+			// 被弾リアクション中の処理
+			if (isHitReacting_) {
+				UpdateHitReaction();
+			}
+			// 回避中の処理
+			else if (behavior_ == Behavior::kDodge) {
+				UpdateDodge();
+			}
+			else {
+				// 通常の移動と攻撃処理
+				hitEffect_->SetPosition(BaseObject::GetWorldPosition());
+				Move();
+				UpdateAttack();
 
-		// 攻撃処理の更新
-		UpdateAttack();
+				// ロックオン処理
+				UpdateLockOn();
+			}
+		}
+
+		// アニメーションの再生
+		obj3d_->UpdateAnimation(true);
+
+		// 腕の更新
+		for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+			arm->Update();
+		}
+		break;
+
+	case GameState::kGameOver:
+		// ゲームオーバー演出
+		UpdateGameOverEffect();
+		break;
+
+	case GameState::kGameClear:
+		// ゲームクリア演出
+		UpdateGameClearEffect();
+		break;
 	}
 
-	// アニメーションの再生
-	obj3d_->UpdateAnimation(true);
+	trailEffect_->UpdateOnce(*vp_);
 
-	// 腕の更新
-	for (const std::unique_ptr<PlayerArm>& arm : arms_) {
-		arm->Update();
-	}
+	// コライダーのワールドトランスフォームを更新
+	Collider::UpdateWorldTransform();
 
 #ifdef _DEBUG
 	hitEffect_->Update(*vp_);
+	damageEffect_->Update(*vp_);
 #endif // _DEBUG
+}
+
+void Player::UpdateLockOn()
+{
+	// Rキーでロックオン切り替え
+	if (Input::GetInstance()->TriggerKey(DIK_R)) {
+		isLockOn_ = !isLockOn_;
+	}
+
+	// ロックオンが有効で敵が存在する場合
+	if (isLockOn_ && enemy_ != nullptr) {
+		Vector3 playerPos = GetCenterPosition();
+		Vector3 enemyPos = enemy_->GetCenterPosition();
+
+		// 敵への方向を計算
+		Vector3 direction = enemyPos - playerPos;
+
+		// 距離が十分ある場合のみ回転処理
+		// 正規化された方向ベクトルを取得
+		Vector3 normalizedDirection = direction.Normalize();
+
+		// 敵の方向を向く(Y軸回転を計算)
+		float targetRotationY = std::atan2(normalizedDirection.x, normalizedDirection.z);
+
+		// 現在の回転を取得
+		Vector3 currentRotation = GetCenterRotation();
+		float currentRotationY = currentRotation.y;
+
+		// 角度差を計算し、最短経路で回転するよう正規化
+		float angleDiff = targetRotationY - currentRotationY;
+
+		// 角度を-π~πの範囲に正規化(最短経路での回転)
+		const float PI = 3.14159265359f;
+		while (angleDiff > PI) {
+			angleDiff -= 2.0f * PI;
+		}
+		while (angleDiff < -PI) {
+			angleDiff += 2.0f * PI;
+		}
+
+		// 新しい回転角度を線形補間で計算
+		float lerpFactor = 0.2f; // 補間係数(回転速度)
+		float newRotationY = currentRotationY + angleDiff * lerpFactor;
+
+		// 回転を設定
+		BaseObject::SetRotation(Vector3(currentRotation.x, newRotationY, currentRotation.z));
+
+	}
+}
+
+void Player::UpdateGameOverEffect()
+{
+	// ゲームオーバー時の演出
+	obj3d_->UpdateAnimation(true);
+
+	// 回転しながら縮小
+	BaseObject::SetRotation(Vector3(
+		BaseObject::GetWorldRotation().x,
+		BaseObject::GetWorldRotation().y + 0.5f,
+		BaseObject::GetWorldRotation().z));
+
+	if (BaseObject::GetWorldSize().x >= 0.0f) {
+		BaseObject::SetScale(Vector3(
+			BaseObject::GetWorldSize().x - 0.02f,
+			BaseObject::GetWorldSize().y - 0.02f,
+			BaseObject::GetWorldSize().z - 0.02f));
+	}
+	else {
+		isAlive_ = false;
+	}
+
+	// 腕も更新
+	for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+		arm->Update();
+	}
+}
+
+void Player::UpdateGameClearEffect()
+{
+	// ゲームクリア時はジャンプし続ける演出
+	obj3d_->UpdateAnimation(true);
+
+	// ジャンプの周期を計算(40フレームで1サイクル)
+	const float kJumpCycle = 40.0f;
+	const float kJumpHeight = 2.0f;  // ジャンプの高さ
+
+	// 初回実行時に開始位置を保存
+	if (clearEffectTimer_ == 0.0f) {
+		clearStartPos_ = BaseObject::GetWorldPosition();
+	}
+
+	// 現在のジャンプフェーズを計算(0.0~1.0)
+	float jumpPhase = fmod(clearEffectTimer_, kJumpCycle) / kJumpCycle;
+
+	// sin波を使って滑らかなジャンプモーションを作成
+	float jumpOffset = sin(jumpPhase * 3.14159265f) * kJumpHeight;
+
+	// 地面の位置にジャンプオフセットを加える
+	Vector3 currentPos = clearStartPos_;
+	currentPos.y += jumpOffset;
+
+	BaseObject::SetWorldPosition(currentPos);
+
+	// 回転のアニメーション(オプション)
+	Vector3 currentRotation = BaseObject::GetWorldRotation();
+	currentRotation.y += 0.05f;  // ゆっくり回転
+	BaseObject::SetRotation(currentRotation);
+
+	// タイマーを進める
+	clearEffectTimer_++;
+
+	// タイマーがオーバーフローしないようにリセット
+	if (clearEffectTimer_ >= kJumpCycle * 1000.0f) {
+		clearEffectTimer_ = 0.0f;
+	}
+
+	// 腕も更新
+	for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+		arm->Update();
+	}
 }
 
 void Player::UpdateAttack()
 {
-	// 攻撃キー入力チェック（スペースキーで攻撃）
 	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
-
-		// 左腕が左パンチ終了後のコンボ受付時間内の場合はラッシュ開始
 		if (arms_[kLArm] && arms_[kLArm]->CanStartRush()) {
-			// 両腕同時にラッシュ開始
 			if (arms_[kRArm]) {
 				arms_[kRArm]->StartRush();
 			}
@@ -83,14 +260,12 @@ void Player::UpdateAttack()
 				arms_[kLArm]->StartRush();
 			}
 		}
-		// 右腕が右パンチ終了後のコンボ受付時間内の場合は左パンチ
 		else if (arms_[kRArm] && arms_[kRArm]->CanCombo() &&
 			arms_[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch) {
 			if (arms_[kLArm]) {
 				arms_[kLArm]->StartAttack(PlayerArm::AttackType::kLeftPunch);
 			}
 		}
-		// どちらも攻撃中でない場合は右腕で初回攻撃
 		else {
 			bool anyAttacking = false;
 			for (const std::unique_ptr<PlayerArm>& arm : arms_) {
@@ -105,6 +280,167 @@ void Player::UpdateAttack()
 				arms_[kRArm]->StartAttack(PlayerArm::AttackType::kRightPunch);
 			}
 		}
+	}
+}
+
+void Player::StartDodge(const Vector3& direction)
+{
+	behavior_ = Behavior::kDodge;
+	dodgeTimer_ = 0;
+	dodgeStartRotation_ = BaseObject::GetTransform().rotation_;
+
+	Vector3 localDirection = direction;
+	if (localDirection.Length() > 0.0f) {
+		localDirection = localDirection.Normalize();
+	}
+
+	float rotY = BaseObject::GetTransform().rotation_.y;
+	Matrix4x4 rotMat = MakeRotateYMatrix(rotY);
+
+	dodgeDirection_ = TransformNormal(localDirection, rotMat);
+
+	float worldX = dodgeDirection_.x;
+	float worldZ = dodgeDirection_.z;
+
+	float absWorldX = std::abs(worldX);
+	float absWorldZ = std::abs(worldZ);
+
+	if (absWorldZ > absWorldX) {
+		if (worldZ > 0.0f) {
+			dodgeTiltRotation_ = Vector3(kDodgeTiltAngle_, 0.0f, 0.0f);
+		}
+		else {
+			dodgeTiltRotation_ = Vector3(-kDodgeTiltAngle_, 0.0f, 0.0f);
+		}
+	}
+	else {
+		if (worldX > 0.0f) {
+			dodgeTiltRotation_ = Vector3(0.0f, 0.0f, -kDodgeTiltAngle_);
+		}
+		else {
+			dodgeTiltRotation_ = Vector3(0.0f, 0.0f, kDodgeTiltAngle_);
+		}
+	}
+
+	if (absWorldX > 0.3f && absWorldZ > 0.3f) {
+		float xTilt = worldZ > 0.0f ? kDodgeTiltAngle_ * 0.7f : -kDodgeTiltAngle_ * 0.7f;
+		float zTilt = worldX > 0.0f ? -kDodgeTiltAngle_ * 0.7f : kDodgeTiltAngle_ * 0.7f;
+		dodgeTiltRotation_ = Vector3(xTilt, 0.0f, zTilt);
+	}
+
+	velocity_ = Vector3(0.0f, 0.0f, 0.0f);
+}
+
+void Player::UpdateDodge()
+{
+	dodgeTimer_++;
+
+	float tiltProgress = 0.0f;
+
+	if (dodgeTimer_ < kDodgeTiltInDuration_) {
+		float t = static_cast<float>(dodgeTimer_) / kDodgeTiltInDuration_;
+		tiltProgress = 1.0f - (1.0f - t) * (1.0f - t);
+	}
+	else if (dodgeTimer_ >= kDodgeDuration_ - kDodgeTiltOutDuration_) {
+		int outTimer = dodgeTimer_ - (kDodgeDuration_ - kDodgeTiltOutDuration_);
+		float t = static_cast<float>(outTimer) / kDodgeTiltOutDuration_;
+		tiltProgress = 1.0f - (t * t);
+	}
+	else {
+		tiltProgress = 1.0f;
+	}
+
+	Vector3 currentTilt = dodgeTiltRotation_ * tiltProgress;
+
+	Vector3 currentRotation;
+	currentRotation.x = currentTilt.x;
+	currentRotation.y = dodgeStartRotation_.y;
+	currentRotation.z = currentTilt.z;
+
+	BaseObject::SetRotation(currentRotation);
+
+	Vector3 currentPos = BaseObject::GetWorldPosition();
+	Vector3 moveAmount = dodgeDirection_ * kDodgeSpeed_;
+	Vector3 newPos = currentPos + moveAmount;
+
+	if (stageManager_ != nullptr) {
+		if (!stageManager_->IsWithinStageBounds(newPos)) {
+			newPos = stageManager_->ClampToStageBounds(newPos);
+		}
+	}
+
+	BaseObject::SetWorldPosition(newPos);
+
+	if (dodgeTimer_ >= kDodgeDuration_) {
+		behavior_ = Behavior::kRoot;
+		dodgeTimer_ = 0;
+		BaseObject::SetRotation(Vector3(0.0f, dodgeStartRotation_.y, 0.0f));
+	}
+}
+
+void Player::UpdateTrailEffect()
+{
+	Vector3 currentPos = BaseObject::GetWorldPosition();
+
+	// 足元の位置を計算
+	Vector3 footPosition = currentPos;
+	footPosition.y += kFootOffsetY_;  // Y座標を足元に調整
+
+	float distanceMoved = (footPosition - lastTrailPosition_).Length();
+
+	// 一定距離移動したらパーティクルを発生
+	if (distanceMoved >= trailEmitDistance_) {
+		// 移動している場合のみパーティクルを発生
+		if (velocity_.Length() > 0.01f) {
+			trailEffect_->SetPosition(footPosition);  // 足元の位置を設定
+			trailEffect_->SetActive(false);
+			isTrailActive_ = true;
+		}
+		lastTrailPosition_ = footPosition;  // 足元の位置を記録
+	}
+}
+
+void Player::TakeDamage(const Vector3& hitPosition)
+{
+	// すでに被弾リアクション中または回避中なら無視
+	if (isHitReacting_ || behavior_ == Behavior::kDodge) {
+		return;
+	}
+
+	isHitReacting_ = true;
+	hitReactionTimer_ = 0;
+	originalPosition_ = BaseObject::GetWorldPosition();
+
+	// 被弾パーティクルを発生
+	damageEffect_->SetPosition(hitPosition);
+	damageEffect_->SetActive(false);
+}
+
+void Player::UpdateHitReaction()
+{
+	hitReactionTimer_++;
+
+	// ランダムなシェイクオフセットを生成
+	static std::random_device rd;
+	static std::mt19937 gen(rd());
+	static std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
+
+	// シェイクの強度を時間とともに減衰
+	float intensity = kHitShakeIntensity_ * (1.0f - static_cast<float>(hitReactionTimer_) / kHitReactionDuration_);
+
+	hitShakeOffset_.x = dist(gen) * intensity;
+	hitShakeOffset_.y = dist(gen) * intensity;
+	hitShakeOffset_.z = dist(gen) * intensity;
+
+	// シェイクを適用した位置を設定
+	BaseObject::SetWorldPosition(originalPosition_ + hitShakeOffset_);
+
+	// リアクション終了
+	if (hitReactionTimer_ >= kHitReactionDuration_) {
+		isHitReacting_ = false;
+		hitReactionTimer_ = 0;
+		hitShakeOffset_ = Vector3(0.0f, 0.0f, 0.0f);
+		BaseObject::SetWorldPosition(originalPosition_);
 	}
 }
 
@@ -127,34 +463,82 @@ void Player::DrawAnimation(const ViewProjection& viewProjection)
 void Player::DrawParticle(const ViewProjection& viewProjection)
 {
 	hitEffect_->Draw(Ring);
+	damageEffect_->Draw(Ring);
+	trailEffect_->Draw(Normal);
 }
 
 void Player::ImGui()
 {
 	hitEffect_->imgui();
+	damageEffect_->imgui();
+	trailEffect_->imgui();
 
-	// 腕のデバッグ情報表示
 	for (size_t i = 0; i < arms_.size(); ++i) {
 		if (arms_[i]) {
 			arms_[i]->ImGui();
 		}
 	}
 
-	// プレイヤーのデバッグ情報
 	ImGui::Begin("Player Debug");
+
+	// HP表示(色付き)
+	float hpRatio = static_cast<float>(HP_) / static_cast<float>(kMaxHP_);
+	ImVec4 hpColor;
+	if (hpRatio > 0.5f) {
+		hpColor = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // 緑
+	}
+	else if (hpRatio > 0.25f) {
+		hpColor = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // 黄色
+	}
+	else {
+		hpColor = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // 赤
+	}
+	ImGui::TextColored(hpColor, "HP: %d / %d (%.1f%%)", HP_, kMaxHP_, hpRatio * 100.0f);
+	ImGui::ProgressBar(hpRatio, ImVec2(0.0f, 0.0f));
+
+	ImGui::Separator();
+
 	ImGui::Text("Player Rotation Y: %.2f", BaseObject::GetTransform().rotation_.y);
 	ImGui::Text("Player Position: (%.2f, %.2f, %.2f)",
 		BaseObject::GetWorldPosition().x,
 		BaseObject::GetWorldPosition().y,
 		BaseObject::GetWorldPosition().z);
 
-	// グローバルコンボ状態の表示
+	const char* gameStateStr = "Unknown";
+	switch (gameState_) {
+	case GameState::kPlaying: gameStateStr = "Playing"; break;
+	case GameState::kGameOver: gameStateStr = "GameOver"; break;
+	case GameState::kGameClear: gameStateStr = "GameClear"; break;
+	}
+	ImGui::Text("Game State: %s", gameStateStr);
+
+	ImGui::Text("Behavior: %s",
+		behavior_ == Behavior::kRoot ? "Root" :
+		behavior_ == Behavior::kAttack ? "Attack" :
+		behavior_ == Behavior::kDodge ? "Dodge" : "Unknown");
+
+	// ロックオン情報
+	ImGui::Separator();
+	ImGui::Text("Lock-On: %s", isLockOn_ ? "ON" : "OFF");
+
+	// 被弾リアクション情報
+	ImGui::Separator();
+	ImGui::Text("Hit Reaction: %s", isHitReacting_ ? "Active" : "Inactive");
+	if (isHitReacting_) {
+		ImGui::Text("Reaction Timer: %d / %d", hitReactionTimer_, kHitReactionDuration_);
+		ImGui::Text("Shake Offset: (%.3f, %.3f, %.3f)",
+			hitShakeOffset_.x, hitShakeOffset_.y, hitShakeOffset_.z);
+	}
+
+	if (behavior_ == Behavior::kDodge) {
+		ImGui::Text("Dodge Timer: %d / %d", dodgeTimer_, kDodgeDuration_);
+		ImGui::Text("Dodge Direction: (%.2f, %.2f, %.2f)",
+			dodgeDirection_.x, dodgeDirection_.y, dodgeDirection_.z);
+	}
+
 	ImGui::Text("Global Combo Count: %d", globalComboCount_);
 	ImGui::Text("Global Combo Timer: %d", globalComboTimer_);
-	ImGui::Text("Can Start Rush: %s",
-		(globalComboCount_ >= 2 && globalComboTimer_ > 0) ? "Yes" : "No");
 
-	// 攻撃状態の表示
 	if (arms_[kRArm]) {
 		ImGui::Text("Right Arm State: %s",
 			arms_[kRArm]->GetBehavior() == PlayerArm::Behavior::kAttack ? "Attacking" :
@@ -173,20 +557,59 @@ void Player::OnCollision(Collider* other)
 {
 	uint32_t typeID = other->GetTypeID();
 
-	//衝突相手
 	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kEnemy)) {
 		Enemy* enemy = static_cast<Enemy*>(other);
 
-		// 重複処理を避けるため、シリアル番号の大きい方で処理
-		if (GetSerialNumber() > enemy->GetSerialNumber()) {
+		// 回避中は当たり判定を無視
+		if (behavior_ == Behavior::kDodge) {
 			return;
 		}
 
-		// 仮処理
-		//isAlive_ = false;
-		hitEffect_->UpdateOnce(*vp_);
+		// 既に被弾リアクション中なら無視
+		if (isHitReacting_) {
+			return;
+		}
 
-		// 衝突処理後もステージ境界内に留める
+		// 敵が攻撃中の場合、大ダメージと強いリアクション
+		if (enemy->IsAttacking()) {
+
+			// 大ダメージを受ける
+			uint32_t attackDamage = 100;
+			if (HP_ > attackDamage) {
+				HP_ -= attackDamage;
+			}
+			else {
+				HP_ = 0;
+				// HPが0になったらゲームオーバー処理
+				gameState_ = GameState::kGameOver;
+			}
+
+			// 被弾処理を呼び出す(震えるリアクション)
+			Vector3 hitPos = (GetCenterPosition() + enemy->GetCenterPosition()) * 0.5f;
+			TakeDamage(hitPos);
+
+			// 攻撃中の場合はノックバック処理を追加
+			Vector3 knockbackDirection = (GetCenterPosition() - enemy->GetCenterPosition()).Normalize();
+			velocity_ += knockbackDirection * 0.5f; // ノックバック速度
+		}
+		// 通常の接触の場合、小ダメージと軽いリアクション
+		else {
+			// 小ダメージを受ける
+			uint32_t contactDamage = 10;
+			if (HP_ > contactDamage) {
+				HP_ -= contactDamage;
+			}
+			else {
+				HP_ = 0;
+				gameState_ = GameState::kGameOver;
+			}
+
+			// 被弾処理を呼び出す
+			Vector3 hitPos = (GetCenterPosition() + enemy->GetCenterPosition()) * 0.5f;
+			TakeDamage(hitPos);
+		}
+
+		// ステージ境界チェック
 		Vector3 playerPos = BaseObject::GetWorldPosition();
 		if (stageManager_ != nullptr && !stageManager_->IsWithinStageBounds(playerPos)) {
 			playerPos = stageManager_->ClampToStageBounds(playerPos);
@@ -197,6 +620,124 @@ void Player::OnCollision(Collider* other)
 	transform_.UpdateMatrix();
 }
 
+bool Player::CanRightPunch() const
+{
+	// 回避中、被弾リアクション中の場合は不可
+	if (behavior_ == Behavior::kDodge || isHitReacting_) {
+		return false;
+	}
+
+	// ラッシュ攻撃可能な状態なら右パンチUIは表示しない
+	if (arms_[kLArm] && arms_[kLArm]->CanStartRush()) {
+		return false;
+	}
+
+	// 左パンチコンボ待機中なら右パンチUIは表示しない
+	if (arms_[kRArm] &&
+		arms_[kRArm]->CanCombo() &&
+		arms_[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch) {
+		return false;
+	}
+
+	// 右パンチ実行中なら表示
+	if (IsRightPunchActive()) {
+		return true;
+	}
+
+	// 両腕が攻撃中またはラッシュ中かチェック
+	bool anyAttacking = false;
+	for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+		if (arm->GetBehavior() == PlayerArm::Behavior::kAttack ||
+			arm->GetBehavior() == PlayerArm::Behavior::kRush) {
+			anyAttacking = true;
+			break;
+		}
+	}
+
+	// 攻撃中でなければ右パンチ可能
+	return !anyAttacking;
+}
+
+bool Player::CanLeftPunch() const
+{
+	// 回避中、被弾リアクション中の場合は不可
+	if (behavior_ == Behavior::kDodge || isHitReacting_) {
+		return false;
+	}
+
+	// ラッシュ攻撃可能な状態なら左パンチUIは表示しない
+	if (arms_[kLArm] && arms_[kLArm]->CanStartRush()) {
+		return false;
+	}
+
+	// 左パンチ実行中なら表示
+	if (IsLeftPunchActive()) {
+		return true;
+	}
+
+	// 右パンチ後のコンボ待機中（攻撃モーション終了後も含む）
+	if (arms_[kRArm] &&
+		arms_[kRArm]->CanCombo() &&
+		arms_[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch) {
+		return true;
+	}
+
+	return false;
+}
+
+bool Player::CanRush() const
+{
+	// 回避中、被弾リアクション中の場合は不可
+	if (behavior_ == Behavior::kDodge || isHitReacting_) {
+		return false;
+	}
+
+	// ラッシュ実行中なら表示
+	if (IsRushActive()) {
+		return true;
+	}
+
+	// 左パンチ後のラッシュ待機中（攻撃モーション終了後も含む）
+	if (arms_[kLArm] && arms_[kLArm]->CanStartRush()) {
+		return true;
+	}
+
+	return false;
+}
+
+bool Player::IsRightPunchActive() const
+{
+	// 右腕が右パンチで攻撃中
+	if (arms_[kRArm] &&
+		arms_[kRArm]->GetBehavior() == PlayerArm::Behavior::kAttack &&
+		arms_[kRArm]->GetCurrentAttackType() == PlayerArm::AttackType::kRightPunch) {
+		return true;
+	}
+	return false;
+}
+
+bool Player::IsLeftPunchActive() const
+{
+	// 左腕が左パンチで攻撃中
+	if (arms_[kLArm] &&
+		arms_[kLArm]->GetBehavior() == PlayerArm::Behavior::kAttack &&
+		arms_[kLArm]->GetCurrentAttackType() == PlayerArm::AttackType::kLeftPunch) {
+		return true;
+	}
+	return false;
+}
+
+bool Player::IsRushActive() const
+{
+	// どちらかの腕がラッシュ中
+	for (const std::unique_ptr<PlayerArm>& arm : arms_) {
+		if (arm->GetBehavior() == PlayerArm::Behavior::kRush) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void Player::InitArm()
 {
 	for (std::unique_ptr<PlayerArm>& arm : arms_) {
@@ -204,27 +745,23 @@ void Player::InitArm()
 		arm->SetPlayer(this);
 	}
 
-	// 右腕の設定
 	arms_[kRArm]->Init("player/Arm/playerArm.gltf");
 	arms_[kRArm]->SetID(serialNumber_);
-	arms_[kRArm]->SetIsRightArm(true);  // 右腕として設定
+	arms_[kRArm]->SetIsRightArm(true);
 	arms_[kRArm]->SetTranslation(Vector3(-1.7f, 0.0f, 1.3f));
 	arms_[kRArm]->SetScale(Vector3(0.8f, 0.8f, 0.8f));
 
-	// 左腕の設定
 	arms_[kLArm]->Init("player/Arm/playerArm.gltf");
 	arms_[kLArm]->SetID(serialNumber_);
-	arms_[kLArm]->SetIsRightArm(false); // 左腕として設定
+	arms_[kLArm]->SetIsRightArm(false);
 	arms_[kLArm]->SetTranslation(Vector3(1.7f, 0.0f, 1.3f));
 	arms_[kLArm]->SetScale(Vector3(0.8f, 0.8f, 0.8f));
 }
-
 
 void Player::Move()
 {
 	Vector3 move = { 0.0f, 0.0f, 0.0f };
 
-	// --- キーボード ---
 	if (Input::GetInstance()->PushKey(DIK_D)) {
 		move.x += kAcceleration_;
 	}
@@ -238,53 +775,55 @@ void Player::Move()
 		move.z -= kAcceleration_;
 	}
 
-	// 回転
+	float currentRotationY = BaseObject::GetTransform().rotation_.y;
 	if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
-		BaseObject::SetRotationY(BaseObject::GetTransform().rotation_.y + kRotateAcceleration_);
+		currentRotationY += kRotateAcceleration_;
 	}
 	if (Input::GetInstance()->PushKey(DIK_LEFT)) {
-		BaseObject::SetRotationY(BaseObject::GetTransform().rotation_.y - kRotateAcceleration_);
+		currentRotationY -= kRotateAcceleration_;
 	}
 
-	// 入力ベクトルがある場合
-	if (move.Length() != 0.0f) {
-		move.Normalize();  // 正規化して速度が一定になるようにする
+	Vector3 currentRotation = BaseObject::GetTransform().rotation_;
+	currentRotation.y = currentRotationY;
+	BaseObject::SetRotation(currentRotation);
 
-		// rotationY の角度に基づく回転行列
-		float rotY = BaseObject::GetTransform().rotation_.y;
+	if (Input::GetInstance()->TriggerKey(DIK_LSHIFT) || Input::GetInstance()->TriggerKey(DIK_RSHIFT)) {
+		if (move.Length() != 0.0f) {
+			Vector3 localMove = move.Normalize();
+			StartDodge(localMove);
+			return;
+		}
+	}
+
+	if (move.Length() != 0.0f) {
+		move.Normalize();
+
+		float rotY = currentRotationY;
 		Matrix4x4 rotMat = MakeRotateYMatrix(rotY);
 
-		// 向いている方向に移動ベクトルを回転
 		move = TransformNormal(move, rotMat);
 
-		velocity_ += move * kAcceleration_;  // 加速度をかけて速度に反映
+		velocity_ += move * kAcceleration_;
 	}
 	else {
 		velocity_ = 0.0f;
 	}
 
-	// 速度上限
 	if (velocity_.Length() > kMaxSpeed_) {
 		velocity_ = velocity_.Normalize() * kMaxSpeed_;
 	}
 
-	// 位置の更新（境界チェック付き）
 	Vector3 currentPos = BaseObject::GetWorldPosition();
 	Vector3 newPos = currentPos + velocity_;
 
-	// ステージマネージャーが正常に初期化されているかチェック
 	if (stageManager_ != nullptr) {
-		// ステージ境界チェック
 		if (!stageManager_->IsWithinStageBounds(newPos)) {
-			// 境界外の場合は補正
 			newPos = stageManager_->ClampToStageBounds(newPos);
-
-			// 境界に衝突した場合は速度を減衰させる（完全にリセットしない）
 			velocity_ *= 0.5f;
 		}
 	}
 
 	BaseObject::SetWorldPosition(newPos);
 
-	// --- ゲームパッド ---
+	UpdateTrailEffect();
 }

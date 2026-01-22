@@ -5,6 +5,7 @@
 #include "Input.h"
 #include "Object3dCommon.h"
 #include "ParticleCommon.h"
+#include "Sprite.h"
 #include "SpriteCommon.h"
 #include "ViewProjection.h"
 
@@ -19,9 +20,11 @@
 #include <ParticleEmitter.h>
 #include <Skybox.h>
 
-/// <summary>
-/// メインゲームシーンクラス
-/// </summary>
+enum class GamePhase {
+	EnemyAppear,  // 敵出現演出
+	Battle,       // 戦闘パート
+};
+
 class GameScene : public BaseScene
 {
 public: // メンバ関数
@@ -63,10 +66,15 @@ private:
 	/// </summary>
 	void CameraUpdate();
 
-	/// <summary>
-	/// シーン管理
-	/// </summary>
+	void UpdateStart();
+	void UpdateBattle();
+
 	void ChangeScene();
+
+	/// <summary>
+	/// 攻撃UIの更新
+	/// </summary>
+	void UpdateAttackUI();
 
 private:
 
@@ -75,6 +83,8 @@ private:
 	Object3dCommon* objCommon_;
 	SpriteCommon* spCommon_;
 	ParticleCommon* ptCommon_;
+
+	GamePhase currentPhase_;
 
 	// ビュープロジェクション
 	ViewProjection vp_;
@@ -91,6 +101,18 @@ private:
 
 	// --- 各エフェクト・演出 ---
 	std::unique_ptr<ParticleEmitter> stageWall_;
+
+	bool isStart = false;
+	bool isCameraMoveStart_ = false;
+
+	// --- シーン管理 ---
+	bool isClear = false;
+
+	// --- スプライト ---
+	std::unique_ptr<Sprite> UI_;
+	std::unique_ptr<Sprite> attackUI_Right_;   // 右フック用UI
+	std::unique_ptr<Sprite> attackUI_Left_;    // 左フック用UI
+	std::unique_ptr<Sprite> attackUI_Rush_;    // ラッシュ用UI
 
 
 #ifdef _DEBUG

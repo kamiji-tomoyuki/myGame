@@ -3,6 +3,6 @@
         "aabbCollision": false,
         "obbCollision": false,
         "sphereCollision": true,
-        "visible": true
+        "visible": false
     }
 }

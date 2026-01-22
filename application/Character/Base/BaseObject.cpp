@@ -46,6 +46,11 @@ Vector3 BaseObject::GetWorldRotation() const {
 	return transform_.rotation_;
 }
 
+Vector3 BaseObject::GetWorldSize() const
+{
+	return transform_.scale_;
+}
+
 void BaseObject::CreateModel(const std::string modelname) {
 	obj3d_ = std::make_unique<Object3d>();
 	obj3d_->Initialize(modelname);

@@ -3,8 +3,12 @@
 #include "CollisionTypeIdDef.h"
 #include "Player.h"
 #include "Arm/PlayerArm.h"
+#include "EnemyAttackManager.h"
+#include "EnemyAttackMelee.h"
+#include "EnemyAttackRanged.h"
 
 #include "myMath.h"
+#include <Easing.h>
 
 uint32_t Enemy::nextSerialNumber_ = 0;
 
@@ -36,142 +40,158 @@ void Enemy::Init()
 
 	// --- 各ステータスの初期値設定 ---
 	originalRotation_ = obj3d_->GetRotation();
-	behavior_ = Behavior::kRoot;
-	chargeTimer_ = 0;
-	maxChargeCount_ = 1;  // 通常時は1回
+
+	// --- 攻撃管理の初期化 ---
+	attackManager_ = std::make_unique<EnemyAttackManager>();
+	attackManager_->Initialize();
 }
 
-void Enemy::Update(Player* player, const ViewProjection &vp)
+void Enemy::Update(Player* player, const ViewProjection& vp)
 {
-	player_ = player;
-	BaseObject::Update();
+	// ゲーム状態に応じた更新処理
+	switch (gameState_) {
+	case GameState::kPlaying:
+		// ゲームプレイ中の処理
+		player_ = player;
+		vp_ = &vp;
 
-	// プレイヤーのラッシュ攻撃状態をチェック
-	CheckPlayerRushStatus();
+		// プレイヤーのラッシュ攻撃状態をチェック
+		CheckPlayerRushStatus();
 
-	// ラッシュ攻撃を受けている時の処理
-	if (isBeingRushed_) {
-		UpdateRushKnockback();
-	}
-	else {
-		// 行動状態の更新
-		UpdateBehavior();
-	}
+		// ラッシュ攻撃を受けている時の処理
+		if (isBeingRushed_) {
+			UpdateRushKnockback();
+		}
+		else {
+			// 通常時は接近処理
+			Approach();
+			RecoverRotation();
 
-	obj3d_->Update(BaseObject::GetWorldTransform(), vp);
-}
-
-void Enemy::UpdateBehavior()
-{
-	switch (behavior_) {
-	case Behavior::kRoot:
-		// 通常時は接近処理
-		Approach();
-
-		// 通常の回転に戻す処理
-		RecoverRotation();
-
-		// 突進攻撃の準備タイマー更新
-		chargeTimer_++;
-		if (chargeTimer_ >= kChargePreparationTime_) {
-			// プレイヤーとの距離をチェック
-			if (player_ != nullptr) {
-				float distanceToPlayer = (player_->GetCenterPosition() - GetCenterPosition()).Length();
-				if (distanceToPlayer <= kChargeRange_) {
-					StartCharge();
-				}
-				else {
-					// 距離が遠すぎる場合はタイマーをリセット
-					chargeTimer_ = 0;
-				}
-			}
+			// 攻撃管理の更新
+			attackManager_->Update(this, player);
 		}
 		break;
 
-	case Behavior::kAttack:
-		UpdateCharge();
+	case GameState::kGameOver:
+		// ゲームオーバー演出
+		UpdateGameOverEffect();
 		break;
 
-	case Behavior::kCooldown:
-		UpdateCooldown();
+	case GameState::kGameClear:
+		// ゲームクリア演出
+		UpdateGameClearEffect();
 		break;
 	}
-}
 
-void Enemy::StartCharge()
-{
-	behavior_ = Behavior::kAttack;
-	chargeDuration_ = 0;
-	chargeCount_++;
+	BaseObject::Update();
+	obj3d_->Update(BaseObject::GetWorldTransform(), vp);
 
-	// HPが半分以下の場合は最大突進回数を2回に設定
-	if (HP_ <= kMaxHP_ / 2) {
-		maxChargeCount_ = 2;
-	}
-
-	// プレイヤーへの方向を計算
-	if (player_ != nullptr) {
-		Vector3 targetPos = player_->GetCenterPosition();
-		Vector3 currentPos = GetCenterPosition();
-		chargeDirection_ = (targetPos - currentPos).Normalize();
-		chargeStartPos_ = currentPos;
-
-		// プレイヤーの方向を向く
-		float targetRotationY = std::atan2(chargeDirection_.x, chargeDirection_.z);
-		BaseObject::SetRotationY(targetRotationY);
-		obj3d_->SetRotation(BaseObject::GetWorldRotation());
+	// 攻撃管理のビュープロジェクション更新
+	if (vp_ != nullptr && attackManager_) {
+		if (auto* rangedAttack = attackManager_->GetRangedAttack()) {
+			rangedAttack->UpdateViewProjection(vp);
+		}
 	}
 }
 
-void Enemy::UpdateCharge()
+void Enemy::UpdateGameOverEffect()
 {
-	chargeDuration_++;
+	// ゲームオーバー時はジャンプし続ける演出
 
-	// 突進移動
-	Vector3 chargeVelocity = chargeDirection_ * kChargeSpeed_;
-	BaseObject::SetWorldPosition(GetCenterPosition() + chargeVelocity);
+	BaseObject::SetScale(Vector3(1.5f, 1.5f, 1.5f));
 
-	// 突進時間が終了した場合
-	if (chargeDuration_ >= kChargeDuration_) {
-		EndCharge();
+	const float kJumpCycle = 40.0f;
+	const float kJumpHeight = 2.0f;  // ジャンプの高さ
+
+	const Vector3 jumpEndPos = { 0.0f, 2.0f, 4.0f };
+
+	// 現在のジャンプフェーズを計算(0.0~1.0)
+	float jumpPhase = fmod(fallTimer_, kJumpCycle) / kJumpCycle;
+
+	// sin波を使って滑らかなジャンプモーションを作成
+	float jumpOffset = sin(jumpPhase * 3.14159265f) * kJumpHeight;
+
+	// 地面の位置にジャンプオフセットを加える
+	Vector3 currentPos = jumpEndPos;
+	currentPos.y += jumpOffset;
+
+	BaseObject::SetWorldPosition(currentPos);
+
+	// 回転のアニメーション
+	Vector3 currentRotation = obj3d_->GetRotation();
+	currentRotation.y += 0.05f;  // ゆっくり回転
+	obj3d_->SetRotation(currentRotation);
+
+	// タイマーを進める
+	fallTimer_++;
+
+	// タイマーがオーバーフローしないようにリセット
+	if (fallTimer_ >= kJumpCycle * 1000.0f) {
+		fallTimer_ = 0.0f;
 	}
 }
 
-void Enemy::EndCharge()
+void Enemy::UpdateGameClearEffect()
 {
-	// まだ突進回数が残っている場合
-	if (chargeCount_ < maxChargeCount_) {
-		// 次の突進の準備
-		behavior_ = Behavior::kRoot;
-		chargeTimer_ = kChargePreparationTime_ - 30; // 短い間隔で次の突進
-		chargeDuration_ = 0;
+	const float kWaitTime = 1.2f * 60.0f;
+
+	clearEffectTimer_++;
+
+	// 待機時間中は何もしない
+	if (clearEffectTimer_ < kWaitTime) {
+		return;
+	}
+
+	// 待機後、回転しながら縮小
+	// 回転速度を上げる
+	Vector3 currentRotation = obj3d_->GetRotation();
+	currentRotation.y += 0.5f;  // ゲームオーバー時のプレイヤーと同じ速度
+	obj3d_->SetRotation(currentRotation);
+	BaseObject::SetRotation(currentRotation);
+
+	// 縮小処理
+	Vector3 currentScale = BaseObject::GetWorldSize();
+	if (currentScale.x >= 0.0f) {
+		BaseObject::SetScale(Vector3(
+			currentScale.x - 0.02f,
+			currentScale.y - 0.02f,
+			currentScale.z - 0.02f));
 	}
 	else {
-		// 全ての突進が終了した場合はクールダウン開始
-		StartCooldown();
+		isAlive_ = false;
 	}
 }
 
-void Enemy::StartCooldown()
+void Enemy::UpdateStartEffect()
 {
-	behavior_ = Behavior::kCooldown;
-	cooldownTimer_ = 0;
-	chargeCount_ = 0;  // 突進回数をリセット
-}
+	BaseObject::Update();
 
-void Enemy::UpdateCooldown()
-{
-	cooldownTimer_++;
+	if (fallTimer_ < kFallDuration_) {
+		// イージングを使った落下演出
+		Vector3 currentPos = EaseOutBounce<Vector3>(
+			fallStartPos_,
+			fallEndPos_,
+			fallTimer_,
+			kFallDuration_
+		);
 
-	// 通常の接近処理を継続
-	Approach();
-	RecoverRotation();
+		BaseObject::SetWorldPosition(currentPos);
 
-	// クールダウン時間が終了した場合
-	if (cooldownTimer_ >= kCooldownTime_) {
-		behavior_ = Behavior::kRoot;
-		chargeTimer_ = 0;
-		cooldownTimer_ = 0;
+		// タイマーを進める
+		fallTimer_++;
+
+		// 落下中は回転させる演出を追加 (オプション)
+		float rotationSpeed = 0.1f;
+		Vector3 currentRotation = obj3d_->GetRotation();
+		currentRotation.y += rotationSpeed * (1.0f - (fallTimer_ / kFallDuration_));
+		obj3d_->SetRotation(currentRotation);
+	}
+	else {
+		// 落下完了後は最終位置に固定
+		BaseObject::SetWorldPosition(fallEndPos_);
+
+		// 落下完了フラグ
+		isFallComplete_ = true;
 	}
 }
 
@@ -180,9 +200,6 @@ void Enemy::CheckPlayerRushStatus()
 	if (player_ == nullptr) return;
 
 	bool wasBeingRushed = isBeingRushed_;
-
-	// プレイヤーの腕の状態をチェックしてラッシュ判定
-	bool playerIsRushing = false;
 
 	// ラッシュ攻撃が開始された瞬間の処理
 	if (!wasBeingRushed && isBeingRushed_) {
@@ -197,17 +214,21 @@ void Enemy::CheckPlayerRushStatus()
 
 void Enemy::StartRushKnockback()
 {
+	//------------------------------------------
+	if (HP_ < 0) {
+		isAlive_ = false;
+	}
+	//------------------------------------------
+
 	isBeingRushed_ = true;
 	rushKnockbackTimer_ = 0;
 
-	// ラッシュ攻撃中は突進攻撃を中断
-	if (behavior_ == Behavior::kAttack) {
-		behavior_ = Behavior::kCooldown;
-		cooldownTimer_ = 0;
-		chargeCount_ = 0;
+	// ラッシュ攻撃中は攻撃を中断
+	if (attackManager_) {
+		attackManager_->InterruptByRush();
 	}
 
-	// プレイヤーから敵への方向を計算（後退方向）
+	// プレイヤーから敵への方向を計算(後退方向)
 	if (player_ != nullptr) {
 		Vector3 direction = GetCenterPosition() - player_->GetCenterPosition();
 		if (direction.Length() > 0.0f) {
@@ -223,7 +244,16 @@ void Enemy::UpdateRushKnockback()
 {
 	rushKnockbackTimer_++;
 
-	// 現在のBaseObjectの回転を取得（Y軸回転が含まれる）
+	// 一定時間経過したら自動的にラッシュ状態を解除
+	// プレイヤーのラッシュ攻撃時間は120フレーム (kRushDuration)なので、
+	// 余裕を持って150フレームで解除
+	static constexpr uint32_t kMaxRushKnockbackDuration = 150;
+	if (rushKnockbackTimer_ >= kMaxRushKnockbackDuration) {
+		EndRushKnockback();
+		return;
+	}
+
+	// 現在のBaseObjectの回転を取得(Y軸回転が含まれる)
 	Vector3 currentRotation = BaseObject::GetWorldRotation();
 
 	// 後ろに傾く処理
@@ -260,7 +290,7 @@ void Enemy::RecoverRotation()
 	Vector3 currentRotation = obj3d_->GetRotation();
 	Vector3 baseRotation = BaseObject::GetWorldRotation();
 
-	// X軸とZ軸のみを元に戻す（Y軸はApproachで管理）
+	// X軸とZ軸のみを元に戻す(Y軸はApproachで管理)
 	float lerpFactor = 0.05f;
 	Vector3 newRotation = {
 		currentRotation.x + (originalRotation_.x - currentRotation.x) * lerpFactor,
@@ -274,11 +304,33 @@ void Enemy::RecoverRotation()
 void Enemy::Draw(const ViewProjection& viewProjection)
 {
 	obj3d_->Draw(BaseObject::GetWorldTransform(), viewProjection);
+
+	// 攻撃の描画
+	if (attackManager_) {
+		if (auto* rangedAttack = attackManager_->GetRangedAttack()) {
+			rangedAttack->Draw(viewProjection);
+		}
+	}
 }
 
 void Enemy::DrawAnimation(const ViewProjection& viewProjection)
 {
 
+}
+
+void Enemy::DrawParticle(const ViewProjection& viewProjection)
+{
+	// 攻撃のパーティクル描画
+	if (attackManager_) {
+		if (auto* meleeAttack = attackManager_->GetMeleeAttack()) {
+			meleeAttack->DrawTrailEffect();
+		}
+	}
+}
+
+void Enemy::ImGui()
+{
+	// ImGui処理
 }
 
 void Enemy::OnCollision(Collider* other)
@@ -288,6 +340,12 @@ void Enemy::OnCollision(Collider* other)
 	// プレイヤーとの衝突処理
 	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kPlayer)) {
 		Player* player = static_cast<Player*>(other);
+
+		//------------------------------------------
+		if (HP_ < 0) {
+			isAlive_ = false;
+		}
+		//------------------------------------------
 
 		// 重複処理を避けるため、シリアル番号の小さい方で処理
 		if (GetSerialNumber() > player->GetSerialNumber()) {
@@ -302,13 +360,26 @@ void Enemy::OnCollision(Collider* other)
 	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kPArm)) {
 		PlayerArm* arm = static_cast<PlayerArm*>(other);
 
+		//------------------------------------------
+		if (HP_ < 0) {
+			isAlive_ = false;
+		}
+		//------------------------------------------
+
 		// ラッシュ攻撃中の場合
 		if (arm->GetBehavior() == PlayerArm::Behavior::kRush) {
-			isBeingRushed_ = true;
 
 			// まだラッシュ攻撃を受け始めていない場合は初期化
-			if (rushKnockbackTimer_ == 0) {
+			if (!isBeingRushed_) {
+				isBeingRushed_ = true;
 				StartRushKnockback();
+			}
+			// すでにラッシュ中の場合はタイマーを更新して継続
+			else {
+				// タイマーを少し戻すことで、ラッシュが続いている間は解除されない
+				if (rushKnockbackTimer_ > 30) {
+					rushKnockbackTimer_ = 30;
+				}
 			}
 		}
 	}
@@ -332,19 +403,18 @@ void Enemy::HandleCollisionWithPlayer(Player* player)
 		// 重なり量
 		float overlap = totalRadius - distance;
 
-		// 突進攻撃中の場合はより強い押し出し処理
-		if (behavior_ == Behavior::kAttack) {
-			// プレイヤーに大きなダメージやノックバックを与える処理をここに追加可能
-			overlap *= 2.0f; // 突進時は押し出し力を強化
+		// 攻撃中の場合はより強い押し出し処理
+		if (attackManager_ && attackManager_->IsAttacking()) {
+			overlap *= 2.0f; // 攻撃時は押し出し力を強化
 		}
 
-		// プレイヤーのみを押し出し（敵は動かない）
+		// プレイヤーのみを押し出し(敵は動かない)
 		Vector3 pushVector = direction * overlap;
 
 		// プレイヤーを敵から離す方向に押し出し
 		player->SetTranslation(playerPos - pushVector);
 
-		// プレイヤーの速度を調整（敵の方向への移動を止める）
+		// プレイヤーの速度を調整(敵の方向への移動を止める)
 		Vector3 playerVelocity = player->GetVelocity();
 
 		// 敵の方向への速度成分を除去
@@ -356,8 +426,8 @@ void Enemy::HandleCollisionWithPlayer(Player* player)
 			player->SetVelocity(playerVelocity);
 		}
 
-		// 敵の接近を一時的に停止（突進中は除く）
-		if (behavior_ != Behavior::kAttack) {
+		// 敵の接近を一時的に停止(攻撃中は除く)
+		if (!attackManager_ || !attackManager_->IsAttacking()) {
 			velocity_ *= 0.1f;
 		}
 
@@ -369,6 +439,14 @@ void Enemy::HandleCollisionWithPlayer(Player* player)
 void Enemy::TakeDamage(uint32_t damage)
 {
 	HP_ -= damage;
+}
+
+bool Enemy::IsAttacking() const
+{
+	if (attackManager_) {
+		return attackManager_->IsAttacking();
+	}
+	return false;
 }
 
 void Enemy::Approach()
@@ -399,12 +477,12 @@ void Enemy::Approach()
 		BaseObject::SetWorldPosition(GetCenterPosition() + velocity_);
 	}
 
-	// プレイヤーの方向を向く処理（距離に関係なく実行）
+	// プレイヤーの方向を向く処理(距離に関係なく実行)
 	if (distanceToPlayer > 0.0001f) { // より小さな閾値を使用
 		// 正規化された方向ベクトルを取得
 		Vector3 normalizedDirection = targetDirection.Normalize();
 
-		// プレイヤーの方向を向く（Y軸回転を計算）
+		// プレイヤーの方向を向く(Y軸回転を計算)
 		float targetRotationY = std::atan2(normalizedDirection.x, normalizedDirection.z);
 
 		// 現在の回転を取得
@@ -414,7 +492,7 @@ void Enemy::Approach()
 		// 角度差を計算し、最短経路で回転するよう正規化
 		float angleDiff = targetRotationY - currentRotationY;
 
-		// 角度を-π〜πの範囲に正規化（最短経路での回転）
+		// 角度を-π~πの範囲に正規化(最短経路での回転)
 		const float PI = 3.14159265359f;
 		while (angleDiff > PI) {
 			angleDiff -= 2.0f * PI;
@@ -434,7 +512,7 @@ void Enemy::Approach()
 			obj3d_->SetRotation(BaseObject::GetWorldRotation());
 		}
 		else {
-			// ラッシュ攻撃中でもY軸回転は更新（ただし傾きは UpdateRushKnockback で管理）
+			// ラッシュ攻撃中でもY軸回転は更新(ただし傾きは UpdateRushKnockback で管理)
 			Vector3 newRotation = Vector3(currentRotation.x, newRotationY, currentRotation.z);
 			BaseObject::SetRotation(newRotation);
 			// obj3d_の回転はUpdateRushKnockbackで設定されるため、ここでは設定しない

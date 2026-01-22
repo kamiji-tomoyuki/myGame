@@ -5,18 +5,19 @@
 #include "Input.h"
 #include "Object3d.h"
 #include "Object3dCommon.h"
+#include "OffScreen.h"
 #include "ParticleCommon.h"
 #include "ParticleEmitter.h"
+#include "Skybox.h"
+#include "Sprite.h"
 #include "SpriteCommon.h"
 #include "WorldTransform.h"
 
+#include "application/TitleCharacter.h"
+
 #include "JsonLoader.h"
 
-/// <summary>
-/// タイトルシーンクラス
-/// </summary>
-class TitleScene :public BaseScene
-{
+class TitleScene : public BaseScene {
 public: // メンバ関数
 
 	/// <summary>
@@ -77,12 +78,20 @@ private:
 	std::unique_ptr<DebugCamera> debugCamera_;
 
 	WorldTransform wt1_;
+	WorldTransform wt2_;
 
-	std::unique_ptr<Object3d> walk_;
+	std::unique_ptr<Sprite> title2d_;
+	std::unique_ptr<Sprite> space_;
+        float timer_ = 0.0f;
+        float add_ = 1.0f / 60.0f;
+
+	std::unique_ptr<TitleCharacter> player_;
+
+	std::unique_ptr<Skybox> skybox_;
 
 	std::unique_ptr<ParticleEmitter> emitter_;
 
-	std::unique_ptr<JsonLoader> json_;
+	std::unique_ptr<OffScreen> offSc_;
 
 	bool roop = true;
 };

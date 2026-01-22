@@ -8,13 +8,10 @@
 std::list<Collider*>  CollisionManager::colliders_;
 
 void CollisionManager::Reset() {
-	// リストを空っぽにする
 	colliders_.clear();
 }
 
-// Colliderを削除する
 void CollisionManager::RemoveCollider(Collider* collider) {
-	// colliderが存在するか確認し、存在すれば削除
 	auto it = std::find(colliders_.begin(), colliders_.end(), collider);
 	if (it != colliders_.end()) {
 		colliders_.erase(it);
@@ -23,44 +20,31 @@ void CollisionManager::RemoveCollider(Collider* collider) {
 
 void CollisionManager::Initialize() {
 	const char* groupName = "Collider";
-	// グループを追加
 	GlobalVariables::GetInstance()->CreateGroup(groupName);
 
 	GlobalVariables* globalVariables = GlobalVariables::GetInstance();
-
-	// グローバル変数を追加
 	globalVariables->AddItem(groupName, "visible", visible);
 	globalVariables->AddItem(groupName, "sphereCollision", sphereCollision);
 	globalVariables->AddItem(groupName, "aabbCollision", aabbCollision);
 	globalVariables->AddItem(groupName, "obbCollision", obbCollision);
 }
 
-
 void CollisionManager::UpdateWorldTransform() {
 	ApplyGlobalVariables();
-	//// 非表示なら抜ける
-	//if (!visible) {
-	//	return;
-	//}
-	// 全てのコライダーについて
 	for (Collider* collider : colliders_) {
-		// 更新
 		collider->UpdateWorldTransform();
 	}
 }
 
 void CollisionManager::Draw(const ViewProjection& viewProjection) {
-	// 非表示なら抜ける
 	if (!visible) {
 		return;
 	}
-	// 全てのコライダーについて
 	for (Collider* collider : colliders_) {
 		if (!collider->IsCollisionEnabled()) {
 			continue;
 		}
 		if (sphereCollision) {
-			// 描画
 			collider->DrawSphere(viewProjection);
 		}
 		if (aabbCollision) {
@@ -79,38 +63,51 @@ void CollisionManager::Update()
 }
 
 void CollisionManager::CheckCollisionPair(Collider* colliderA, Collider* colliderB) {
-	isCollidingNow = false;
 	// コリジョンが無効化されている場合はチェックをスキップ
 	if (!colliderA->IsCollisionEnabled() || !colliderB->IsCollisionEnabled()) {
 		return;
 	}
+
+	bool isCollidingNow = false;
 
 	// 球の衝突チェック
 	if (sphereCollision) {
 		Vector3 posA = colliderA->GetCenter();
 		Vector3 posB = colliderB->GetCenter();
 		float distance = (posA - posB).Length();
-		isCollidingNow = (distance <= colliderA->GetRadius() + colliderB->GetRadius());
+		if (distance <= colliderA->GetRadius() + colliderB->GetRadius()) {
+			isCollidingNow = true;
+		}
 	}
 
-	// AABBの衝突チェック
+	// AABBの衝突チェック（球で当たっていなくても実行）
 	if (aabbCollision && !isCollidingNow) {
-		isCollidingNow = IsCollision(colliderA->GetAABB(), colliderB->GetAABB());
+		if (IsCollision(colliderA->GetAABB(), colliderB->GetAABB())) {
+			isCollidingNow = true;
+		}
 	}
 
-	// OBB同士の衝突チェック
+	// OBB同士の衝突チェック（球・AABBで当たっていなくても実行）
 	if (obbCollision && !isCollidingNow) {
 		OBB obbA = colliderA->GetOBB();
 		OBB obbB = colliderB->GetOBB();
-		isCollidingNow = IsCollision(obbA, obbB);
+		if (IsCollision(obbA, obbB)) {
+			isCollidingNow = true;
+		}
 	}
+
+	// 前フレームの状態を取得
+	bool wasCollidingA = colliderA->WasColliding();
+	bool wasCollidingB = colliderB->WasColliding();
 
 	// 衝突状態の変化に応じたコールバックの呼び出し
 	if (isCollidingNow) {
-		if (!colliderA->WasColliding() && !colliderB->WasColliding()) {
+		// 前フレームで当たっていなかった場合は OnCollisionEnter
+		if (!wasCollidingA && !wasCollidingB) {
 			colliderA->OnCollisionEnter(colliderB);
 			colliderB->OnCollisionEnter(colliderA);
 		}
+		// 前フレームでも当たっていた場合は OnCollision
 		else {
 			colliderA->OnCollision(colliderB);
 			colliderB->OnCollision(colliderA);
@@ -119,7 +116,8 @@ void CollisionManager::CheckCollisionPair(Collider* colliderA, Collider* collide
 		colliderB->SetHitColor();
 	}
 	else {
-		if (colliderA->WasColliding() || colliderB->WasColliding()) {
+		// 前フレームで当たっていて、今フレームで離れた場合は OnCollisionOut
+		if (wasCollidingA || wasCollidingB) {
 			colliderA->OnCollisionOut(colliderB);
 			colliderB->OnCollisionOut(colliderA);
 		}
@@ -127,33 +125,28 @@ void CollisionManager::CheckCollisionPair(Collider* colliderA, Collider* collide
 		colliderB->SetDefaultColor();
 	}
 
+	// 衝突状態を更新
 	colliderA->SetIsColliding(isCollidingNow);
 	colliderB->SetIsColliding(isCollidingNow);
 }
 
 void CollisionManager::CheckAllCollisions() {
-	// リスト内のペアを総当たり
 	std::list<Collider*>::iterator itrA = colliders_.begin();
 	for (; itrA != colliders_.end(); ++itrA) {
 		Collider* colliderA = *itrA;
 
-		// イテレータBはイテレータAの次の要素から回す（重複判定を回避）
 		std::list<Collider*>::iterator itrB = itrA;
 		itrB++;
 
 		for (; itrB != colliders_.end(); ++itrB) {
 			Collider* colliderB = *itrB;
-
-			// ベアの当たり判定
 			CheckCollisionPair(colliderA, colliderB);
 		}
 	}
-
 }
 
 void CollisionManager::AddCollider(Collider* collider)
 {
-	// コライダーをリストに追加する
 	colliders_.push_back(collider);
 }
 
@@ -167,7 +160,6 @@ void CollisionManager::ApplyGlobalVariables() {
 }
 
 bool CollisionManager::IsCollision(const AABB& aabb1, const AABB& aabb2) {
-	// 軸ごとに判定
 	if ((aabb1.min.x <= aabb2.max.x && aabb1.max.x >= aabb2.min.x) &&
 		(aabb1.min.y <= aabb2.max.y && aabb1.max.y >= aabb2.min.y) &&
 		(aabb1.min.z <= aabb2.max.z && aabb1.max.z >= aabb2.min.z)) {
@@ -177,7 +169,6 @@ bool CollisionManager::IsCollision(const AABB& aabb1, const AABB& aabb2) {
 }
 
 bool CollisionManager::IsCollision(const OBB& obb1, const OBB& obb2) {
-	// 15個の軸を準備
 	Vector3 axes[15] = {
 		obb1.orientations[0],
 		obb1.orientations[1],
@@ -196,27 +187,25 @@ bool CollisionManager::IsCollision(const OBB& obb1, const OBB& obb2) {
 		obb1.orientations[2].Cross(obb2.orientations[2]),
 	};
 
-	// 各軸に対してSATを使って衝突判定を行う
 	for (const Vector3& axis : axes) {
 		if (axis.Length() > 0.0001f && !testAxis(axis.Normalize(), obb1, obb2)) {
 			return false;
 		}
 	}
 
-
-	return true;  // 全ての軸で衝突している場合はtrue
+	return true;
 }
 
-// 軸に対するOBBの投影範囲を計算する関数
 void CollisionManager::projectOBB(const OBB& obb, const Vector3& axis, float& min, float& max) {
 	float centerProjection = obb.center.Dot(axis);
-	float radius = std::abs(obb.orientations[0].Dot(axis)) * obb.size.x + std::abs(obb.orientations[1].Dot(axis)) * obb.size.y + std::abs(obb.orientations[2].Dot(axis)) * obb.size.z;
+	float radius = std::abs(obb.orientations[0].Dot(axis)) * obb.size.x +
+		std::abs(obb.orientations[1].Dot(axis)) * obb.size.y +
+		std::abs(obb.orientations[2].Dot(axis)) * obb.size.z;
 
 	min = centerProjection - radius;
 	max = centerProjection + radius;
 }
 
-// 軸に投影するための関数
 bool CollisionManager::testAxis(const Vector3& axis, const OBB& obb1, const OBB& obb2) {
 	float min1, max1, min2, max2;
 	projectOBB(obb1, axis, min1, max1);

@@ -64,6 +64,7 @@ public:
 	// 中心座標取得
 	virtual Vector3 GetWorldPosition() const;
 	virtual Vector3 GetWorldRotation() const;
+	virtual Vector3 GetWorldSize() const;
 	virtual const WorldTransform& GetWorldTransform() const { return transform_; }
 
 	/// ===================================================

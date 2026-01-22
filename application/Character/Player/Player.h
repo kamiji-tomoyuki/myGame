@@ -9,6 +9,7 @@
 #include <ParticleEmitter.h>
 
 class FollowCamera;
+class Enemy;
 
 /// <summary>
 /// プレイヤークラス
@@ -31,6 +32,16 @@ public:
 	enum class Behavior {
 		kRoot,		// 通常
 		kAttack,	// 攻撃
+		kDodge,		// 回避
+	};
+
+	/// <summary>
+	/// ゲーム状態
+	/// </summary>
+	enum class GameState {
+		kPlaying,		// ゲームプレイ中
+		kGameOver,		// ゲームオーバー
+		kGameClear,		// ゲームクリア
 	};
 
 public:
@@ -46,6 +57,8 @@ public:
 	/// 更新
 	/// </summary>
 	void Update()override;
+	void UpdateStartEffect();
+
 	void UpdateAttack();
 
 	/// <summary>
@@ -76,6 +89,19 @@ public:
 	Vector3 GetCenterRotation() const override { return transform_.rotation_; }
 	uint32_t GetSerialNumber() const { return serialNumber_; }
 	Vector3 GetVelocity() const { return velocity_; }
+	bool GetIsEnd() const { return isEnd; }
+	bool IsDodging() const { return behavior_ == Behavior::kDodge; }
+	GameState GetGameState() const { return gameState_; }
+
+	/// UI表示判定用メソッド
+	bool CanRightPunch() const;   // 右パンチ可能か
+	bool CanLeftPunch() const;    // 左パンチ可能か
+	bool CanRush() const;         // ラッシュ可能か
+
+	// 攻撃実行中判定用メソッド
+	bool IsRightPunchActive() const;   // 右パンチ実行中か
+	bool IsLeftPunchActive() const;    // 左パンチ実行中か
+	bool IsRushActive() const;         // ラッシュ実行中か
 
 	/// 各ステータス設定関数
 	/// <returns></returns>
@@ -84,6 +110,8 @@ public:
 	static void SetSerialNumber(int num) { nextSerialNumber_ = num; }
 	void SetTranslation(const Vector3& translation) { transform_.translation_ = translation; }
 	void SetVelocity(const Vector3& velocity) { velocity_ = velocity; }
+	void SetGameState(GameState state) { gameState_ = state; }
+	void SetEnemy(Enemy* enemy) { enemy_ = enemy; }
 
 private:
 
@@ -97,8 +125,40 @@ private:
 	/// </summary>
 	void Move();
 
+	/// <summary>
+	/// ロックオン処理
+	/// </summary>
+	void UpdateLockOn();
+
+	/// <summary>
+	/// 回避処理
+	/// </summary>
+	void StartDodge(const Vector3& direction);
+	void UpdateDodge();
+
+	/// <summary>
+	/// 演出用処理
+	/// </summary>
+	void UpdateTrailEffect();
+
+	/// <summary>
+	/// 被弾処理
+	/// </summary>
+	void TakeDamage(const Vector3& hitPosition);
+	void UpdateHitReaction();
+
+	/// <summary>
+	/// ゲームオーバー演出
+	/// </summary>
+	void UpdateGameOverEffect();
+
+	/// <summary>
+	/// ゲームクリア演出
+	/// </summary>
+	void UpdateGameClearEffect();
+
 private:
-	
+
 	// --- モデル ---
 	std::unique_ptr<Object3d> obj3d_;
 
@@ -109,6 +169,9 @@ private:
 
 	// --- 各ステータス ---
 	bool isAlive_ = true;
+
+	// ゲーム状態
+	GameState gameState_ = GameState::kPlaying;
 
 	// Behavior
 	Behavior behavior_ = Behavior::kRoot;
@@ -126,13 +189,55 @@ private:
 
 	// Attack関連変数
 	bool isAttack_ = false;
-	uint32_t globalComboCount_ = 0;  // プレイヤー全体のコンボカウント
-	uint32_t globalComboTimer_ = 0;  // プレイヤー全体のコンボタイマー
+	uint32_t globalComboCount_ = 0;
+	uint32_t globalComboTimer_ = 0;
+
+	// Dodge関連変数
+	static constexpr int kDodgeDuration_ = 30;
+	static constexpr float kDodgeSpeed_ = 0.3f;
+	static constexpr float kDodgeTiltAngle_ = 0.52f;
+	static constexpr int kDodgeTiltInDuration_ = 10;
+	static constexpr int kDodgeTiltOutDuration_ = 10;
+	int dodgeTimer_ = 0;
+	Vector3 dodgeDirection_{};
+	Vector3 dodgeStartRotation_{};
+	Vector3 dodgeTiltRotation_{};
+
+	// 被弾リアクション関連変数
+	bool isHitReacting_ = false;
+	int hitReactionTimer_ = 0;
+	Vector3 hitShakeOffset_{};
+	Vector3 originalPosition_{};
+	static constexpr int kHitReactionDuration_ = 15;
+	static constexpr float kHitShakeIntensity_ = 0.15f;
+
+	// ロックオン関連変数
+	bool isLockOn_ = false;
+	Enemy* enemy_ = nullptr;
 
 	// --- 各エフェクト・演出 ---
 	std::unique_ptr<ParticleEmitter> hitEffect_;
+	std::unique_ptr<ParticleEmitter> damageEffect_;
 
-	// シリアルナンバー
+	// 出現演出関連変数
+	bool isStart = false;
+	bool isEnd = false;
+	float easeT = 0.0f;
+
+	// ゲームクリア演出関連変数
+	float clearEffectTimer_ = 0.0f;
+	const float kJumpCycle_ = 40.0f;
+	const float kJumpHeight_ = 2.0f;
+	Vector3 clearStartPos_{};
+
+	// 軌跡パーティクル関連変数
+	std::unique_ptr<ParticleEmitter> trailEffect_;
+	Vector3 lastTrailPosition_{};
+	float trailEmitDistance_ = 0.5f;  // パーティクルを発生させる移動距離の閾値
+	bool isTrailActive_ = false;
+	static constexpr float kFootOffsetY_ = -0.8f;
+
+	// --- シリアルナンバー ---
 	uint32_t serialNumber_ = 0;
 	static inline int nextSerialNumber_ = 0;
 

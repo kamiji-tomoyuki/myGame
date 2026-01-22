@@ -10,7 +10,12 @@
 #include "SpriteCommon.h"
 #include "WorldTransform.h"
 
-#include "JsonLoader.h"
+#include "Player.h"
+#include <Enemy.h>
+#include "Skybox.h"
+#include <Stage/Ground.h>
+#include "FollowCamera.h"
+#include "Sprite.h"
 
 /// <summary>
 /// ゲームオーバーシーンクラス
@@ -62,6 +67,9 @@ private:
 	/// </summary>
 	void ChangeScene();
 
+	// タイトル演出の更新
+	void UpdateTitleAnimation();
+
 private:
 	Audio* audio_;
 	Input* input_;
@@ -74,13 +82,31 @@ private:
 
 	WorldTransform wt1_;
 
-	std::unique_ptr<Object3d> walk_;
+	std::unique_ptr<Player> player_;
+	std::unique_ptr<Enemy> enemy_;
 
-	std::unique_ptr<Object3d> obb;
+	std::unique_ptr<Skybox> skybox_;
+	std::unique_ptr<Ground> ground_;
 
-	std::unique_ptr<ParticleEmitter> emitter_;
+	std::unique_ptr<FollowCamera> followCamera_;
 
-	std::unique_ptr<JsonLoader> json_;
+	// --- 各エフェクト・演出 ---
+	std::unique_ptr<ParticleEmitter> stageWall_;
+
+	// --- スプライト ---
+	std::unique_ptr<Sprite> gameOverTitle_;
+
+	// --- タイトル演出用 ---
+	float titleAnimationTimer_ = 0.0f;
+	const float kTitleMoveTime = 3.0f;      // 移動時間
+	const float kTitleFadeTime = 2.5f;      // フェード時間
+	const Vector2 kTitleStartPos = { 240.0f, 0.0f };
+	const Vector2 kTitleEndPos = { 240.0f, 180.0f };
+
+	// ふわふわ
+	float floatingTimer_ = 0.0f;
+	const float kFloatingCycleTime = 2.0f;  // 1サイクルの時間
+	const float kFloatingAmplitude = 10.0f; // 揺れ幅(ピクセル)
 
 	bool roop = true;
 };

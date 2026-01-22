@@ -12,39 +12,59 @@ void GameScene::Initialize()
 	ptCommon_ = ParticleCommon::GetInstance();
 	input_ = Input::GetInstance();
 
+	vp_.Initialize();
+
 	debugCamera_ = std::make_unique<DebugCamera>();
 	debugCamera_->Initialize(&vp_);
 
 	// ===== 各オブジェクトの初期化 =====
+
+	currentPhase_ = GamePhase::EnemyAppear;
+
 	// --- プレイヤー ---
 	Player::SetSerialNumber(0);
 	player_ = std::make_unique<Player>();
 	player_->Init();
 	player_->SetViewProjection(&vp_);
+	player_->SetGameState(Player::GameState::kPlaying);
 
 	// --- カメラ ---
 	followCamera_ = std::make_unique<FollowCamera>();
 	followCamera_->Initialize();
-	followCamera_->SetTarget(&player_->GetWorldTransform());
-	// カメラをプレイヤーに設定
-	player_->SetFollowCamera(followCamera_.get());
+	followCamera_->SetPosition({ 0.0f,3.0f,9.0f });
 
 	// --- 敵 ---
 	Enemy::SetSerialNumber(0);
 	enemy_ = std::make_unique<Enemy>();
 	enemy_->Init();
+	enemy_->SetGameState(Enemy::GameState::kPlaying);
+
+	player_->SetEnemy(enemy_.get());
 
 	// --- ステージ ---
 	skybox_ = std::make_unique<Skybox>();
 	skybox_->Initialize("skybox.dds");
 
 	ground_ = std::make_unique<Ground>();
-	ground_->Init();
+	ground_->Init(skybox_.get());
 
 	// ===== 各エフェクト・演出の初期化 =====
 	stageWall_ = std::make_unique<ParticleEmitter>();
 	stageWall_->Initialize("stage", "debug/ringPlane.obj");
 
+	// ===== スプライト =====
+	UI_ = std::make_unique<Sprite>();
+	UI_->Initialize("gameUI.png", { 40.0f, 530.0f });
+
+	// 攻撃UI初期化
+	attackUI_Right_ = std::make_unique<Sprite>();
+	attackUI_Right_->Initialize("gameUIRight.png", { 40.0f, 530.0f });
+
+	attackUI_Left_ = std::make_unique<Sprite>();
+	attackUI_Left_->Initialize("gameUILeft.png", { 40.0f, 530.0f });
+
+	attackUI_Rush_ = std::make_unique<Sprite>();
+	attackUI_Rush_->Initialize("gameUIRush.png", { 40.0f, 530.0f });
 
 #ifdef _DEBUG
 	obj_ = std::make_unique<TempObj>();
@@ -64,19 +84,24 @@ void GameScene::Update()
 	Debug();
 #endif // _DEBUG
 
+	// --- カメラ ---
+	CameraUpdate();
+
 	// ===== 各オブジェクトの更新 =====
-	// --- 敵 ---
-	enemy_->Update(player_.get(),vp_);
-
-	// --- プレイヤー ---
-	player_->Update();
-
-	// --- ステージ ---
+	// --- フィールド ---
 	skybox_->Update(vp_);
 	ground_->Update();
 
-	// --- カメラ ---
-	CameraUpdate();
+	switch (currentPhase_) {
+	case GamePhase::EnemyAppear:
+		UpdateStart();
+		break;
+
+	case GamePhase::Battle:
+		UpdateBattle();
+		UpdateAttackUI();  // 攻撃UIの更新
+		break;
+	}
 
 	// ===== 各エフェクト・演出の更新 =====
 	stageWall_->Update(vp_);
@@ -84,12 +109,23 @@ void GameScene::Update()
 	// ===== シーン切り替え =====
 	ChangeScene();
 
-
 #ifdef _DEBUG
 	// --- Debug時処理 ---
 	obj_->Update();
 #endif // _DEBUG
 
+}
+
+void GameScene::UpdateAttackUI()
+{
+	// プレイヤーが存在しない場合は何もしない
+	if (!player_) {
+		return;
+	}
+
+	// プレイヤーの腕の状態を取得
+	// 右腕と左腕の情報を取得する必要があるため、Playerクラスに
+	// 腕の状態を取得するメソッドが必要です
 }
 
 void GameScene::Draw()
@@ -101,6 +137,46 @@ void GameScene::Draw()
 	/// Spriteの描画準備
 	spCommon_->DrawCommonSetting();
 	//-----Spriteの描画開始-----
+
+	// ベースUIを描画
+	UI_->Draw();
+
+	// プレイヤーの攻撃状態に応じて攻撃UIを重ねて描画
+	if (player_ && currentPhase_ == GamePhase::Battle) {
+		// 右パンチUI
+		if (player_->CanRightPunch()) {
+			// 実行中なら暗くする
+			if (player_->IsRightPunchActive()) {
+				attackUI_Right_->SetColor(Vector3(0.4f, 0.4f, 0.4f));
+			}
+			else {
+				attackUI_Right_->SetColor(Vector3(1.0f, 1.0f, 1.0f));
+			}
+			attackUI_Right_->Draw();
+		}
+		// 左パンチUI
+		else if (player_->CanLeftPunch()) {
+			// 実行中なら暗くする
+			if (player_->IsLeftPunchActive()) {
+				attackUI_Left_->SetColor(Vector3(0.4f, 0.4f, 0.4f));
+			}
+			else {
+				attackUI_Left_->SetColor(Vector3(1.0f, 1.0f, 1.0f));
+			}
+			attackUI_Left_->Draw();
+		}
+		// ラッシュUI
+		else if (player_->CanRush()) {
+			// 実行中なら暗くする
+			if (player_->IsRushActive()) {
+				attackUI_Rush_->SetColor(Vector3(0.4f, 0.4f, 0.4f));
+			}
+			else {
+				attackUI_Rush_->SetColor(Vector3(1.0f, 1.0f, 1.0f));
+			}
+			attackUI_Rush_->Draw();
+		}
+	}
 
 	//------------------------
 
@@ -123,7 +199,7 @@ void GameScene::Draw()
 	player_->Draw(vp_);
 	enemy_->Draw(vp_);
 
-	//ground_->Draw(vp_);
+	ground_->Draw(vp_);
 
 	//--------------------------
 
@@ -132,6 +208,7 @@ void GameScene::Draw()
 	//------Particleの描画開始-------
 	stageWall_->Draw(Cylinder);
 	player_->DrawParticle(vp_);
+	enemy_->DrawParticle(vp_);
 	//-----------------------------
 
 	//-----線描画-----
@@ -185,6 +262,7 @@ void GameScene::Debug()
 
 	stageWall_->imgui();
 	player_->ImGui();
+	enemy_->ImGui();
 	ground_->DebugTransform("ground");
 }
 
@@ -201,13 +279,58 @@ void GameScene::CameraUpdate()
 	}
 }
 
+void GameScene::UpdateStart()
+{
+	// ===== 各オブジェクトの更新 =====
+	// --- 敵 ---
+	enemy_->UpdateStartEffect();
+
+	// --- プレイヤー ---
+	player_->UpdateStartEffect();
+
+	// プレイヤー演出が終了し、まだカメラ移動を開始していなければ開始
+	if (player_->GetIsEnd() && !isCameraMoveStart_) {
+		followCamera_->SetTarget(&player_->GetWorldTransform());
+		followCamera_->StartFollowMove();
+		player_->SetFollowCamera(followCamera_.get());
+		isCameraMoveStart_ = true; // フラグON
+	}
+
+	// カメラ移動が終わったらバトル開始
+	if (isCameraMoveStart_ && !followCamera_->IsStartMoving()) {
+		currentPhase_ = GamePhase::Battle;
+		isCameraMoveStart_ = false; // リセット
+	}
+}
+
+void GameScene::UpdateBattle()
+{
+	// ===== 各オブジェクトの更新 =====
+	// --- 敵 ---
+	enemy_->Update(player_.get(), vp_);
+
+	// --- プレイヤー ---
+	player_->Update();
+
+}
+
 void GameScene::ChangeScene()
 {
-	if (enemy_->GetHP() <= 0) {
+	if (!enemy_->GetIsAlive()) {
 		sceneManager_->NextSceneReservation("CLEAR");
 	}
 
+	if (player_->GetGameState() == Player::GameState::kGameOver) {
+		sceneManager_->NextSceneReservation("OVER");
+	}
+
+
+	//-----------------------------
+	if (Input::GetInstance()->TriggerKey(DIK_R)) {
+		
+	}
+	//-----------------------------
+
 #ifdef _DEBUG
-	//if(enemy->)
 #endif // _DEBUG
 }

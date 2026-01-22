@@ -371,8 +371,20 @@
     <ClCompile Include="application\Scene\GameClearScene.cpp">
       <Filter>ソースファイル\application\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="application\Scene\GameOverScene.cpp">
-      <Filter>ソースファイル\application\Scene</Filter>
+    <ClCompile Include="application\TitleCharacter.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\Event\ClearEvent.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\Enemy\EnemyAttackManager.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\Enemy\EnemyAttackMelee.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\Enemy\EnemyAttackRanged.cpp">
+      <Filter>ソースファイル</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -649,6 +661,20 @@
     <ClInclude Include="application\Other\CollisionTypeIdDef.h">
       <Filter>ソースファイル\application\Other</Filter>
     </ClInclude>
+    <ClInclude Include="application\Stage\StageManager.h" />
+    <ClInclude Include="application\Player\Arm\PlayerArm.h" />
+    <ClInclude Include="engine\3d\skybox\SkyboxTransform.h" />
+    <ClInclude Include="engine\3d\skybox\SkyboxManager.h" />
+    <ClInclude Include="engine\3d\skybox\SkyboxGeometry.h" />
+    <ClInclude Include="engine\3d\skybox\Skybox.h" />
+    <ClInclude Include="application\Stage\Ground.h" />
+    <ClInclude Include="scene\GameClearScene.h" />
+    <ClInclude Include="scene\GameOverScene.h" />
+    <ClInclude Include="application\TitleCharacter.h" />
+    <ClInclude Include="application\Event\ClearEvent.h" />
+    <ClInclude Include="application\Enemy\EnemyAttackManager.h" />
+    <ClInclude Include="application\Enemy\EnemyAttackMelee.h" />
+    <ClInclude Include="application\Enemy\EnemyAttackRanged.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\Particle\Particle.PS.hlsl">
