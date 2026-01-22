@@ -21,6 +21,7 @@ Generated/
 /externals/DirectXTex/Bin/
 /externals/imgui/x64/
 /x64
+*.ini
 *.pdb
 # Visual Studio 2015/2017 cache/options directory
 .vs/
