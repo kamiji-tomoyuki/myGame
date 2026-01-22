@@ -81,7 +81,7 @@ void TitleScene::Draw()
 
 	objCommon_->DrawCommonSetting();
 	//-----3DObjectの描画開始-----
-	walk_->Draw(wt1_, vp_);
+	//sphere_->Draw(wt2_, vp_);
 	//--------------------------
 
 	/// Particleの描画準備
