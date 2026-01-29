@@ -738,7 +738,7 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="myEngine.rc">
+    <ResourceCompile Include="engine.rc">
       <Filter>ソースファイル\リソース ファイル\OffScreen</Filter>
     </ResourceCompile>
   </ItemGroup>

@@ -48,7 +48,7 @@ void GameScene::Initialize()
 	skybox_->Initialize("skybox.dds");
 
 	ground_ = std::make_unique<Ground>();
-	ground_->Init(skybox_.get());
+	ground_->Init();
 
 	// ===== 各エフェクト・演出の初期化 =====
 	stageWall_ = std::make_unique<ParticleEmitter>();

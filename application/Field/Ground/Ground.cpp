@@ -1,17 +1,14 @@
 #include "Ground.h"
 
-void Ground::Init(Skybox* skybox)
+void Ground::Init()
 {
 	BaseObject::Init();
-	BaseObject::SetScale({ 1000.0f,1000.0f, 1000.0f });
+	BaseObject::SetScale({ scale_, scale_, scale_ });
 	BaseObject::SetWorldPositionY(-2.5f);
 
 	// --- モデルの初期化 ---
 	obj3d_ = std::make_unique<Object3d>();
 	obj3d_->Initialize("debug/Ground.obj");
-
-	obj3d_->GetModel()->SetEnvironmentSrvIndex(skybox->GetTextureIndex());
-	obj3d_->SetRefrect(true);
 }
 
 void Ground::Update()

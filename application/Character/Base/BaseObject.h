@@ -14,7 +14,7 @@ class BaseObject : public Collider {
 protected:
 
 	/// ===================================================
-	///protected variaus
+	///protected various
 	/// ===================================================
 
 	// モデル配列データ

@@ -145,7 +145,7 @@ void TitleScene::Debug() {
 
     LightGroup::GetInstance()->imgui();
 
-    ImGui::Checkbox("roop", &roop);
+    ImGui::Checkbox("loop", &loop);
 
     ImGui::End();
 

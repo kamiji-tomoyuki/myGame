@@ -104,8 +104,6 @@ uint32_t Audio::LoadWave(const std::string& filename) {
 	return currentIndex;
 }
 
-
-
 void Audio::Unload(uint32_t soundIndex) {
 	SoundData& soundData = soundDatas_[soundIndex];
 

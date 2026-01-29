@@ -93,5 +93,5 @@ private:
 
 	std::unique_ptr<OffScreen> offSc_;
 
-	bool roop = true;
+	bool loop = true;
 };

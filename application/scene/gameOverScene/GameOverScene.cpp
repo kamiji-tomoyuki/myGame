@@ -47,7 +47,7 @@ void GameOverScene::Initialize()
 	skybox_->Initialize("skybox.dds");
 
 	ground_ = std::make_unique<Ground>();
-	ground_->Init(skybox_.get());
+	ground_->Init();
 
 	// ===== 各エフェクト・演出の初期化 =====
 	stageWall_ = std::make_unique<ParticleEmitter>();
@@ -182,7 +182,7 @@ void GameOverScene::Debug()
 
 	LightGroup::GetInstance()->imgui();
 
-	ImGui::Checkbox("roop", &roop);
+	ImGui::Checkbox("loop", &loop);
 
 	// タイトル演出のデバッグ表示
 	ImGui::Text("Title Animation Timer: %.2f", titleAnimationTimer_);

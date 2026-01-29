@@ -36,7 +36,7 @@ class Object3d {
     /// <summary>
     /// アニメーションの更新処理
     /// </summary>
-    void UpdateAnimation(bool roop);
+    void UpdateAnimation(bool loop);
 
     /// <summary>
     /// アニメーションの再生・停止

@@ -108,5 +108,5 @@ private:
 	const float kFloatingCycleTime = 2.0f;  // 1サイクルの時間
 	const float kFloatingAmplitude = 10.0f; // 揺れ幅(ピクセル)
 
-	bool roop = true;
+	bool loop = true;
 };
