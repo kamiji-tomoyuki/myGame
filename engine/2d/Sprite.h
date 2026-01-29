@@ -156,14 +156,13 @@ private:
 	bool isFlipY_ = false;
 	// アンカーポイント
 	Vector2 anchorPoint_ = { 0.0f,0.0f };
-	float left = 0.0f - anchorPoint_.x;
-	float right = 1.0f - anchorPoint_.x;
-	float top = 0.0f - anchorPoint_.y;
-	float bottom = 1.0f - anchorPoint_.y;
+	float left = 0.0f;
+	float right = 1.0f;
+	float top = 0.0f;
+	float bottom = 1.0f;
 
 	// テクスチャ左上座標
 	Vector2 textureLeftTop = { 0.0f,0.0f };
 	// テクスチャ切り出しサイズ
 	Vector2 textureSize = { 512.0f,512.0f };
 };
-

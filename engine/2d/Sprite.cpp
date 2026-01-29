@@ -33,12 +33,27 @@ void Sprite::Initialize(const std::string& textureFilePath, Vector2 position, Ve
 
 void Sprite::Update()
 {
+	// --- アンカーポイントを考慮した頂点座標の計算 ---
+	// サイズを考慮してアンカーポイント分オフセット
+	left = (0.0f - anchorPoint_.x) * size.x;
+	right = (1.0f - anchorPoint_.x) * size.x;
+	top = (0.0f - anchorPoint_.y) * size.y;
+	bottom = (1.0f - anchorPoint_.y) * size.y;
+
+	// --- フリップの更新処理 ---
+	if (isFlipX_) {
+		std::swap(left, right);
+	}
+	if (isFlipY_) {
+		std::swap(top, bottom);
+	}
+
 	// --- world座標変換 ---
 	Transform transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
-	transform.translate = { position_.x,position_.y,0.0f };
-	transform.rotate = { 0.0f,0.0f,rotation };
-	transform.scale = { size.x,size.y,1.0f };
+	transform.translate = { position_.x, position_.y, 0.0f };
+	transform.rotate = { 0.0f, 0.0f, rotation };
+	transform.scale = { 1.0f, 1.0f, 1.0f }; // サイズは頂点座標に含まれるので1.0f
 
 	Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
 	Matrix4x4 viewMatrix = MakeIdentity4x4();
@@ -48,16 +63,6 @@ void Sprite::Update()
 	// --- transformationMatrixDataの更新 ---
 	transformationMatrixData->WVP = worldProjectionMatrix;
 	transformationMatrixData->World = worldMatrix;
-
-	// --- フリップの更新処理 ---
-	if (isFlipX_) {
-		left = -left;
-		right = -right;
-	}
-	if (isFlipY_) {
-		top = -top;
-		bottom = -bottom;
-	}
 
 	// --- テクスチャ範囲指定の更新処理 ---
 	const DirectX::TexMetadata& metadata =
@@ -69,23 +74,22 @@ void Sprite::Update()
 
 	// --- vertexDataに割り当てる ---
 	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
-	vertexData[0].position = { left,bottom,0.0f,1.0f }; // 左下
-	vertexData[0].texcoord = { tex_left,tex_bottom };
+	vertexData[0].position = { left, bottom, 0.0f, 1.0f }; // 左下
+	vertexData[0].texcoord = { tex_left, tex_bottom };
 
-	vertexData[1].position = { left,top,0.0f,1.0f }; // 左上
-	vertexData[1].texcoord = { tex_left,tex_top };
+	vertexData[1].position = { left, top, 0.0f, 1.0f }; // 左上
+	vertexData[1].texcoord = { tex_left, tex_top };
 
-	vertexData[2].position = { right,bottom,0.0f,1.0f }; // 右下
-	vertexData[2].texcoord = { tex_right,tex_bottom };
+	vertexData[2].position = { right, bottom, 0.0f, 1.0f }; // 右下
+	vertexData[2].texcoord = { tex_right, tex_bottom };
 
-	vertexData[3].position = { right,top,0.0f,1.0f }; // 右上
-	vertexData[3].texcoord = { tex_right,tex_top };
+	vertexData[3].position = { right, top, 0.0f, 1.0f }; // 右上
+	vertexData[3].texcoord = { tex_right, tex_top };
 
 	// --- indexDataに割り当てる ---
 	indexResource->Map(0, nullptr, reinterpret_cast<void**>(&indexData));
 	indexData[0] = 0; indexData[1] = 1; indexData[2] = 2;
 	indexData[3] = 1; indexData[4] = 3; indexData[5] = 2;
-
 }
 
 void Sprite::Draw()
