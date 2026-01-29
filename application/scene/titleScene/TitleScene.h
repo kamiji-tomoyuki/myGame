@@ -13,7 +13,7 @@
 #include "SpriteCommon.h"
 #include "WorldTransform.h"
 
-#include "application/TitleCharacter.h"
+#include "TitleCharacter.h"
 
 #include "JsonLoader.h"
 
