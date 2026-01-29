@@ -62,7 +62,8 @@ uint32_t Audio::LoadWave(const std::string& filename) {
 			file.read((char*)&format.fmt, chunkHeader.size);
 
 			break;
-		} else {
+		}
+		else {
 			file.seekg(chunkHeader.size, std::ios_base::cur);
 		}
 	}
@@ -76,7 +77,8 @@ uint32_t Audio::LoadWave(const std::string& filename) {
 	while (file.read((char*)&data, sizeof(data))) {
 		if (strncmp(data.id, "data", 4) == 0) {
 			break;
-		} else {
+		}
+		else {
 			file.seekg(data.size, std::ios_base::cur);
 		}
 	}
@@ -92,7 +94,7 @@ uint32_t Audio::LoadWave(const std::string& filename) {
 
 	SoundData& soundData = soundDatas_[soundDataIndex];
 	soundData.wfex = format.fmt;
-	soundData.buffer = std::move(buffer); 
+	soundData.buffer = std::move(buffer);
 	soundData.name_ = filename;
 
 	loadedFiles.insert(filename);
@@ -118,13 +120,13 @@ void Audio::PlayWave(uint32_t soundIndex, float volume, bool loop) {
 	// --- 再生 ---
 	const SoundData& soundData = soundDatas_[soundIndex];
 
-	Voice* voice = new Voice();
+	auto voice = std::make_unique<Voice>();
 	voice->handle = soundIndex;
 	voice->volume = volume;
+	voice->callback = std::make_unique<VoiceCallback>();
 
-	VoiceCallback* voiceCallback = new VoiceCallback();
-
-	result = xAudio2->CreateSourceVoice(&voice->sourceVoice, &soundData.wfex, 0, XAUDIO2_DEFAULT_FREQ_RATIO, voiceCallback);
+	result = xAudio2->CreateSourceVoice(&voice->sourceVoice, &soundData.wfex, 0,
+		XAUDIO2_DEFAULT_FREQ_RATIO, voice->callback.get());
 	assert(SUCCEEDED(result));
 
 	// --- バッファを設定 ---
@@ -132,7 +134,7 @@ void Audio::PlayWave(uint32_t soundIndex, float volume, bool loop) {
 	buf.pAudioData = soundData.buffer.data();
 	buf.AudioBytes = static_cast<uint32_t>(soundData.buffer.size());
 	buf.Flags = XAUDIO2_END_OF_STREAM;
-	buf.pContext = voice;
+	buf.pContext = voice.get();
 
 	// --- ループ再生の設定 ---
 	if (loop) {
@@ -152,7 +154,7 @@ void Audio::PlayWave(uint32_t soundIndex, float volume, bool loop) {
 	voice->sourceVoice->SetVolume(voice->volume);
 
 	// 再生中のボイスをセットに追加
-	voices_.insert(voice);
+	voices_.insert(std::move(voice));
 }
 
 void Audio::StopWave(uint32_t soundIndex)
@@ -164,7 +166,6 @@ void Audio::StopWave(uint32_t soundIndex)
 				(*it)->sourceVoice->Stop(0);
 				(*it)->sourceVoice->DestroyVoice();
 			}
-			delete* it; 
 			it = voices_.erase(it);
 		}
 		else {
@@ -191,13 +192,12 @@ void Audio::Finalize()
 		masterVoice = nullptr;
 	}
 
-	for (auto voice : voices_) {
+	for (auto& voice : voices_) {
 		if (voice->sourceVoice) {
 			voice->sourceVoice->DestroyVoice();
-
 		}
-		delete voice;
 	}
+
 	if (xAudio2) {
 		xAudio2.Reset();
 	}
@@ -206,4 +206,3 @@ void Audio::Finalize()
 	delete instance;
 	instance = nullptr;
 }
-

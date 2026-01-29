@@ -6,6 +6,7 @@
 #include "vector"
 #include "wrl.h"
 #include <set>
+#include <memory>
 
 /// <summary>
 /// 音声管理クラス
@@ -13,7 +14,7 @@
 class Audio
 {
 	class VoiceCallback : public IXAudio2VoiceCallback {
-	
+
 	public:
 		void STDMETHODCALLTYPE OnStreamEnd() override {}
 		void STDMETHODCALLTYPE OnVoiceProcessingPassEnd() override {}
@@ -65,6 +66,14 @@ private:
 		uint32_t handle = 0u;
 		IXAudio2SourceVoice* sourceVoice = nullptr;
 		float volume = 1.0f;
+		std::unique_ptr<VoiceCallback> callback;
+	};
+
+	// unique_ptrの比較用カスタム比較関数
+	struct VoiceCompare {
+		bool operator()(const std::unique_ptr<Voice>& a, const std::unique_ptr<Voice>& b) const {
+			return a.get() < b.get();
+		}
 	};
 
 #pragma region シングルトンインスタンス
@@ -132,7 +141,7 @@ private:
 	std::string directoryPath_;
 	std::array<SoundData, kMaxSoundData> soundDatas_;
 	size_t soundDataIndex = 0;
-	std::set<Voice*> voices_;
+	std::set<std::unique_ptr<Voice>, VoiceCompare> voices_;
 	std::set<std::string> loadedFiles;
 
 	// フォーマット情報を読み込む
