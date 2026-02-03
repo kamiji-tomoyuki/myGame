@@ -186,6 +186,8 @@ void GameScene::Draw()
 
 	UI_->Draw();
 
+	player_->DrawSprite(vp_);
+
 	// ポーズ中でない場合のみ攻撃UI表示
 	if (!pause_->IsPaused()) {
 		if (currentPhase_ == GamePhase::Battle) {
@@ -238,6 +240,18 @@ void GameScene::Draw()
 		UIPause_->Draw();
 	}
 
+	// ポーズ画面の描画（最前面）
+	if (pause_->IsPaused()) {
+		spCommon_->DrawCommonSetting();
+		pause_->Draw();
+	}
+
+	// ポーズ解除後の再生マークフェードアウト描画
+	if (pause_->IsPlayIconFading()) {
+		spCommon_->DrawCommonSetting();
+		pause_->DrawPlayIcon();
+	}
+
 	//------------------------
 
 	objCommon_->skinningDrawCommonSetting();
@@ -276,18 +290,6 @@ void GameScene::Draw()
 	//---------------
 
 	/// ----------------------------------
-
-	// ポーズ画面の描画（最前面）
-	if (pause_->IsPaused()) {
-		spCommon_->DrawCommonSetting();
-		pause_->Draw();
-	}
-
-	// ポーズ解除後の再生マークフェードアウト描画
-	if (pause_->IsPlayIconFading()) {
-		spCommon_->DrawCommonSetting();
-		pause_->DrawPlayIcon();
-	}
 
 	/// -------描画処理終了-------
 }

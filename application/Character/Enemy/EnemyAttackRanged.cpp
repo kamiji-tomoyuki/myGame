@@ -268,10 +268,9 @@ void EnemyAttackRanged::CheckCollision(Player* player)
 		// プレイヤーがトゲの範囲内にいる場合
 		if (distanceXZ <= kWarningCircleRadius_ &&
 			playerPos.y <= attack.position.y + kSpikeMaxHeight_) {
-			// プレイヤーにダメージを与える処理
-			// プレイヤーが回避中でない場合のみダメージ
+			// プレイヤーに遠距離ダメージを与える
 			if (!player->IsDodging()) {
-				//player->TakeDamage(attack.position);
+				player->ApplyDamage(100, attack.position);
 			}
 		}
 	}

@@ -55,7 +55,7 @@ void GameClearScene::Initialize()
 
 	// ===== スプライト =====
 	gameClearTitle_ = std::make_unique<Sprite>();
-	gameClearTitle_->Initialize("gameclear.png", kTitleStartPos, { 1.0f,1.0f,1.0f,0.0f }, { 0.5f,0.5f });
+	gameClearTitle_->Initialize("gameclear.png", kTitleStartPos);
 
 	// タイマー初期化
 	titleAnimationTimer_ = 0.0f;

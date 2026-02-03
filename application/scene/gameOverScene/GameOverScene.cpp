@@ -55,7 +55,7 @@ void GameOverScene::Initialize()
 
 	// ===== スプライト =====
 	gameOverTitle_ = std::make_unique<Sprite>();
-	gameOverTitle_->Initialize("gameover.png", kTitleStartPos, { 1.0f,1.0f,1.0f,0.0f }, { 0.5f,0.5f });
+	gameOverTitle_->Initialize("gameover.png", kTitleStartPos);
 
 	// タイマー初期化
 	titleAnimationTimer_ = 0.0f;

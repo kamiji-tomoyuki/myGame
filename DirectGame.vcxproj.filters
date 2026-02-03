@@ -353,7 +353,7 @@
     <ClCompile Include="application\field\ground\Ground.cpp">
       <Filter>ソースファイル\application\Field\Ground</Filter>
     </ClCompile>
-    <ClCompile Include="application\character\player\Arm\PlayerArm.cpp">
+    <ClCompile Include="application\character\player\arm\PlayerArm.cpp">
       <Filter>ソースファイル\application\Character\Player</Filter>
     </ClCompile>
     <ClCompile Include="application\scene\gameClearScene\GameClearScene.cpp">
@@ -390,6 +390,21 @@
       <Filter>ソースファイル</Filter>
     </ClCompile>
     <ClCompile Include="engine\utility\scene\transOption\GridTransition.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\effect\PlayerStartEffect.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\effect\PlayerGameOverEffect.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\effect\PlayerGameClearEffect.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\action\PlayerAttack.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\action\PlayerDodge.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -656,7 +671,6 @@
     <ClInclude Include="engine\3d\skybox\SkyboxGeometry.h" />
     <ClInclude Include="engine\3d\skybox\Skybox.h" />
     <ClInclude Include="application\character\TitleCharacter.h" />
-    <ClInclude Include="application\event\ClearEvent.h" />
     <ClInclude Include="application\Enemy\EnemyAttackManager.h" />
     <ClInclude Include="application\Enemy\EnemyAttackMelee.h" />
     <ClInclude Include="application\Enemy\EnemyAttackRanged.h" />
@@ -669,12 +683,17 @@
     <ClInclude Include="application\character\enemy\EnemyAttackMelee.h" />
     <ClInclude Include="application\character\enemy\EnemyAttackRanged.h" />
     <ClInclude Include="application\character\player\Player.h" />
-    <ClInclude Include="application\character\player\Arm\PlayerArm.h" />
+    <ClInclude Include="application\character\player\arm\PlayerArm.h" />
     <ClInclude Include="application\field\StageManager.h" />
     <ClInclude Include="application\other\CollisionTypeIdDef.h" />
     <ClInclude Include="application\other\temp\TempObj.h" />
     <ClInclude Include="application\scene\gameScene\Pause\Pause.h" />
     <ClInclude Include="engine\utility\scene\transOption\GridTransition.h" />
+    <ClInclude Include="application\character\player\effect\PlayerStartEffect.h" />
+    <ClInclude Include="application\character\player\effect\PlayerGameOverEffect.h" />
+    <ClInclude Include="application\character\player\effect\PlayerGameClearEffect.h" />
+    <ClInclude Include="application\character\player\action\PlayerAttack.h" />
+    <ClInclude Include="application\character\player\action\PlayerDodge.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\particle\Particle.PS.hlsl">
