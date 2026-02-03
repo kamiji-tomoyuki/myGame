@@ -368,13 +368,13 @@
     <ClCompile Include="application\character\enemy\Enemy.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
-    <ClCompile Include="application\character\enemy\EnemyAttackManager.cpp">
+    <ClCompile Include="application\character\enemy\action\EnemyAttackManager.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
-    <ClCompile Include="application\character\enemy\EnemyAttackMelee.cpp">
+    <ClCompile Include="application\character\enemy\action\EnemyAttackMelee.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
-    <ClCompile Include="application\character\enemy\EnemyAttackRanged.cpp">
+    <ClCompile Include="application\character\enemy\action\EnemyAttackRanged.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
     <ClCompile Include="application\character\player\Player.cpp">
@@ -679,9 +679,9 @@
     <ClInclude Include="application\Player\Player.h" />
     <ClInclude Include="application\temp\TempObj.h" />
     <ClInclude Include="application\character\enemy\Enemy.h" />
-    <ClInclude Include="application\character\enemy\EnemyAttackManager.h" />
-    <ClInclude Include="application\character\enemy\EnemyAttackMelee.h" />
-    <ClInclude Include="application\character\enemy\EnemyAttackRanged.h" />
+    <ClInclude Include="application\character\enemy\action\EnemyAttackManager.h" />
+    <ClInclude Include="application\character\enemy\action\EnemyAttackMelee.h" />
+    <ClInclude Include="application\character\enemy\action\EnemyAttackRanged.h" />
     <ClInclude Include="application\character\player\Player.h" />
     <ClInclude Include="application\character\player\arm\PlayerArm.h" />
     <ClInclude Include="application\field\StageManager.h" />

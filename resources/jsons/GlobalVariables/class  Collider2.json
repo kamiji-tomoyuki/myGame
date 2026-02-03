@@ -1,0 +1,29 @@
+{
+    "class  Collider2": {
+        "AABB Max": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "AABB Min": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "OBB center": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "OBB size": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Sphere Translation": [
+            0.0,
+            0.0,
+            0.0
+        ]
+    }
+}

@@ -216,6 +216,10 @@ private:
 	static constexpr int   kHitReactionDuration_ = 15;
 	static constexpr float kHitShakeIntensity_ = 0.15f;
 
+	// 接触ダメージのクールダウン
+	int contactDamageCooldown_ = 0;
+	static constexpr int kContactDamageCooldownDuration_ = 90;
+
 	// ロックオン関連変数
 	bool    isLockOn_ = false;
 	Enemy* enemy_ = nullptr;

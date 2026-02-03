@@ -1,8 +1,10 @@
 #include "Enemy.h"
 
 #include "CollisionTypeIdDef.h"
+
 #include "Player.h"
-#include "Arm/PlayerArm.h"
+#include "PlayerArm.h"
+
 #include "EnemyAttackManager.h"
 #include "EnemyAttackMelee.h"
 #include "EnemyAttackRanged.h"
@@ -376,7 +378,7 @@ void Enemy::OnCollision(Collider* other)
 	}
 
 	// プレイヤーの腕との衝突処理
-	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kPArm)) {
+	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kPRArm) || typeID == static_cast<uint32_t>(CollisionTypeIdDef::kPLArm)) {
 		PlayerArm* arm = static_cast<PlayerArm*>(other);
 
 		//------------------------------------------
@@ -457,7 +459,15 @@ void Enemy::HandleCollisionWithPlayer(Player* player)
 
 void Enemy::TakeDamage(uint32_t damage)
 {
-	HP_ -= damage;
+	if (!isAlive_) { return; } // 既に倒されている場合は無視
+
+	if (HP_ > damage) {
+		HP_ -= damage;
+	}
+	else {
+		HP_ = 0;
+		isAlive_ = false;
+	}
 }
 
 bool Enemy::IsAttacking() const

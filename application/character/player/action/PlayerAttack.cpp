@@ -31,7 +31,7 @@ void PlayerAttack::Update()
 	// --- 左パンチコンボ ---
 	if (a[kRArm] && a[kRArm]->CanCombo() &&
 		a[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch) {
-		if (a[kLArm]) {
+		if (a[kLArm] && a[kLArm]->GetBehavior() == PlayerArm::Behavior::kNormal) {
 			a[kLArm]->StartAttack(PlayerArm::AttackType::kLeftPunch);
 		}
 		return;

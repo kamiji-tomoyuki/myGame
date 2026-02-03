@@ -89,6 +89,15 @@ void Player::Update()
 	switch (gameState_) {
 	case GameState::kPlaying:
 		if (isAlive_) {
+
+			if (contactDamageCooldown_ > 0) {
+				contactDamageCooldown_--;
+			}
+
+			if (isHitReacting_) {
+				UpdateHitReaction();
+			}
+
 			if (isHitReacting_) {
 				UpdateHitReaction();
 			}
@@ -108,7 +117,7 @@ void Player::Update()
 		}
 
 		obj3d_->UpdateAnimation(true);
-		UpdateArms();
+		UpdateArms();  // ★ここで腕のUpdate()が呼ばれる
 
 		// HPバー更新
 		{
@@ -144,7 +153,9 @@ void Player::Update()
 void Player::UpdateArms()
 {
 	for (const auto& arm : arms_) {
-		arm->Update();
+		if (arm) {
+			arm->Update();
+		}
 	}
 }
 
@@ -356,9 +367,11 @@ void Player::Draw(const ViewProjection& viewProjection)
 void Player::DrawAnimation(const ViewProjection& viewProjection)
 {
 	if (isAlive_) {
-		UpdateArms();   // ※ DrawAnimation 側で腕を描画
+		// ★腕の描画
 		for (const auto& arm : arms_) {
-			arm->DrawAnimation(viewProjection);
+			if (arm) {
+				arm->DrawAnimation(viewProjection);
+			}
 		}
 	}
 }
@@ -384,8 +397,11 @@ void Player::ImGui()
 	damageEffect_->imgui();
 	trailEffect_->imgui();
 
+	// ★両腕のImGuiを表示
 	for (size_t i = 0; i < arms_.size(); ++i) {
-		if (arms_[i]) { arms_[i]->ImGui(); }
+		if (arms_[i]) {
+			arms_[i]->ImGui();
+		}
 	}
 
 	ImGui::Begin("Player Debug");
@@ -440,11 +456,13 @@ void Player::ImGui()
 		ImGui::Text("Right Arm State: %s",
 			arms_[kRArm]->GetBehavior() == PlayerArm::Behavior::kAttack ? "Attacking" :
 			arms_[kRArm]->GetBehavior() == PlayerArm::Behavior::kRush ? "Rush" : "Normal");
+		ImGui::Text("Right Arm Collision: %s", arms_[kRArm]->IsCollisionEnabled() ? "Enabled" : "Disabled");
 	}
 	if (arms_[kLArm]) {
 		ImGui::Text("Left Arm State: %s",
 			arms_[kLArm]->GetBehavior() == PlayerArm::Behavior::kAttack ? "Attacking" :
 			arms_[kLArm]->GetBehavior() == PlayerArm::Behavior::kRush ? "Rush" : "Normal");
+		ImGui::Text("Left Arm Collision: %s", arms_[kLArm]->IsCollisionEnabled() ? "Enabled" : "Disabled");
 	}
 
 	ImGui::End();
@@ -478,6 +496,9 @@ void Player::OnCollision(Collider* other)
 			velocity_ += knockbackDirection * 0.5f;
 		}
 		else {
+			// クールダウン中なら接触ダメージを与えない
+			if (contactDamageCooldown_ > 0) { return; }
+
 			uint32_t contactDamage = 10;
 			if (HP_ > contactDamage) { HP_ -= contactDamage; }
 			else {
@@ -500,24 +521,25 @@ void Player::OnCollision(Collider* other)
 }
 
 // =============================================================
-// InitArm
+// InitArm 
 // =============================================================
 void Player::InitArm()
 {
-	for (auto& arm : arms_) {
-		arm = std::make_unique<PlayerArm>();
-		arm->SetPlayer(this);
-	}
-
+	// ★右腕の初期化
+	arms_[kRArm] = std::make_unique<PlayerArm>();
 	arms_[kRArm]->Init("player/Arm/playerArm.gltf");
+	arms_[kRArm]->SetPlayer(this);
 	arms_[kRArm]->SetID(serialNumber_);
-	arms_[kRArm]->SetIsRightArm(true);
+	arms_[kRArm]->SetColliderID(CollisionTypeIdDef::kPRArm);
 	arms_[kRArm]->SetTranslation(Vector3(-1.7f, 0.0f, 1.3f));
 	arms_[kRArm]->SetScale(Vector3(0.8f, 0.8f, 0.8f));
 
+	// ★左腕の初期化
+	arms_[kLArm] = std::make_unique<PlayerArm>();
 	arms_[kLArm]->Init("player/Arm/playerArm.gltf");
+	arms_[kLArm]->SetPlayer(this);
 	arms_[kLArm]->SetID(serialNumber_);
-	arms_[kLArm]->SetIsRightArm(false);
+	arms_[kLArm]->SetColliderID(CollisionTypeIdDef::kPLArm);
 	arms_[kLArm]->SetTranslation(Vector3(1.7f, 0.0f, 1.3f));
 	arms_[kLArm]->SetScale(Vector3(0.8f, 0.8f, 0.8f));
 }
