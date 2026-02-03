@@ -193,7 +193,7 @@ private:
 
 	std::unique_ptr<Sprite> hpBar_;
 	static constexpr float  kHpBarFullWidth_ = 350.0f;
-	static constexpr float  kHpBarHeight_ = 70.0f;
+	static constexpr float  kHpBarHeight_ = 40.0f;
 	Vector3 hpColor_ = { 0.0f, 1.0f, 0.0f };
 
 	// Move関連変数

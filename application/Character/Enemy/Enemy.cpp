@@ -44,6 +44,13 @@ void Enemy::Init()
 	// --- 攻撃管理の初期化 ---
 	attackManager_ = std::make_unique<EnemyAttackManager>();
 	attackManager_->Initialize();
+
+	// --- HPバーの初期化 ---
+	hpBar_ = std::make_unique<Sprite>();
+	hpBar_->Initialize("white1x1.png", { 1180.0f, 50.0f });
+	hpBar_->SetAnchorPoint({ 1.0f, 0.0f });
+	hpBar_->SetColor({ 1.0f, 0.0f, 0.0f });
+	hpBar_->SetSize({ kHpBarFullWidth_, kHpBarHeight_ });
 }
 
 void Enemy::Update(Player* player, const ViewProjection& vp)
@@ -85,6 +92,13 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 
 	BaseObject::Update();
 	obj3d_->Update(BaseObject::GetWorldTransform(), vp);
+
+	// HPバー更新
+	{
+		float hpRatio = static_cast<float>(HP_) / static_cast<float>(kMaxHP_);
+		float currentWidth = kHpBarFullWidth_ * hpRatio;
+		hpBar_->SetSize({ currentWidth, kHpBarHeight_ });
+	}
 
 	// 攻撃管理のビュープロジェクション更新
 	if (vp_ != nullptr && attackManager_) {
@@ -326,6 +340,11 @@ void Enemy::DrawParticle(const ViewProjection& viewProjection)
 			meleeAttack->DrawTrailEffect();
 		}
 	}
+}
+
+void Enemy::DrawSprite(const ViewProjection& viewProjection)
+{
+	hpBar_->Draw();
 }
 
 void Enemy::ImGui()

@@ -187,6 +187,7 @@ void GameScene::Draw()
 	UI_->Draw();
 
 	player_->DrawSprite(vp_);
+	enemy_->DrawSprite(vp_);
 
 	// ポーズ中でない場合のみ攻撃UI表示
 	if (!pause_->IsPaused()) {

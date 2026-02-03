@@ -35,6 +35,7 @@ void EnemyAttackMelee::Start(Enemy* enemy, Player* player)
 	chargingTimer_ = 0;
 	recoveryTimer_ = 0;
 	chargeCount_ = 0;
+	hitRegistered_ = false;
 
 	// 元の回転を保存
 	originalRotation_ = enemy->GetCenterRotation();
@@ -65,7 +66,7 @@ void EnemyAttackMelee::Update(Enemy* enemy, Player* player)
 		break;
 
 	case Phase::kCharging:
-		UpdateCharging(enemy);
+		UpdateCharging(enemy, player);
 		break;
 
 	case Phase::kRecovery:
@@ -100,7 +101,7 @@ void EnemyAttackMelee::UpdatePreparation(Enemy* enemy)
 	}
 }
 
-void EnemyAttackMelee::UpdateCharging(Enemy* enemy)
+void EnemyAttackMelee::UpdateCharging(Enemy* enemy, Player* player)
 {
 	chargingTimer_++;
 
@@ -110,6 +111,9 @@ void EnemyAttackMelee::UpdateCharging(Enemy* enemy)
 
 	// 軌跡エフェクトの更新
 	UpdateTrailEffect(enemy);
+
+	// 当たり判定チェック
+	CheckCollision(player);
 
 	// 突進時間が終了したら回復フェーズへ
 	if (chargingTimer_ >= kChargingTime_) {
@@ -146,11 +150,35 @@ void EnemyAttackMelee::UpdateRecovery(Enemy* enemy)
 			// 次の突進の準備
 			phase_ = Phase::kPreparation;
 			preparationTimer_ = kPreparationTime_ - kNextChargeDelay_;
+			hitRegistered_ = false;	// 次の突進で再度ダメージを入れられるようにリセット
 		}
 		else {
 			// 全ての突進が終了
 			phase_ = Phase::kNone;
 			isComplete_ = true;
+		}
+	}
+}
+
+void EnemyAttackMelee::CheckCollision(Player* player)
+{
+	if (player == nullptr) return;
+	if (hitRegistered_) return;	// この突進で既にダメージを入れた場合はスキップ
+
+	Vector3 enemyPos = chargeStartPos_ + chargeDirection_ * (kChargeSpeed_ * chargingTimer_);
+	Vector3 playerPos = player->GetCenterPosition();
+
+	// XZ平面での距離を計算
+	float distanceXZ = std::sqrt(
+		std::pow(playerPos.x - enemyPos.x, 2.0f) +
+		std::pow(playerPos.z - enemyPos.z, 2.0f)
+	);
+
+	// 当たり判定半径以内にプレイヤーがいる場合
+	if (distanceXZ <= kMeleeHitRadius_) {
+		if (!player->IsDodging()) {
+			player->ApplyDamage(kMeleeDamage_, enemyPos);
+			hitRegistered_ = true;	// この突進では以降ダメージを入れない
 		}
 	}
 }

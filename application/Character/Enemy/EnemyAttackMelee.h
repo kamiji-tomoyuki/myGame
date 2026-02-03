@@ -69,12 +69,17 @@ private:
 	/// <summary>
 	/// 突進更新
 	/// </summary>
-	void UpdateCharging(Enemy* enemy);
+	void UpdateCharging(Enemy* enemy, Player* player);
 
 	/// <summary>
 	/// 回復動作更新
 	/// </summary>
 	void UpdateRecovery(Enemy* enemy);
+
+	/// <summary>
+	/// 突進中の当たり判定チェック
+	/// </summary>
+	void CheckCollision(Player* player);
 
 private:
 	// フェーズ
@@ -104,6 +109,9 @@ private:
 	static constexpr uint32_t kNextChargeDelay_ = 30;		// 次の突進までの待機時間
 	static constexpr float kChargeSpeed_ = 0.3f;			// 突進速度
 	static constexpr float kPreparationTiltAngle_ = 0.5f;	// 予備動作の傾き角度
+	static constexpr float kMeleeHitRadius_ = 1.5f;		// 突進の当たり判定半径
+	static constexpr int kMeleeDamage_ = 100;			// 突進ダメージ
+	bool hitRegistered_ = false;						// 1回の突進あたりのダメージ多重ヒット防止フラグ
 
 	// 軌跡パーティクル
 	std::unique_ptr<ParticleEmitter> trailEffect_;
