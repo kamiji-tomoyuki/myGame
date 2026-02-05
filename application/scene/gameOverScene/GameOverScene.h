@@ -5,19 +5,23 @@
 #include "Input.h"
 #include "Object3d.h"
 #include "Object3dCommon.h"
-#include "OffScreen.h"
 #include "ParticleCommon.h"
 #include "ParticleEmitter.h"
-#include "Skybox.h"
-#include "Sprite.h"
 #include "SpriteCommon.h"
 #include "WorldTransform.h"
 
-#include "application/TitleCharacter.h"
+#include "Player.h"
+#include <Enemy.h>
+#include "Skybox.h"
+#include <Ground.h>
+#include "FollowCamera.h"
+#include "Sprite.h"
 
-#include "JsonLoader.h"
-
-class TitleScene : public BaseScene {
+/// <summary>
+/// ゲームオーバーシーンクラス
+/// </summary>
+class GameOverScene :public BaseScene
+{
 public: // メンバ関数
 
 	/// <summary>
@@ -45,10 +49,6 @@ public: // メンバ関数
 	/// </summary>
 	void DrawForOffScreen()override;
 
-public:
-
-	/// 各ステータス取得関数
-	/// <returns></returns>
 	ViewProjection* GetViewProjection()override { return &vp_; }
 
 private:
@@ -67,6 +67,9 @@ private:
 	/// </summary>
 	void ChangeScene();
 
+	// タイトル演出の更新
+	void UpdateTitleAnimation();
+
 private:
 	Audio* audio_;
 	Input* input_;
@@ -78,20 +81,32 @@ private:
 	std::unique_ptr<DebugCamera> debugCamera_;
 
 	WorldTransform wt1_;
-	WorldTransform wt2_;
 
-	std::unique_ptr<Sprite> title2d_;
-	std::unique_ptr<Sprite> space_;
-        float timer_ = 0.0f;
-        float add_ = 1.0f / 60.0f;
-
-	std::unique_ptr<TitleCharacter> player_;
+	std::unique_ptr<Player> player_;
+	std::unique_ptr<Enemy> enemy_;
 
 	std::unique_ptr<Skybox> skybox_;
+	std::unique_ptr<Ground> ground_;
 
-	std::unique_ptr<ParticleEmitter> emitter_;
+	std::unique_ptr<FollowCamera> followCamera_;
 
-	std::unique_ptr<OffScreen> offSc_;
+	// --- 各エフェクト・演出 ---
+	std::unique_ptr<ParticleEmitter> stageWall_;
 
-	bool roop = true;
+	// --- スプライト ---
+	std::unique_ptr<Sprite> gameOverTitle_;
+
+	// --- タイトル演出用 ---
+	float titleAnimationTimer_ = 0.0f;
+	const float kTitleMoveTime = 3.0f;      // 移動時間
+	const float kTitleFadeTime = 2.5f;      // フェード時間
+	const Vector2 kTitleStartPos = { 240.0f, 0.0f };
+	const Vector2 kTitleEndPos = { 240.0f, 180.0f };
+
+	// ふわふわ
+	float floatingTimer_ = 0.0f;
+	const float kFloatingCycleTime = 2.0f;  // 1サイクルの時間
+	const float kFloatingAmplitude = 10.0f; // 揺れ幅(ピクセル)
+
+	bool loop = true;
 };

@@ -12,7 +12,7 @@ public:
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Init(Skybox* skybox);
+	void Init();
 
 	/// <summary>
 	/// 更新
@@ -28,6 +28,7 @@ private:
 
 	// --- モデル ---
 	std::unique_ptr<Object3d> obj3d_;
+	float scale_ = 1000.0f;
 
 };
 

@@ -11,14 +11,14 @@ void OffScreen::Initialize()
 	psoManager_ = std::make_unique<PipeLineManager>();
 	psoManager_->Initialize(dxCommon);
 	rootSignature[0] = psoManager_->CreateRenderRootSignature(rootSignature[0], ShaderMode::kNone);
-	rootSignature[1] = psoManager_->CreateRenderRootSignature(rootSignature[1], ShaderMode::kVigneet);
+	rootSignature[1] = psoManager_->CreateRenderRootSignature(rootSignature[1], ShaderMode::kVignette);
 	rootSignature[2] = psoManager_->CreateRenderRootSignature(rootSignature[2], ShaderMode::kSmooth);
 	rootSignature[3] = psoManager_->CreateRenderRootSignature(rootSignature[3], ShaderMode::kGauss);
 	rootSignature[4] = psoManager_->CreateRenderRootSignature(rootSignature[4], ShaderMode::kDepth);
 	rootSignature[5] = psoManager_->CreateRenderRootSignature(rootSignature[5], ShaderMode::kBlur);
 	graphicsPipelineState[0] = psoManager_->CreateRenderGraphicsPipeLine(graphicsPipelineState[0], rootSignature[0], ShaderMode::kNone);
 	graphicsPipelineState[1] = psoManager_->CreateRenderGraphicsPipeLine(graphicsPipelineState[1], rootSignature[0], ShaderMode::kGray);
-	graphicsPipelineState[2] = psoManager_->CreateRenderGraphicsPipeLine(graphicsPipelineState[2], rootSignature[1], ShaderMode::kVigneet);
+	graphicsPipelineState[2] = psoManager_->CreateRenderGraphicsPipeLine(graphicsPipelineState[2], rootSignature[1], ShaderMode::kVignette);
 	graphicsPipelineState[3] = psoManager_->CreateRenderGraphicsPipeLine(graphicsPipelineState[3], rootSignature[2], ShaderMode::kSmooth);
 	graphicsPipelineState[4] = psoManager_->CreateRenderGraphicsPipeLine(graphicsPipelineState[4], rootSignature[3], ShaderMode::kGauss);
 	graphicsPipelineState[5] = psoManager_->CreateRenderGraphicsPipeLine(graphicsPipelineState[5], rootSignature[0], ShaderMode::kOutLine);
@@ -45,7 +45,7 @@ void OffScreen::Draw()
 		psoManager_->DrawCommonSetting(graphicsPipelineState[1], rootSignature[0]);
 		dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(0, dxCommon->GetOffScreenGPUHandle());
 		break;
-	case ShaderMode::kVigneet:
+	case ShaderMode::kVignette:
 		psoManager_->DrawCommonSetting(graphicsPipelineState[2], rootSignature[1]);
 		dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(1, vignetteResource->GetGPUVirtualAddress());
 		dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(0, dxCommon->GetOffScreenGPUHandle());
@@ -102,7 +102,7 @@ void OffScreen::DrawCommonSetting()
 		break;
 	case ShaderMode::kGray:
 		break;
-	case ShaderMode::kVigneet:
+	case ShaderMode::kVignette:
 		ImGui::DragFloat("Exponent", &vignetteData->vignetteExponent, 0.1f, 0.0f, 10.0f);
 		ImGui::DragFloat("Radius", &vignetteData->vignetteRadius, 0.01f, 0.0f, 10.0f);
 		ImGui::DragFloat("Strength", &vignetteData->vignetteStrength, 0.01f);

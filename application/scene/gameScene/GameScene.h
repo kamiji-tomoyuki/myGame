@@ -3,24 +3,30 @@
 #include "BaseScene.h"
 #include "DebugCamera.h"
 #include "Input.h"
-#include "Object3d.h"
 #include "Object3dCommon.h"
 #include "ParticleCommon.h"
-#include "ParticleEmitter.h"
-#include "SpriteCommon.h"
-#include "WorldTransform.h"
-
-#include "Player.h"
-#include <Enemy.h>
-#include "Skybox.h"
-#include <Ground.h>
-#include "FollowCamera.h"
 #include "Sprite.h"
+#include "SpriteCommon.h"
+#include "ViewProjection.h"
 
-/// <summary>
-/// ゲームクリアシーンクラス
-/// </summary>
-class GameClearScene :public BaseScene
+#include <Player.h>
+#include <Enemy.h>
+#include <FollowCamera.h>
+#include <Ground.h>
+#include <Pause.h>
+
+#ifdef _DEBUG
+#include "temp/TempObj.h"
+#endif //_DEBUG
+#include <ParticleEmitter.h>
+#include <Skybox.h>
+
+enum class GamePhase {
+	EnemyAppear,  // 敵出現演出
+	Battle,       // 戦闘パート
+};
+
+class GameScene : public BaseScene
 {
 public: // メンバ関数
 
@@ -50,7 +56,6 @@ public: // メンバ関数
 	void DrawForOffScreen()override;
 
 	ViewProjection* GetViewProjection()override { return &vp_; }
-
 private:
 	/// <summary>
 	/// デバック
@@ -62,26 +67,31 @@ private:
 	/// </summary>
 	void CameraUpdate();
 
-	/// <summary>
-	/// シーン管理
-	/// </summary>
+	void UpdateStart();
+	void UpdateBattle();
+
 	void ChangeScene();
 
-	// タイトル演出の更新
-	void UpdateTitleAnimation();
+	/// <summary>
+	/// 攻撃UIの更新
+	/// </summary>
+	void UpdateAttackUI();
 
 private:
+
 	Audio* audio_;
 	Input* input_;
 	Object3dCommon* objCommon_;
 	SpriteCommon* spCommon_;
 	ParticleCommon* ptCommon_;
 
+	GamePhase currentPhase_;
+
+	// ビュープロジェクション
 	ViewProjection vp_;
 	std::unique_ptr<DebugCamera> debugCamera_;
 
-	WorldTransform wt1_;
-
+	// --- 各オブジェクト ---
 	std::unique_ptr<Player> player_;
 	std::unique_ptr<Enemy> enemy_;
 
@@ -93,20 +103,24 @@ private:
 	// --- 各エフェクト・演出 ---
 	std::unique_ptr<ParticleEmitter> stageWall_;
 
+	bool isStart = false;
+	bool isCameraMoveStart_ = false;
+
+	// --- シーン管理 ---
+	bool isClear = false;
+
 	// --- スプライト ---
-	std::unique_ptr<Sprite> gameClearTitle_;
+	std::unique_ptr<Sprite> UI_;
+	std::unique_ptr<Sprite> attackUI_Right_;   // 右フック用UI
+	std::unique_ptr<Sprite> attackUI_Left_;    // 左フック用UI
+	std::unique_ptr<Sprite> attackUI_Rush_;    // ラッシュ用UI
+	std::unique_ptr<Sprite> UIPause_;          // ポーズ表示用UI
 
-	// --- タイトル演出用 ---
-	float titleAnimationTimer_ = 0.0f;
-	const float kTitleMoveTime = 3.0f;      // 移動時間
-	const float kTitleFadeTime = 2.5f;      // フェード時間
-	const Vector2 kTitleStartPos = { 240.0f, 0.0f };
-	const Vector2 kTitleEndPos = { 240.0f, 180.0f };
+	// --- ポーズ画面管理 ---
+	std::unique_ptr<Pause> pause_;             // ポーズ管理クラス
+	bool prevPauseKeyState_ = false;           // 前フレームのポーズキー状態（連続入力防止）
 
-	// ふわふわ
-	float floatingTimer_ = 0.0f;
-	const float kFloatingCycleTime = 2.0f;  // 1サイクルの時間
-	const float kFloatingAmplitude = 10.0f; // 揺れ幅(ピクセル)
-
-	bool roop = true;
+#ifdef _DEBUG
+	std::unique_ptr<TempObj> obj_;
+#endif // _DEBUG
 };

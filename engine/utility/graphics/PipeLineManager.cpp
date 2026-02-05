@@ -555,7 +555,7 @@ Microsoft::WRL::ComPtr<ID3D12RootSignature> PipeLineManager::CreateRenderRootSig
     case ShaderMode::kGray:
         return CreateBaseRootSignature(rootSignature);
         break;
-    case ShaderMode::kVigneet:
+    case ShaderMode::kVignette:
         return CreateVignetteRootSignature(rootSignature);
         break;
     case ShaderMode::kSmooth:
@@ -589,8 +589,8 @@ Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateRenderGraphic
     case ShaderMode::kGray:
         return CreateGrayGraphicsPipeLine(graphicsPipelineState, rootSignature);
         break;
-    case ShaderMode::kVigneet:
-        return CreateVigneetGraphicsPipeLine(graphicsPipelineState, rootSignature);
+    case ShaderMode::kVignette:
+        return CreateVignetteGraphicsPipeLine(graphicsPipelineState, rootSignature);
         break;
     case ShaderMode::kSmooth:
         return CreateSmoothGraphicsPipeLine(graphicsPipelineState, rootSignature);
@@ -1552,7 +1552,7 @@ Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateGrayGraphicsP
     return graphicsPipelineState;
 }
 
-Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateVigneetGraphicsPipeLine(Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState, Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature) {
+Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateVignetteGraphicsPipeLine(Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState, Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature) {
 
     HRESULT hr;
 

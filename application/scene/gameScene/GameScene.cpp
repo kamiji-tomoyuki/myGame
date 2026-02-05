@@ -1,5 +1,7 @@
 #include "GameScene.h"
 #include "SceneManager.h"
+#include "Easing.h"
+#include <cmath>
 
 #include <LightGroup.h>
 #include <line/DrawLine3D.h>
@@ -46,7 +48,7 @@ void GameScene::Initialize()
 	skybox_->Initialize("skybox.dds");
 
 	ground_ = std::make_unique<Ground>();
-	ground_->Init(skybox_.get());
+	ground_->Init();
 
 	// ===== 各エフェクト・演出の初期化 =====
 	stageWall_ = std::make_unique<ParticleEmitter>();
@@ -66,6 +68,15 @@ void GameScene::Initialize()
 	attackUI_Rush_ = std::make_unique<Sprite>();
 	attackUI_Rush_->Initialize("gameUIRush.png", { 40.0f, 530.0f });
 
+	// ポーズ表示用UI初期化
+	UIPause_ = std::make_unique<Sprite>();
+	UIPause_->Initialize("gameUIPause.png", { 40.0f, 60.0f });
+	UIPause_->SetAlpha(1.0f); // 初期状態から表示
+
+	// ===== ポーズ管理クラスの初期化 =====
+	pause_ = std::make_unique<Pause>();
+	pause_->Initialize();
+
 #ifdef _DEBUG
 	obj_ = std::make_unique<TempObj>();
 	obj_->Init();
@@ -79,19 +90,54 @@ void GameScene::Finalize()
 
 void GameScene::Update()
 {
+	// ポーズキー（ESCまたはP）のチェック
+	bool currentPauseKeyState = input_->TriggerKey(DIK_ESCAPE) || input_->TriggerKey(DIK_P);
+
+	// ポーズキーが押された瞬間（前フレームは押されていなくて今フレーム押された）
+	if (currentPauseKeyState && !prevPauseKeyState_ && currentPhase_ == GamePhase::Battle) {
+		pause_->TogglePause();
+	}
+	prevPauseKeyState_ = currentPauseKeyState;
+
+	// --- カメラ更新（ポーズ中でも実行） ---
+	CameraUpdate();
+
+	// --- フィールド更新（ポーズ中でも実行して画面に表示） ---
+	skybox_->Update(vp_);
+	ground_->Update();
+
+	// ポーズ中の処理
+	if (pause_->IsPaused()) {
+		pause_->Update();
+
+		// ポーズメニューからのシーン切り替え要求をチェック
+		if (pause_->IsRetryRequested()) {
+			sceneManager_->NextSceneReservation("GAME");
+			pause_->ResetRequests();
+		}
+		if (pause_->IsBackToTitleRequested()) {
+			sceneManager_->NextSceneReservation("TITLE");
+			pause_->ResetRequests();
+		}
+
+		return; // ポーズ中はゲームロジックの更新を行わない
+	}
+
+	// 再生マークのフェードアウト処理（ポーズ解除後）
+	pause_->UpdatePlayIconFade();
+
+	// UIPauseのフェードイン処理（再生マークが消えた後）
+	if (pause_->IsUIPauseFadingIn()) {
+		pause_->UpdateUIPauseFade();
+		UIPause_->SetAlpha(pause_->GetUIPauseAlpha());
+	}
+
 #ifdef _DEBUG
 	// デバッグ
 	Debug();
 #endif // _DEBUG
 
-	// --- カメラ ---
-	CameraUpdate();
-
 	// ===== 各オブジェクトの更新 =====
-	// --- フィールド ---
-	skybox_->Update(vp_);
-	ground_->Update();
-
 	switch (currentPhase_) {
 	case GamePhase::EnemyAppear:
 		UpdateStart();
@@ -122,10 +168,6 @@ void GameScene::UpdateAttackUI()
 	if (!player_) {
 		return;
 	}
-
-	// プレイヤーの腕の状態を取得
-	// 右腕と左腕の情報を取得する必要があるため、Playerクラスに
-	// 腕の状態を取得するメソッドが必要です
 }
 
 void GameScene::Draw()
@@ -138,44 +180,73 @@ void GameScene::Draw()
 	spCommon_->DrawCommonSetting();
 	//-----Spriteの描画開始-----
 
-	// ベースUIを描画
 	UI_->Draw();
 
-	// プレイヤーの攻撃状態に応じて攻撃UIを重ねて描画
-	if (player_ && currentPhase_ == GamePhase::Battle) {
-		// 右パンチUI
-		if (player_->CanRightPunch()) {
-			// 実行中なら暗くする
-			if (player_->IsRightPunchActive()) {
-				attackUI_Right_->SetColor(Vector3(0.4f, 0.4f, 0.4f));
+	// ポーズ中でない場合のみ攻撃UI表示
+	if (!pause_->IsPaused()) {
+		if (currentPhase_ == GamePhase::Battle) {
+			if (player_) {
+				// 右パンチUI
+				if (player_->CanRightPunch()) {
+					// 実行中なら暗くする
+					if (player_->IsRightPunchActive()) {
+						attackUI_Right_->SetColor({ 0.4f, 0.4f, 0.4f });
+						attackUI_Right_->SetAlpha(1.0f);
+					}
+					else {
+						attackUI_Right_->SetColor({ 1.0f, 1.0f, 1.0f });
+						attackUI_Right_->SetAlpha(1.0f);
+					}
+					attackUI_Right_->Draw();
+				}
+				// 左パンチUI
+				else if (player_->CanLeftPunch()) {
+					// 実行中なら暗くする
+					if (player_->IsLeftPunchActive()) {
+						attackUI_Left_->SetColor({ 0.4f, 0.4f, 0.4f });
+						attackUI_Left_->SetAlpha(1.0f);
+					}
+					else {
+						attackUI_Left_->SetColor({ 1.0f, 1.0f, 1.0f });
+						attackUI_Left_->SetAlpha(1.0f);
+					}
+					attackUI_Left_->Draw();
+				}
+				// ラッシュUI
+				else if (player_->CanRush()) {
+					// 実行中なら暗くする
+					if (player_->IsRushActive()) {
+						attackUI_Rush_->SetColor({ 0.4f, 0.4f, 0.4f });
+						attackUI_Rush_->SetAlpha(1.0f);
+					}
+					else {
+						attackUI_Rush_->SetColor({ 1.0f, 1.0f, 1.0f });
+						attackUI_Rush_->SetAlpha(1.0f);
+					}
+					attackUI_Rush_->Draw();
+				}
 			}
-			else {
-				attackUI_Right_->SetColor(Vector3(1.0f, 1.0f, 1.0f));
-			}
-			attackUI_Right_->Draw();
 		}
-		// 左パンチUI
-		else if (player_->CanLeftPunch()) {
-			// 実行中なら暗くする
-			if (player_->IsLeftPunchActive()) {
-				attackUI_Left_->SetColor(Vector3(0.4f, 0.4f, 0.4f));
-			}
-			else {
-				attackUI_Left_->SetColor(Vector3(1.0f, 1.0f, 1.0f));
-			}
-			attackUI_Left_->Draw();
-		}
-		// ラッシュUI
-		else if (player_->CanRush()) {
-			// 実行中なら暗くする
-			if (player_->IsRushActive()) {
-				attackUI_Rush_->SetColor(Vector3(0.4f, 0.4f, 0.4f));
-			}
-			else {
-				attackUI_Rush_->SetColor(Vector3(1.0f, 1.0f, 1.0f));
-			}
-			attackUI_Rush_->Draw();
-		}
+	}
+
+	// UIPauseの表示（ポーズ中でない場合のみ）
+	if (!pause_->IsPaused()) {
+		UIPause_->Draw();
+	}
+
+	// ポーズ画面の描画（最前面）
+	if (pause_->IsPaused()) {
+		spCommon_->DrawCommonSetting();
+		pause_->Draw();
+	}
+
+	player_->DrawSprite(vp_);
+	enemy_->DrawSprite(vp_);
+
+	// ポーズ解除後の再生マークフェードアウト描画
+	if (pause_->IsPlayIconFading()) {
+		spCommon_->DrawCommonSetting();
+		pause_->DrawPlayIcon();
 	}
 
 	//------------------------
@@ -258,6 +329,7 @@ void GameScene::Debug()
 	ImGui::Begin("GameScene:Debug");
 	debugCamera_->imgui();
 	LightGroup::GetInstance()->imgui();
+
 	ImGui::End();
 
 	stageWall_->imgui();
@@ -327,7 +399,7 @@ void GameScene::ChangeScene()
 
 	//-----------------------------
 	if (Input::GetInstance()->TriggerKey(DIK_R)) {
-		
+
 	}
 	//-----------------------------
 

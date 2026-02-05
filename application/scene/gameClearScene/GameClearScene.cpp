@@ -47,7 +47,7 @@ void GameClearScene::Initialize()
 	skybox_->Initialize("skybox.dds");
 
 	ground_ = std::make_unique<Ground>();
-	ground_->Init(skybox_.get());
+	ground_->Init();
 
 	// ===== 各エフェクト・演出の初期化 =====
 	stageWall_ = std::make_unique<ParticleEmitter>();
@@ -55,7 +55,7 @@ void GameClearScene::Initialize()
 
 	// ===== スプライト =====
 	gameClearTitle_ = std::make_unique<Sprite>();
-	gameClearTitle_->Initialize("gameclear.png", kTitleStartPos, { 1.0f,1.0f,1.0f,0.0f }, { 0.5f,0.5f });
+	gameClearTitle_->Initialize("gameclear.png", kTitleStartPos);
 
 	// タイマー初期化
 	titleAnimationTimer_ = 0.0f;
@@ -181,7 +181,7 @@ void GameClearScene::Debug()
 
 	LightGroup::GetInstance()->imgui();
 
-	ImGui::Checkbox("roop", &roop);
+	ImGui::Checkbox("loop", &loop);
 
 	// タイトル演出のデバッグ表示
 	ImGui::Text("Title Animation Timer: %.2f", titleAnimationTimer_);

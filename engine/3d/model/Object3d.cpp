@@ -67,12 +67,12 @@ void Object3d::Update(const WorldTransform &worldTransform, const ViewProjection
     }
 }
 
-void Object3d::UpdateAnimation(bool roop) {
+void Object3d::UpdateAnimation(bool loop) {
     if (modelAnimation_) {
         if (hasBone_) {
-            modelAnimation_->Update(roop);
+            modelAnimation_->Update(loop);
         } else {
-            modelAnimation_->UpdateNodeAnimation(roop);
+            modelAnimation_->UpdateNodeAnimation(loop);
         }
     }
 

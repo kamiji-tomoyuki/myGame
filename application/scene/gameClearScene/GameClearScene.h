@@ -18,9 +18,9 @@
 #include "Sprite.h"
 
 /// <summary>
-/// ゲームオーバーシーンクラス
+/// ゲームクリアシーンクラス
 /// </summary>
-class GameOverScene :public BaseScene
+class GameClearScene :public BaseScene
 {
 public: // メンバ関数
 
@@ -94,7 +94,7 @@ private:
 	std::unique_ptr<ParticleEmitter> stageWall_;
 
 	// --- スプライト ---
-	std::unique_ptr<Sprite> gameOverTitle_;
+	std::unique_ptr<Sprite> gameClearTitle_;
 
 	// --- タイトル演出用 ---
 	float titleAnimationTimer_ = 0.0f;
@@ -108,5 +108,5 @@ private:
 	const float kFloatingCycleTime = 2.0f;  // 1サイクルの時間
 	const float kFloatingAmplitude = 10.0f; // 揺れ幅(ピクセル)
 
-	bool roop = true;
+	bool loop = true;
 };

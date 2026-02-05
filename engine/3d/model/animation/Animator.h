@@ -24,12 +24,12 @@ public:
 	/// <summary>
 	/// 更新処理
 	/// </summary>
-	void Update(bool roop);
+	void Update(bool loop);
 
 	/// <summary>
 	/// アニメーション更新処理
 	/// </summary>
-	void UpdateNodeAnimation(bool roop);
+	void UpdateNodeAnimation(bool loop);
 
 public:
 

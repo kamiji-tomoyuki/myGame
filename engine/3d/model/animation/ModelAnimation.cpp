@@ -19,21 +19,21 @@ void ModelAnimation::Initialize(const std::string& directorypath, const std::str
 	}
 }
 
-void ModelAnimation::Update(bool roop)
+void ModelAnimation::Update(bool loop)
 {
 	// --- アニメーションの更新処理　---
 	if (animator_->HaveAnimation()) {
-		animator_->Update(roop);
+		animator_->Update(loop);
 		bone_->Update(animator_->GetAnimation(), animator_->GetAnimationTime());
 		skin_->Update(bone_->GetSkeleton());
 	}
 }
 
-void ModelAnimation::UpdateNodeAnimation(bool roop)
+void ModelAnimation::UpdateNodeAnimation(bool loop)
 {
 	// --- アニメーションの更新処理　---
 	if (animator_->HaveAnimation()) {
-		animator_->UpdateNodeAnimation(roop);
+		animator_->UpdateNodeAnimation(loop);
 		localMatrix_ = animator_->GetLocalMatrix();
 	}
 }

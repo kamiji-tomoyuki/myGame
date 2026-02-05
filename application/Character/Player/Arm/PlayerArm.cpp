@@ -1,5 +1,4 @@
 #include "PlayerArm.h"
-#include <CollisionTypeIdDef.h>
 #include "Input.h"
 #include "myMath.h"
 #include "Player.h"
@@ -14,7 +13,8 @@ PlayerArm::PlayerArm()
 void PlayerArm::Init(std::string filePath)
 {
 	BaseObject::Init();
-	Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kPArm));
+
+	Collider::Initialize();
 
 	// --- モデルの初期化 ---
 	obj3d_ = std::make_unique<Object3d>();
@@ -27,6 +27,12 @@ void PlayerArm::Init(std::string filePath)
 	// ダメージ設定
 	attackDamage_ = 50;      // 通常攻撃のダメージ
 	rushAttackDamage_ = 20;  // ラッシュ攻撃1ヒットあたりのダメージ
+
+	// コリダーサイズの設定（衝突検出を有効にする）
+	Collider::SetRadius(0.8f);
+
+	// ★重要: 当たり判定を有効化
+	Collider::SetCollisionEnabled(true);
 }
 
 void PlayerArm::Update()
@@ -43,6 +49,9 @@ void PlayerArm::Update()
 	UpdateComboTime();
 
 	obj3d_->UpdateAnimation(true);
+
+	// ★重要: 当たり判定の更新
+	Collider::UpdateWorldTransform();
 }
 
 void PlayerArm::UpdateComboTime()
@@ -82,14 +91,17 @@ void PlayerArm::UpdateAttack()
 	transform_.translation_ = currentPos;
 
 	if (attackTimer_ >= kAttackDuration) {
+		// ★ lastAttackType_ を behavior_=kNormal にする「より前」にセットする。
+		// CanCombo() は (comboTimer_>0 && behavior_==kNormal) で成立するため、
+		// 同じフレームで lastAttackType_ が正しい値になっている必要がある。
+		lastAttackType_ = currentAttackType_;
+		currentAttackType_ = AttackType::kNone;
+
 		behavior_ = Behavior::kNormal;
 		isAttack_ = false;
 		attackTimer_ = 0;
 		attackProgress_ = 0.0f;
 		transform_.translation_ = originalPosition_;
-
-		lastAttackType_ = currentAttackType_;
-		currentAttackType_ = AttackType::kNone;
 	}
 }
 
@@ -186,13 +198,14 @@ void PlayerArm::StartAttack(AttackType attackType)
 	currentAttackType_ = attackType;
 	attackTimer_ = 0;
 	attackProgress_ = 0.0f;
+	hasHitThisAttack_ = false; // 新しい攻撃なのでリセット
 
 	if (attackType == AttackType::kRightPunch) {
-		comboTimer_ = 60;
+		comboTimer_ = kComboWindow;
 		comboCount_ = 1;
 	}
 	else if (attackType == AttackType::kLeftPunch) {
-		comboTimer_ = 90;
+		comboTimer_ = kComboWindow;
 		comboCount_ = 2;
 	}
 
@@ -263,6 +276,7 @@ void PlayerArm::StartRush()
 	rushAttackTimer_ = 0;
 	rushCount_ = 0;
 	rushAttackActive_ = false;
+	lastRushHitFrame_ = -999; // ラッシュヒットフレームをリセット
 
 	originalPosition_ = transform_.translation_;
 }
@@ -336,10 +350,15 @@ void PlayerArm::ImGui()
 	ImGui::Text("Is Attack: %s", isAttack_ ? "Yes" : "No");
 	ImGui::Text("Is Rush: %s", isRush_ ? "Yes" : "No");
 
+	ImGui::Text("Collision Enabled: %s", IsCollisionEnabled() ? "Yes" : "No");
+	ImGui::Text("TypeID: %u", GetTypeID());
+
 	ImGui::Text("Original Pos: (%.2f, %.2f, %.2f)",
 		originalPosition_.x, originalPosition_.y, originalPosition_.z);
 	ImGui::Text("Target Pos: (%.2f, %.2f, %.2f)",
 		targetPosition_.x, targetPosition_.y, targetPosition_.z);
+	ImGui::Text("Current Pos: (%.2f, %.2f, %.2f)",
+		transform_.translation_.x, transform_.translation_.y, transform_.translation_.z);
 	ImGui::Text("Attack Direction: (%.2f, %.2f, %.2f)",
 		attackDirection_.x, attackDirection_.y, attackDirection_.z);
 
@@ -371,14 +390,12 @@ void PlayerArm::OnCollision(Collider* other)
 		if (isRush_ && rushAttackActive_) {
 			// ラッシュ攻撃の有効フレーム内でのみダメージを与える
 			if (rushAttackTimer_ >= 2 && rushAttackTimer_ <= 6) {
-				// 連続ヒットを防ぐため、少し待機時間を設ける
-				static int lastRushHitFrame = -999;
-				int currentFrame = rushTimer_;
+				int currentFrame = static_cast<int>(rushTimer_);
 
 				// 前回のヒットから一定フレーム経過していれば新しいダメージを与える
-				if (currentFrame - lastRushHitFrame >= 3) {
-					enemy->TakeDamage(rushAttackDamage_/*, hitPosition*/);
-					lastRushHitFrame = currentFrame;
+				if (currentFrame - lastRushHitFrame_ >= 3) {
+					enemy->TakeDamage(rushAttackDamage_);
+					lastRushHitFrame_ = currentFrame;
 				}
 			}
 		}
@@ -386,21 +403,10 @@ void PlayerArm::OnCollision(Collider* other)
 		else if (isAttack_) {
 			// 攻撃の最大前進時のみダメージを与える
 			if (attackProgress_ >= 0.4f && attackProgress_ <= 0.6f) {
-				// 1回の攻撃で1回だけダメージを与えるためのフラグ
-				static bool hasHitThisAttack = false;
-				static int lastAttackId = -1;
-				int currentAttackId = attackTimer_ + (isRightArm_ ? 10000 : 20000);
-
-				// 新しい攻撃の場合はフラグをリセット
-				if (currentAttackId != lastAttackId) {
-					hasHitThisAttack = false;
-					lastAttackId = currentAttackId;
-				}
-
 				// まだこの攻撃でヒットしていなければダメージを与える
-				if (!hasHitThisAttack) {
-					enemy->TakeDamage(attackDamage_/*, hitPosition*/);
-					hasHitThisAttack = true;
+				if (!hasHitThisAttack_) {
+					enemy->TakeDamage(attackDamage_);
+					hasHitThisAttack_ = true;
 				}
 			}
 		}

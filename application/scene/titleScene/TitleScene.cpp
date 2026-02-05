@@ -35,7 +35,7 @@ void TitleScene::Initialize() {
     title2d_->Initialize("title.png", {0.0f, 0.0f});
 
     space_ = std::make_unique<Sprite>();
-    space_->Initialize("space.png", {160.0f, 470.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.5f,0.5f});
+    space_->Initialize("space.png", {160.0f, 470.0f});
 
     emitter_ = std::make_unique<ParticleEmitter>();
     emitter_->Initialize("test", "debug/ringPlane.obj");
@@ -145,7 +145,7 @@ void TitleScene::Debug() {
 
     LightGroup::GetInstance()->imgui();
 
-    ImGui::Checkbox("roop", &roop);
+    ImGui::Checkbox("loop", &loop);
 
     ImGui::End();
 

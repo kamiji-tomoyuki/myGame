@@ -21,10 +21,10 @@ void Animator::Initialize(const std::string& directorypath, const std::string& f
 	animation_ = LoadAnimationFile(directorypath_, filename_);
 }
 
-void Animator::Update(bool roop)
+void Animator::Update(bool loop)
 {
 	if (isAnimation_) {
-		if (roop) {
+		if (loop) {
 			// --- ループ時の処理 ---
 			// アニメーション時間を進め、超えたら最初に戻る
 			animationTime += Frame::DeltaTime();
@@ -44,10 +44,10 @@ void Animator::Update(bool roop)
 	}
 }
 
-void Animator::UpdateNodeAnimation(bool roop)
+void Animator::UpdateNodeAnimation(bool loop)
 {
 	if (isAnimation_) {
-		if (roop) {
+		if (loop) {
 			// --- ループ時の処理 ---
 			// アニメーション時間を進め、超えたら最初に戻る
 			animationTime += Frame::DeltaTime();

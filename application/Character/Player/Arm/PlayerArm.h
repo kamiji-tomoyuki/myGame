@@ -2,6 +2,7 @@
 #include "BaseObject.h"
 #include "WorldTransform.h"
 #include "ViewProjection.h"
+#include <CollisionTypeIdDef.h>
 
 class Player;
 
@@ -93,15 +94,14 @@ public:
 	Vector3 GetCenterPosition() const override { return GetWorldPosition(); }
 	Vector3 GetCenterRotation() const override { return GetWorldRotation(); }
 	Vector3 GetAttackDirection() const { return attackDirection_; }
-	bool IsRightArm() const { return isRightArm_; }
 	uint32_t GetComboCount() const { return comboCount_; }
 
 	/// 各ステータス設定関数
 	/// <returns></returns>
 	void SetID(int id) { serialNumber_ = id; }
+	void SetColliderID(CollisionTypeIdDef id) { Collider::SetTypeID(static_cast<uint32_t>(id)); }
 	void SetPlayer(Player* player);
 	void SetComboTimer(uint32_t comboT) { comboTimer_ = comboT; }
-	void SetIsRightArm(bool isRight) { isRightArm_ = isRight; }
 	void SetComboCount(uint32_t count) { comboCount_ = count; }
 
 	void SetTranslation(Vector3 pos) { transform_.translation_ = pos; }
@@ -137,6 +137,7 @@ private:
 	Vector3 targetPosition_;		// 攻撃時の目標位置
 	float attackProgress_ = 0.0f;	// 攻撃の進行度（0.0f〜1.0f）
 	uint32_t attackDamage_;			// ダメージ
+	bool hasHitThisAttack_ = false; // この攻撃で既にダメージを与えたか
 
 	// ラッシュ関連
 	uint32_t rushTimer_ = 0;        // ラッシュ攻撃継続時間
@@ -144,6 +145,9 @@ private:
 	uint32_t rushCount_ = 0;        // ラッシュ攻撃回数カウント
 	bool rushAttackActive_ = false; // 個別のラッシュ攻撃が実行中かどうか
 	uint32_t rushAttackDamage_;		// ダメージ
+
+	// ラッシュ連続ヒット防止用
+	int lastRushHitFrame_ = -999;   // 前回のラッシュヒットフレーム
 
 	// タイマー関連
 	uint32_t attackTimer_ = 0;      // 攻撃アニメーション用タイマー
@@ -160,9 +164,6 @@ private:
 	static constexpr float kRushDistance = 1.5f;		// ラッシュ攻撃時の前進距離
 	static constexpr float kRightPunchOffset = -0.5f;	// 右パンチの横オフセット
 	static constexpr float kLeftPunchOffset = 0.5f;		// 左パンチの横オフセット
-
-	// 腕の種類
-	bool isRightArm_ = true;  // true: 右腕, false: 左腕
 
 	// シリアルナンバー
 	uint32_t serialNumber_ = 0;
