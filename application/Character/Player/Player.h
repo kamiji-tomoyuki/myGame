@@ -191,9 +191,12 @@ private:
 	uint32_t kMaxHP_ = 1000;
 	uint32_t HP_ = kMaxHP_;
 
+	// HPバー（背景・本体）
+	std::unique_ptr<Sprite> hpBarBg_;   // ← 追加: HPバー背景
 	std::unique_ptr<Sprite> hpBar_;
 	static constexpr float  kHpBarFullWidth_ = 350.0f;
 	static constexpr float  kHpBarHeight_ = 40.0f;
+	static constexpr float  kHpBarBgPadding_ = 4.0f;   // ← 追加: 背景の余白
 	Vector3 hpColor_ = { 0.0f, 1.0f, 0.0f };
 
 	// Move関連変数

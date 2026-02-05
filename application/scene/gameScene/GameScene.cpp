@@ -168,10 +168,6 @@ void GameScene::UpdateAttackUI()
 	if (!player_) {
 		return;
 	}
-
-	// プレイヤーの腕の状態を取得
-	// 右腕と左腕の情報を取得する必要があるため、Playerクラスに
-	// 腕の状態を取得するメソッドが必要です
 }
 
 void GameScene::Draw()
@@ -185,9 +181,6 @@ void GameScene::Draw()
 	//-----Spriteの描画開始-----
 
 	UI_->Draw();
-
-	player_->DrawSprite(vp_);
-	enemy_->DrawSprite(vp_);
 
 	// ポーズ中でない場合のみ攻撃UI表示
 	if (!pause_->IsPaused()) {
@@ -246,6 +239,9 @@ void GameScene::Draw()
 		spCommon_->DrawCommonSetting();
 		pause_->Draw();
 	}
+
+	player_->DrawSprite(vp_);
+	enemy_->DrawSprite(vp_);
 
 	// ポーズ解除後の再生マークフェードアウト描画
 	if (pause_->IsPlayIconFading()) {

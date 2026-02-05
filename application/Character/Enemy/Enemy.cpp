@@ -47,9 +47,24 @@ void Enemy::Init()
 	attackManager_ = std::make_unique<EnemyAttackManager>();
 	attackManager_->Initialize();
 
+	// --- HPバー背景の初期化 ---
+	//     アンカーポイントを右上(1,0)とし、位置もPadding分だけ右にずらして
+	//     右端を hpBar_ と揃える
+	hpBarBg_ = std::make_unique<Sprite>();
+	hpBarBg_->Initialize("white1x1.png", {
+		1240.0f + kHpBarBgPadding_,
+		150.0f - kHpBarBgPadding_
+		});
+	hpBarBg_->SetAnchorPoint({ 1.0f, 0.0f });
+	hpBarBg_->SetColor({ 0.2f, 0.2f, 0.2f });  // ダークグレー
+	hpBarBg_->SetSize({
+		kHpBarFullWidth_ + kHpBarBgPadding_ * 2.0f,
+		kHpBarHeight_ + kHpBarBgPadding_ * 2.0f
+		});
+
 	// --- HPバーの初期化 ---
 	hpBar_ = std::make_unique<Sprite>();
-	hpBar_->Initialize("white1x1.png", { 1180.0f, 50.0f });
+	hpBar_->Initialize("white1x1.png", { 1240.0f, 150.0f });
 	hpBar_->SetAnchorPoint({ 1.0f, 0.0f });
 	hpBar_->SetColor({ 1.0f, 0.0f, 0.0f });
 	hpBar_->SetSize({ kHpBarFullWidth_, kHpBarHeight_ });
@@ -346,7 +361,8 @@ void Enemy::DrawParticle(const ViewProjection& viewProjection)
 
 void Enemy::DrawSprite(const ViewProjection& viewProjection)
 {
-	hpBar_->Draw();
+	hpBarBg_->Draw();   // ← 背景を先に（奥側）
+	hpBar_->Draw();     // ← HPバーを後に（手前側）
 }
 
 void Enemy::ImGui()

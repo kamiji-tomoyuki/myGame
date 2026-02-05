@@ -32,9 +32,21 @@ void Player::Init()
 	obj3d_ = std::make_unique<Object3d>();
 	obj3d_->Initialize("Player/playerBody.obj");
 
+	// --- HPバー背景の初期化 ---
+	hpBarBg_ = std::make_unique<Sprite>();
+	hpBarBg_->Initialize("white1x1.png", {
+		40.0f - kHpBarBgPadding_,
+		150.0f - kHpBarBgPadding_
+		});
+	hpBarBg_->SetColor({ 0.2f, 0.2f, 0.2f });  // ダークグレー
+	hpBarBg_->SetSize({
+		kHpBarFullWidth_ + kHpBarBgPadding_ * 2.0f,
+		kHpBarHeight_ + kHpBarBgPadding_ * 2.0f
+		});
+
 	// --- HPバーの初期化 ---
 	hpBar_ = std::make_unique<Sprite>();
-	hpBar_->Initialize("white1x1.png", { 100.0f, 50.0f });
+	hpBar_->Initialize("white1x1.png", { 40.0f, 150.0f });
 	hpBar_->SetColor(hpColor_);
 	hpBar_->SetSize({ kHpBarFullWidth_, kHpBarHeight_ });
 
@@ -119,12 +131,7 @@ void Player::Update()
 		obj3d_->UpdateAnimation(true);
 		UpdateArms();  // ★ここで腕のUpdate()が呼ばれる
 
-		// HPバー更新
-		{
-			float hpRatio = static_cast<float>(HP_) / static_cast<float>(kMaxHP_);
-			float currentWidth = kHpBarFullWidth_ * hpRatio;
-			hpBar_->SetSize({ currentWidth, kHpBarHeight_ });
-		}
+
 
 		break;
 
@@ -137,6 +144,12 @@ void Player::Update()
 		gameClearEffect_->Update();
 		break;
 	}
+
+	// HPバー更新
+	float hpRatio = static_cast<float>(HP_) / static_cast<float>(kMaxHP_);
+	float currentWidth = kHpBarFullWidth_ * hpRatio;
+	hpBar_->SetSize({ currentWidth, kHpBarHeight_ });
+
 
 	trailEffect_->UpdateOnce(*vp_);
 	Collider::UpdateWorldTransform();
@@ -378,7 +391,8 @@ void Player::DrawAnimation(const ViewProjection& viewProjection)
 
 void Player::DrawSprite(const ViewProjection& viewProjection)
 {
-	hpBar_->Draw();
+	hpBarBg_->Draw();   // ← 背景を先に（奥側）
+	hpBar_->Draw();     // ← HPバーを後に（手前側）
 }
 
 void Player::DrawParticle(const ViewProjection& viewProjection)

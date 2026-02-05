@@ -166,10 +166,12 @@ private:
 	// ゲームクリア演出関連変数
 	float clearEffectTimer_ = 0.0f;
 
-	// --- HPバー ---
+	// --- HPバー（背景・本体）---
+	std::unique_ptr<Sprite> hpBarBg_;   // ← 追加: HPバー背景
 	std::unique_ptr<Sprite> hpBar_;
 	static constexpr float kHpBarFullWidth_ = 350.0f;
 	static constexpr float kHpBarHeight_ = 40.0f;
+	static constexpr float kHpBarBgPadding_ = 4.0f;   // ← 追加: 背景の余白
 
 	// シリアルナンバー
 	uint32_t serialNumber_ = 0;
