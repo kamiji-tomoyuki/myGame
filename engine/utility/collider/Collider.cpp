@@ -33,16 +33,24 @@ Collider::Collider() {
 	AABBOffset.max = { 0.0f, 0.0f, 0.0f };
 	OBBOffset.center = { 0.0f,0.0f,0.0f };
 	OBBOffset.size = { 0.0f,0.0f,0.0f };
+	adjustableRadius_ = 1.0f;
+	adjustableAABBScale_ = { 1.0f, 1.0f, 1.0f };
+	adjustableOBBSize_ = { 1.0f, 1.0f, 1.0f };
 
-	// グループがまだ存在しない場合のみ作成
+	// グループがまだ存在しない場合は作成
 	if (!variables_->GroupExists(groupName)) {
 		variables_->CreateGroup(groupName);
-		variables_->AddItem(groupName, "Sphere Translation", SphereOffset);
-		variables_->AddItem(groupName, "AABB Min", AABBOffset.min);
-		variables_->AddItem(groupName, "AABB Max", AABBOffset.max);
-		variables_->AddItem(groupName, "OBB center", OBBOffset.center);
-		variables_->AddItem(groupName, "OBB size", OBBOffset.size);
 	}
+
+	// 各項目を追加（既存の場合は上書きされない）
+	variables_->AddItem(groupName, "Sphere Translation", SphereOffset);
+	variables_->AddItem(groupName, "Sphere Radius", adjustableRadius_);
+	variables_->AddItem(groupName, "AABB Min", AABBOffset.min);
+	variables_->AddItem(groupName, "AABB Max", AABBOffset.max);
+	variables_->AddItem(groupName, "AABB Scale", adjustableAABBScale_);
+	variables_->AddItem(groupName, "OBB center", OBBOffset.center);
+	variables_->AddItem(groupName, "OBB size", OBBOffset.size);
+	variables_->AddItem(groupName, "OBB Size Scale", adjustableOBBSize_);
 }
 
 Collider::~Collider()
@@ -58,13 +66,15 @@ void Collider::UpdateWorldTransform() {
 	ApplyVariables();
 
 	// 球用のワールドトランスフォームを更新
+	float actualRadius = radius_ * adjustableRadius_;
 	Cubewt_.translation_ = GetCenterPosition() + SphereOffset;
-	Cubewt_.scale_ = { radius_, radius_, radius_ };
+	Cubewt_.scale_ = { actualRadius, actualRadius, actualRadius };
 	Cubewt_.UpdateMatrix();
 
 	// AABBの現在の最小点と最大点を取得
-	aabb.min = GetCenterPosition() - scale_;
-	aabb.max = GetCenterPosition() + scale_;
+	Vector3 actualAABBScale = scale_ * adjustableAABBScale_;
+	aabb.min = GetCenterPosition() - actualAABBScale;
+	aabb.max = GetCenterPosition() + actualAABBScale;
 	aabb.min = aabb.min + AABBOffset.min;
 	aabb.max = aabb.max + AABBOffset.max;
 
@@ -80,7 +90,8 @@ void Collider::UpdateWorldTransform() {
 	obb.center = GetCenterPosition();
 	obb.center = obb.center + OBBOffset.center;
 	MakeOBBOrientations(obb, GetCenterRotation());
-	obb.size = { 1.0f,1.0f,1.0f };
+	Vector3 baseOBBSize = { 1.0f,1.0f,1.0f };
+	obb.size = baseOBBSize * adjustableOBBSize_;
 	obb.size = obb.size + OBBOffset.size;
 
 	OBBwt_.translation_ = obb.center;
@@ -194,10 +205,13 @@ void Collider::DrawOBB(const ViewProjection& viewProjection) {
 void Collider::ApplyVariables()
 {
 	SphereOffset = variables_->GetVector3Value(groupName, "Sphere Translation");
+	adjustableRadius_ = variables_->GetFloatValue(groupName, "Sphere Radius");
 	AABBOffset.min = variables_->GetVector3Value(groupName, "AABB Min");
 	AABBOffset.max = variables_->GetVector3Value(groupName, "AABB Max");
+	adjustableAABBScale_ = variables_->GetVector3Value(groupName, "AABB Scale");
 	OBBOffset.center = variables_->GetVector3Value(groupName, "OBB center");
 	OBBOffset.size = variables_->GetVector3Value(groupName, "OBB size");
+	adjustableOBBSize_ = variables_->GetVector3Value(groupName, "OBB Size Scale");
 }
 
 void Collider::MakeOBBOrientations(OBB& obb, const Vector3& rotate) {

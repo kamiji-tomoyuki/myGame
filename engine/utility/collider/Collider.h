@@ -144,6 +144,11 @@ private:
 	AABB AABBOffset;
 	OBB OBBOffset;
 
+	// ImGuiで調整可能なサイズ
+	float adjustableRadius_ = 1.0f;
+	Vector3 adjustableAABBScale_ = { 1.0f, 1.0f, 1.0f };
+	Vector3 adjustableOBBSize_ = { 1.0f, 1.0f, 1.0f };
+
 	bool isCollisionEnabled_ = true;  // デフォルトではコリジョンを有効化
 	bool isColliding = false;   // 現在のフレームの衝突状態
 	bool wasColliding = false;  // 前フレームの衝突状態
