@@ -338,14 +338,12 @@ void Player::Move()
 	// --- 通常移動 ---
 	if (move.Length() != 0.0f) {
 		move.Normalize();
-
 		Matrix4x4 rotMat = MakeRotateYMatrix(currentRotationY);
 		move = TransformNormal(move, rotMat);
-
 		velocity_ += move * kAcceleration_;
 	}
 	else {
-		velocity_ = 0.0f;
+		velocity_ *= 0.8f;
 	}
 
 	if (velocity_.Length() > kMaxSpeed_) {
@@ -373,7 +371,16 @@ void Player::Move()
 void Player::Draw(const ViewProjection& viewProjection)
 {
 	if (isAlive_) {
-		obj3d_->Draw(BaseObject::GetWorldTransform(), viewProjection);
+		// 現在のワールド行列を取得
+		WorldTransform tempTransform = BaseObject::GetWorldTransform();
+
+		// シェイク中なら、見た目上の位置だけをずらす
+		if (isHitReacting_) {
+			tempTransform.translation_ += hitShakeOffset_;
+			tempTransform.UpdateMatrix(); // 行列を再計算
+		}
+
+		obj3d_->Draw(tempTransform, viewProjection);
 	}
 }
 
