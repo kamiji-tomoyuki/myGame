@@ -145,6 +145,7 @@ private:
 	// 被弾時のノックバック
 	bool isBeingRushed_ = false;
 	uint32_t rushKnockbackTimer_ = 0;
+	bool wasRushActive_ = false;
 	Vector3 knockbackDirection_ = { 0.0f, 0.0f, 1.0f };
 	float knockbackSpeed_ = 0.02f;
 	Vector3 originalRotation_;

@@ -2,20 +2,41 @@
 #include "CollisionManager.h"
 #include "GlobalVariables.h"
 #include "Object3dCommon.h"
-
 #include "myMath.h"
 
-std::list<Collider*>  CollisionManager::colliders_;
+// 静的メンバの定義
+std::list<Collider*>                          CollisionManager::colliders_;
+std::set<CollisionManager::ColliderPair>      CollisionManager::previousCollidingPairs_;
+std::set<CollisionManager::ColliderPair>      CollisionManager::currentCollidingPairs_;
 
 void CollisionManager::Reset() {
 	colliders_.clear();
+	previousCollidingPairs_.clear();
+	currentCollidingPairs_.clear();
 }
 
 void CollisionManager::RemoveCollider(Collider* collider) {
+	// colliders_ から除去
 	auto it = std::find(colliders_.begin(), colliders_.end(), collider);
 	if (it != colliders_.end()) {
 		colliders_.erase(it);
 	}
+
+	// 破棄されるコライダーを含むペアを両方のセットから除去
+	// → ダングリングポインタによるアクセス違反を防ぐ
+	auto removePairsContaining = [&](std::set<ColliderPair>& pairs) {
+		for (auto it = pairs.begin(); it != pairs.end(); ) {
+			if (it->first == collider || it->second == collider) {
+				it = pairs.erase(it);
+			}
+			else {
+				++it;
+			}
+		}
+		};
+
+	removePairsContaining(previousCollidingPairs_);
+	removePairsContaining(currentCollidingPairs_);
 }
 
 void CollisionManager::Initialize() {
@@ -62,20 +83,54 @@ void CollisionManager::Update()
 	UpdateWorldTransform();
 }
 
+bool CollisionManager::CheckCollisionBetween(Collider* colliderA, Collider* colliderB) {
+	// コリジョンが無効化されている場合はスキップ
+	if (!colliderA->IsCollisionEnabled() || !colliderB->IsCollisionEnabled()) {
+		return false;
+	}
+
+	// 球の衝突チェック
+	if (sphereCollision) {
+		Vector3 posA = colliderA->GetCenter();
+		Vector3 posB = colliderB->GetCenter();
+		float distance = (posA - posB).Length();
+		if (distance <= colliderA->GetRadius() + colliderB->GetRadius()) {
+			return true;
+		}
+	}
+
+	// AABBの衝突チェック
+	if (aabbCollision) {
+		if (IsCollision(colliderA->GetAABB(), colliderB->GetAABB())) {
+			return true;
+		}
+	}
+
+	// OBB同士の衝突チェック
+	if (obbCollision) {
+		if (IsCollision(colliderA->GetOBB(), colliderB->GetOBB())) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void CollisionManager::CheckAllCollisions() {
-	//現フレームの衝突ペアをクリア
+	// 現フレームの衝突ペアをクリア
 	currentCollidingPairs_.clear();
 
-	//全ペアの衝突判定
+	// 全ペアの衝突判定（純粋な判定のみ、コールバックはまだ呼ばない）
 	auto itrA = colliders_.begin();
 	for (; itrA != colliders_.end(); ++itrA) {
 		Collider* colliderA = *itrA;
+
 		auto itrB = std::next(itrA);
 		for (; itrB != colliders_.end(); ++itrB) {
 			Collider* colliderB = *itrB;
 
 			if (CheckCollisionBetween(colliderA, colliderB)) {
-				//ポインタの大小でペアを正規化（順序を統一）
+				// ポインタの大小でペアを正規化（順序を統一し重複を防ぐ）
 				ColliderPair pair = (colliderA < colliderB)
 					? ColliderPair(colliderA, colliderB)
 					: ColliderPair(colliderB, colliderA);
@@ -84,13 +139,15 @@ void CollisionManager::CheckAllCollisions() {
 		}
 	}
 
-	//前フレームになかった → Enter
+	// 現フレームで衝突しているペアのコールバックを呼ぶ
 	for (const auto& pair : currentCollidingPairs_) {
 		if (previousCollidingPairs_.find(pair) == previousCollidingPairs_.end()) {
+			// 前フレームになかった → 衝突開始
 			pair.first->OnCollisionEnter(pair.second);
 			pair.second->OnCollisionEnter(pair.first);
 		}
 		else {
+			// 前フレームでも衝突していた → 衝突継続
 			pair.first->OnCollision(pair.second);
 			pair.second->OnCollision(pair.first);
 		}
@@ -98,7 +155,7 @@ void CollisionManager::CheckAllCollisions() {
 		pair.second->SetHitColor();
 	}
 
-	//今フレームにない → Out
+	// 前フレームで衝突していたが、現フレームにないペア → 衝突終了
 	for (const auto& pair : previousCollidingPairs_) {
 		if (currentCollidingPairs_.find(pair) == currentCollidingPairs_.end()) {
 			pair.first->OnCollisionOut(pair.second);
@@ -108,7 +165,7 @@ void CollisionManager::CheckAllCollisions() {
 		}
 	}
 
-	//前フレームの状態を更新
+	// 前フレームの状態を現フレームで更新
 	previousCollidingPairs_ = currentCollidingPairs_;
 }
 
@@ -182,34 +239,4 @@ bool CollisionManager::testAxis(const Vector3& axis, const OBB& obb1, const OBB&
 	float longSpan = std::max(max1, max2) - std::min(min1, min2);
 
 	return sumSpan >= longSpan;
-}
-
-bool CollisionManager::CheckCollisionBetween(Collider* colliderA, Collider* colliderB)
-{
-	if (!colliderA->IsCollisionEnabled() || !colliderB->IsCollisionEnabled()) {
-		return false;
-	}
-
-	if (sphereCollision) {
-		Vector3 posA = colliderA->GetCenter();
-		Vector3 posB = colliderB->GetCenter();
-		float distance = (posA - posB).Length();
-		if (distance <= colliderA->GetRadius() + colliderB->GetRadius()) {
-			return true;
-		}
-	}
-
-	if (aabbCollision) {
-		if (IsCollision(colliderA->GetAABB(), colliderB->GetAABB())) {
-			return true;
-		}
-	}
-
-	if (obbCollision) {
-		if (IsCollision(colliderA->GetOBB(), colliderB->GetOBB())) {
-			return true;
-		}
-	}
-
-	return false;
 }

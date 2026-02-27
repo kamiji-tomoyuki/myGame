@@ -230,43 +230,51 @@ void Enemy::CheckPlayerRushStatus()
 {
 	if (player_ == nullptr) return;
 
-	bool wasBeingRushed = isBeingRushed_;
+	// プレイヤーの腕がラッシュ中かどうかを確認
+	bool isRushActive = player_->IsRushActive();
 
-	// ラッシュ攻撃が開始された瞬間の処理
-	if (!wasBeingRushed && isBeingRushed_) {
+	// ラッシュ開始を検出
+	if (!wasRushActive_ && isRushActive) {
+		isBeingRushed_ = true;
 		StartRushKnockback();
 	}
 
-	// ラッシュ攻撃が終了した瞬間の処理
-	if (wasBeingRushed && !isBeingRushed_) {
+	// ラッシュ終了を検出
+	if (wasRushActive_ && !isRushActive) {
 		EndRushKnockback();
 	}
+
+	wasRushActive_ = isRushActive;
 }
 
 void Enemy::StartRushKnockback()
 {
-	//------------------------------------------
-	if (HP_ < 0) {
+	if (HP_ == 0) {
 		isAlive_ = false;
+		return;
 	}
-	//------------------------------------------
 
 	isBeingRushed_ = true;
 	rushKnockbackTimer_ = 0;
+	knockbackSpeed_ = initialKnockbackSpeed_;
 
-	// ラッシュ攻撃中は攻撃を中断
+	// 攻撃を中断
 	if (attackManager_) {
 		attackManager_->InterruptByRush();
 	}
 
-	// プレイヤーから敵への方向を計算(後退方向)
+	// 攻撃モーションの傾きを即時リセット
+	Vector3 currentRotation = BaseObject::GetWorldRotation();
+	obj3d_->SetRotation(Vector3(originalRotation_.x, currentRotation.y, originalRotation_.z));
+
+	// ノックバック方向の計算
 	if (player_ != nullptr) {
 		Vector3 direction = GetCenterPosition() - player_->GetCenterPosition();
 		if (direction.Length() > 0.0f) {
 			knockbackDirection_ = direction.Normalize();
 		}
 		else {
-			knockbackDirection_ = Vector3(0.0f, 0.0f, 1.0f); // デフォルト方向
+			knockbackDirection_ = Vector3(0.0f, 0.0f, 1.0f);
 		}
 	}
 }
@@ -312,7 +320,10 @@ void Enemy::EndRushKnockback()
 {
 	isBeingRushed_ = false;
 	rushKnockbackTimer_ = 0;
-	knockbackSpeed_ = initialKnockbackSpeed_; // 初期値に戻す
+	knockbackSpeed_ = initialKnockbackSpeed_;
+
+	Vector3 currentRotation = BaseObject::GetWorldRotation();
+	obj3d_->SetRotation(Vector3(originalRotation_.x, currentRotation.y, originalRotation_.z));
 }
 
 void Enemy::RecoverRotation()
@@ -394,26 +405,24 @@ void Enemy::OnCollision(Collider* other)
 	}
 
 	// プレイヤーの腕との衝突処理
-	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kPRArm) || typeID == static_cast<uint32_t>(CollisionTypeIdDef::kPLArm)) {
+	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kPRArm) ||
+		typeID == static_cast<uint32_t>(CollisionTypeIdDef::kPLArm)) {
+
 		PlayerArm* arm = static_cast<PlayerArm*>(other);
 
-		//------------------------------------------
-		if (HP_ < 0) {
+		if (HP_ == 0) {
 			isAlive_ = false;
+			return;
 		}
-		//------------------------------------------
 
-		// ラッシュ攻撃中の場合
 		if (arm->GetBehavior() == PlayerArm::Behavior::kRush) {
-
-			// まだラッシュ攻撃を受け始めていない場合は初期化
 			if (!isBeingRushed_) {
+				// CheckPlayerRushStatus が検出する前に腕が当たった場合のフォールバック
 				isBeingRushed_ = true;
 				StartRushKnockback();
 			}
-			// すでにラッシュ中の場合はタイマーを更新して継続
 			else {
-				// タイマーを少し戻すことで、ラッシュが続いている間は解除されない
+				// ラッシュ継続中はタイマーをリセットして解除されないようにする
 				if (rushKnockbackTimer_ > 30) {
 					rushKnockbackTimer_ = 30;
 				}
