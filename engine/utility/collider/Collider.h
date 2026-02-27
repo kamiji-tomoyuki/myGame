@@ -94,8 +94,6 @@ public:
 	AABB GetAABB() { return aabb; }
 	OBB GetOBB() { return obb; }
 	bool IsCollisionEnabled() const { return isCollisionEnabled_; }
-	bool IsColliding() const { return isColliding; }
-	bool WasColliding() const { return wasColliding; }
 
 	/// <summary>
 	/// setter
@@ -103,7 +101,6 @@ public:
 	/// <param name="radius"></param>
 	void SetRadius(float radius) { radius_ = radius; }
 	void SetTypeID(uint32_t typeID) { typeID_ = typeID; }
-	void SetIsColliding(bool colliding) { wasColliding = isColliding; isColliding = colliding; }
 	void SetCollisionEnabled(bool enabled) { isCollisionEnabled_ = enabled; }
 	void SetAABBScale(Vector3 scale) { scale_ = scale; }
 	void SetHitColor() { color_ = { 1.0f,0.0f,0.0f,1.0f }; }
@@ -150,6 +147,4 @@ private:
 	Vector3 adjustableOBBSize_ = { 1.0f, 1.0f, 1.0f };
 
 	bool isCollisionEnabled_ = true;  // デフォルトではコリジョンを有効化
-	bool isColliding = false;   // 現在のフレームの衝突状態
-	bool wasColliding = false;  // 前フレームの衝突状態
 };

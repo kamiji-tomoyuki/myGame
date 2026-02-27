@@ -2,6 +2,8 @@
 #include "Collider.h"
 #include "SceneManager.h"
 #include "list"
+#include "set"
+#include "map"
 #include "Object3d.h"
 
 /// <summary>
@@ -12,14 +14,14 @@ private:
 	// コライダー
 	static std::list<Collider*> colliders_;
 
+	using ColliderPair = std::pair<Collider*, Collider*>;
+	std::set<ColliderPair> previousCollidingPairs_;
+	std::set<ColliderPair> currentCollidingPairs_;
+
 	bool visible = true;
-
 	bool sphereCollision = true;
-
 	bool aabbCollision = true;
-
 	bool obbCollision = true;
-
 	bool isCollidingNow = false;
 
 public:
@@ -49,13 +51,7 @@ public:
 
 	void Update();
 
-	/// <summary>
-	/// 衝突判定
-	/// </summary>
-	/// <param name="colliderA"></param>
-	/// <param name="colliderB"></param>
-	void CheckCollisionPair(Collider* colliderA, Collider* colliderB);
-
+	
 	/// <summary>
 	/// 全ての当たり判定チェック
 	/// </summary>
@@ -75,4 +71,6 @@ private:
 	void projectOBB(const OBB& obb, const Vector3& axis, float& min, float& max);
 	// 軸に投影するための関数
 	bool testAxis(const Vector3& axis, const OBB& obb1, const OBB& obb2);
+	// 純粋な衝突判定
+	bool CheckCollisionBetween(Collider* colliderA, Collider* colliderB);
 };
