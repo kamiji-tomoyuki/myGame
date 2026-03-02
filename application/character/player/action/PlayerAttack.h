@@ -46,4 +46,11 @@ private:
 	// --- 腕インデックス定数（Player::ModelArm と対応） ---
 	static constexpr int kRArm = 0;
 	static constexpr int kLArm = 1;
+
+	// --- コンボ保護バッファ ---
+	// 被弾リアクション中でもコンボ状態を一定フレーム保持する
+	// 右パンチ後のコンボウィンドウを被弾で潰されないようにするため
+	bool  comboProtected_ = false;   // コンボ保護中フラグ
+	int   comboProtectTimer_ = 0;       // 保護タイマー
+	static constexpr int kComboProtectDuration_ = 25; // 保護フレーム数（コンボウィンドウより少し長め）
 };
