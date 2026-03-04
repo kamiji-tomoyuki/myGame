@@ -428,7 +428,9 @@ float GlobalVariables::GetFloatValue(const std::string& groupName, const std::st
 		return 0.0f;
 	}
 	const Group& group = datas_.at(groupName);
-	assert(group.items.find(key) != group.items.end());
+	if (group.items.find(key) == group.items.end()) {
+		return 0.0f;
+	}
 	const Item& item = group.items.at(key);
 	assert(std::holds_alternative<float>(item.value));
 	return std::get<float>(item.value);
@@ -450,7 +452,9 @@ Vector3 GlobalVariables::GetVector3Value(const std::string& groupName, const std
 		return Vector3(0);
 	}
 	const Group& group = datas_.at(groupName);
-	assert(group.items.find(key) != group.items.end());
+	if (group.items.find(key) == group.items.end()) {
+		return Vector3(0);
+	}
 	const Item& item = group.items.at(key);
 	assert(std::holds_alternative<Vector3>(item.value));
 	return std::get<Vector3>(item.value);

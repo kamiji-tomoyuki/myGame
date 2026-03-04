@@ -17,23 +17,61 @@ void PlayerAttack::Update()
 {
 	const auto& a = *arms_;
 
+	// --- コンボ保護バッファの更新 ---
+	// 右パンチ後のコンボウィンドウが開いたらバッファを起動
+	bool isComboWindowOpen = a[kRArm] &&
+		a[kRArm]->CanCombo() &&
+		a[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch;
+
+	if (isComboWindowOpen) {
+		// コンボウィンドウが開いている間はタイマーをリセットし続ける
+		comboProtected_ = true;
+		comboProtectTimer_ = kComboProtectDuration_;
+	}
+	else if (comboProtected_) {
+		// ウィンドウが閉じた後も一定フレーム保護を継続
+		comboProtectTimer_--;
+		if (comboProtectTimer_ <= 0) {
+			comboProtected_ = false;
+			comboProtectTimer_ = 0;
+		}
+	}
+
 	if (!Input::GetInstance()->TriggerKey(DIK_SPACE)) {
 		return;
 	}
 
+	// 被弾リアクション中でも、コンボ保護バッファ内ならコンボ入力を受け付ける
+	bool hitReacting = player_->IsHitReacting();
+	if (hitReacting && !comboProtected_) {
+		return;
+	}
+	// 回避中は常にブロック
+	if (player_->IsDodging()) {
+		return;
+	}
+
 	// --- ラッシュ優先 ---
-	if (a[kLArm] && a[kLArm]->CanStartRush()) {
+	if (!hitReacting && a[kLArm] && a[kLArm]->CanStartRush()) {
 		if (a[kRArm]) { a[kRArm]->StartRush(); }
 		if (a[kLArm]) { a[kLArm]->StartRush(); }
 		return;
 	}
 
-	// --- 左パンチコンボ ---
-	if (a[kRArm] && a[kRArm]->CanCombo() &&
-		a[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch) {
+	// --- 左パンチコンボ（保護バッファ中も受け付ける） ---
+	if ((isComboWindowOpen || comboProtected_) &&
+		a[kRArm] && a[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch) {
 		if (a[kLArm] && a[kLArm]->GetBehavior() == PlayerArm::Behavior::kNormal) {
 			a[kLArm]->StartAttack(PlayerArm::AttackType::kLeftPunch);
+			// コンボ成立でバッファを解除
+			comboProtected_ = false;
+			comboProtectTimer_ = 0;
 		}
+		return;
+	}
+
+	// 被弾リアクション中はここより先（右パンチ初撃）は実行しない
+	if (hitReacting) {
 		return;
 	}
 
@@ -70,10 +108,11 @@ bool PlayerAttack::CanRightPunch() const
 		return false;
 	}
 
-	// 左パンチコンボ待機中なら右パンチUI非表示
-	if (a[kRArm] &&
+	// 左パンチコンボ待機中（保護バッファ含む）なら右パンチUI非表示
+	bool isComboWindowOpen = a[kRArm] &&
 		a[kRArm]->CanCombo() &&
-		a[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch) {
+		a[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch;
+	if (isComboWindowOpen || comboProtected_) {
 		return false;
 	}
 
@@ -99,7 +138,10 @@ bool PlayerAttack::CanLeftPunch() const
 	const auto& a = *arms_;
 
 	if (player_->IsDodging() || player_->IsHitReacting()) {
-		return false;
+		// 被弾中でもコンボ保護バッファ中ならUI表示を維持
+		if (!comboProtected_) {
+			return false;
+		}
 	}
 
 	if (a[kLArm] && a[kLArm]->CanStartRush()) {
@@ -110,10 +152,11 @@ bool PlayerAttack::CanLeftPunch() const
 		return true;
 	}
 
-	// 右パンチ後コンボ待機中
-	if (a[kRArm] &&
+	// 右パンチ後コンボ待機中（保護バッファ含む）
+	bool isComboWindowOpen = a[kRArm] &&
 		a[kRArm]->CanCombo() &&
-		a[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch) {
+		a[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch;
+	if (isComboWindowOpen || comboProtected_) {
 		return true;
 	}
 

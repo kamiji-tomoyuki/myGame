@@ -145,14 +145,19 @@ private:
 	// 被弾時のノックバック
 	bool isBeingRushed_ = false;
 	uint32_t rushKnockbackTimer_ = 0;
+	bool wasRushActive_ = false;
 	Vector3 knockbackDirection_ = { 0.0f, 0.0f, 1.0f };
 	float knockbackSpeed_ = 0.02f;
+	float knockbackVerticalVelocity_ = 0.0f;   // ノックアップ用 縦速度
+	float knockbackGroundY_ = 0.0f;             // 着地基準Y座標
 	Vector3 originalRotation_;
 
-	static constexpr float initialKnockbackSpeed_ = 0.02f;
-	static constexpr float minKnockbackSpeed_ = 0.005f;
-	static constexpr float knockbackDecay_ = 0.98f;
-	static constexpr float maxTiltAngle_ = 0.3f;
+	static constexpr float initialKnockbackSpeed_ = 0.35f;              // 吹っ飛び初速（大きく）
+	static constexpr float minKnockbackSpeed_ = 0.0f;                   // 完全停止まで減衰
+	static constexpr float knockbackDecay_ = 0.88f;                     // 減衰率（速めに止まる）
+	static constexpr float maxTiltAngle_ = 0.5f;
+	static constexpr float knockbackInitialVerticalVelocity_ = 0.22f;  // 初速（上方向）
+	static constexpr float knockbackGravity_ = 0.012f;                  // 重力加速度
 
 	// --- 各エフェクト・演出 ---
 	bool isStart_ = false;

@@ -2,20 +2,41 @@
 #include "CollisionManager.h"
 #include "GlobalVariables.h"
 #include "Object3dCommon.h"
-
 #include "myMath.h"
 
-std::list<Collider*>  CollisionManager::colliders_;
+// 静的メンバの定義
+std::list<Collider*>                          CollisionManager::colliders_;
+std::set<CollisionManager::ColliderPair>      CollisionManager::previousCollidingPairs_;
+std::set<CollisionManager::ColliderPair>      CollisionManager::currentCollidingPairs_;
 
 void CollisionManager::Reset() {
 	colliders_.clear();
+	previousCollidingPairs_.clear();
+	currentCollidingPairs_.clear();
 }
 
 void CollisionManager::RemoveCollider(Collider* collider) {
+	// colliders_ から除去
 	auto it = std::find(colliders_.begin(), colliders_.end(), collider);
 	if (it != colliders_.end()) {
 		colliders_.erase(it);
 	}
+
+	// 破棄されるコライダーを含むペアを両方のセットから除去
+	// → ダングリングポインタによるアクセス違反を防ぐ
+	auto removePairsContaining = [&](std::set<ColliderPair>& pairs) {
+		for (auto it = pairs.begin(); it != pairs.end(); ) {
+			if (it->first == collider || it->second == collider) {
+				it = pairs.erase(it);
+			}
+			else {
+				++it;
+			}
+		}
+		};
+
+	removePairsContaining(previousCollidingPairs_);
+	removePairsContaining(currentCollidingPairs_);
 }
 
 void CollisionManager::Initialize() {
@@ -62,13 +83,11 @@ void CollisionManager::Update()
 	UpdateWorldTransform();
 }
 
-void CollisionManager::CheckCollisionPair(Collider* colliderA, Collider* colliderB) {
-	// コリジョンが無効化されている場合はチェックをスキップ
+bool CollisionManager::CheckCollisionBetween(Collider* colliderA, Collider* colliderB) {
+	// コリジョンが無効化されている場合はスキップ
 	if (!colliderA->IsCollisionEnabled() || !colliderB->IsCollisionEnabled()) {
-		return;
+		return false;
 	}
-
-	bool isCollidingNow = false;
 
 	// 球の衝突チェック
 	if (sphereCollision) {
@@ -76,73 +95,78 @@ void CollisionManager::CheckCollisionPair(Collider* colliderA, Collider* collide
 		Vector3 posB = colliderB->GetCenter();
 		float distance = (posA - posB).Length();
 		if (distance <= colliderA->GetRadius() + colliderB->GetRadius()) {
-			isCollidingNow = true;
+			return true;
 		}
 	}
 
-	// AABBの衝突チェック（球で当たっていなくても実行）
-	if (aabbCollision && !isCollidingNow) {
+	// AABBの衝突チェック
+	if (aabbCollision) {
 		if (IsCollision(colliderA->GetAABB(), colliderB->GetAABB())) {
-			isCollidingNow = true;
+			return true;
 		}
 	}
 
-	// OBB同士の衝突チェック（球・AABBで当たっていなくても実行）
-	if (obbCollision && !isCollidingNow) {
-		OBB obbA = colliderA->GetOBB();
-		OBB obbB = colliderB->GetOBB();
-		if (IsCollision(obbA, obbB)) {
-			isCollidingNow = true;
+	// OBB同士の衝突チェック
+	if (obbCollision) {
+		if (IsCollision(colliderA->GetOBB(), colliderB->GetOBB())) {
+			return true;
 		}
 	}
 
-	// 前フレームの状態を取得
-	bool wasCollidingA = colliderA->WasColliding();
-	bool wasCollidingB = colliderB->WasColliding();
-
-	// 衝突状態の変化に応じたコールバックの呼び出し
-	if (isCollidingNow) {
-		// 前フレームで当たっていなかった場合は OnCollisionEnter
-		if (!wasCollidingA && !wasCollidingB) {
-			colliderA->OnCollisionEnter(colliderB);
-			colliderB->OnCollisionEnter(colliderA);
-		}
-		// 前フレームでも当たっていた場合は OnCollision
-		else {
-			colliderA->OnCollision(colliderB);
-			colliderB->OnCollision(colliderA);
-		}
-		colliderA->SetHitColor();
-		colliderB->SetHitColor();
-	}
-	else {
-		// 前フレームで当たっていて、今フレームで離れた場合は OnCollisionOut
-		if (wasCollidingA || wasCollidingB) {
-			colliderA->OnCollisionOut(colliderB);
-			colliderB->OnCollisionOut(colliderA);
-		}
-		colliderA->SetDefaultColor();
-		colliderB->SetDefaultColor();
-	}
-
-	// 衝突状態を更新
-	colliderA->SetIsColliding(isCollidingNow);
-	colliderB->SetIsColliding(isCollidingNow);
+	return false;
 }
 
 void CollisionManager::CheckAllCollisions() {
-	std::list<Collider*>::iterator itrA = colliders_.begin();
+	// 現フレームの衝突ペアをクリア
+	currentCollidingPairs_.clear();
+
+	// 全ペアの衝突判定（純粋な判定のみ、コールバックはまだ呼ばない）
+	auto itrA = colliders_.begin();
 	for (; itrA != colliders_.end(); ++itrA) {
 		Collider* colliderA = *itrA;
 
-		std::list<Collider*>::iterator itrB = itrA;
-		itrB++;
-
+		auto itrB = std::next(itrA);
 		for (; itrB != colliders_.end(); ++itrB) {
 			Collider* colliderB = *itrB;
-			CheckCollisionPair(colliderA, colliderB);
+
+			if (CheckCollisionBetween(colliderA, colliderB)) {
+				// ポインタの大小でペアを正規化（順序を統一し重複を防ぐ）
+				ColliderPair pair = (colliderA < colliderB)
+					? ColliderPair(colliderA, colliderB)
+					: ColliderPair(colliderB, colliderA);
+				currentCollidingPairs_.insert(pair);
+			}
 		}
 	}
+
+	// 現フレームで衝突しているペアのコールバックを呼ぶ
+	for (const auto& pair : currentCollidingPairs_) {
+		if (previousCollidingPairs_.find(pair) == previousCollidingPairs_.end()) {
+			// 前フレームになかった → 衝突開始
+			pair.first->OnCollisionEnter(pair.second);
+			pair.second->OnCollisionEnter(pair.first);
+		}
+		else {
+			// 前フレームでも衝突していた → 衝突継続
+			pair.first->OnCollision(pair.second);
+			pair.second->OnCollision(pair.first);
+		}
+		pair.first->SetHitColor();
+		pair.second->SetHitColor();
+	}
+
+	// 前フレームで衝突していたが、現フレームにないペア → 衝突終了
+	for (const auto& pair : previousCollidingPairs_) {
+		if (currentCollidingPairs_.find(pair) == currentCollidingPairs_.end()) {
+			pair.first->OnCollisionOut(pair.second);
+			pair.second->OnCollisionOut(pair.first);
+			pair.first->SetDefaultColor();
+			pair.second->SetDefaultColor();
+		}
+	}
+
+	// 前フレームの状態を現フレームで更新
+	previousCollidingPairs_ = currentCollidingPairs_;
 }
 
 void CollisionManager::AddCollider(Collider* collider)
