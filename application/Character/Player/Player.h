@@ -4,8 +4,6 @@
 #include "ViewProjection.h"
 
 #include <Sprite.h>
-
-
 #include <StageManager.h>
 #include <ParticleEmitter.h>
 
@@ -15,6 +13,9 @@
 #include "PlayerGameClearEffect.h"
 #include "PlayerAttack.h"
 #include "PlayerDodge.h"
+#include "PlayerHitReaction.h"
+#include "PlayerMove.h"
+#include "PlayerRushPosture.h"
 
 class FollowCamera;
 class Enemy;
@@ -25,70 +26,42 @@ class Enemy;
 class Player : public BaseObject
 {
 public:
-	/// <summary>
-	/// 連動するモデル
-	/// </summary>
+
 	enum ModelArm {
 		kRArm,
 		kLArm,
 		kModelNum,
 	};
 
-	/// <summary>
-	/// 状態
-	/// </summary>
 	enum class Behavior {
-		kRoot,		// 通常
-		kAttack,	// 攻撃
-		kDodge,		// 回避
+		kRoot,
+		kAttack,
+		kDodge,
 	};
 
-	/// <summary>
-	/// ゲーム状態
-	/// </summary>
 	enum class GameState {
-		kPlaying,		// ゲームプレイ中
-		kGameOver,		// ゲームオーバー
-		kGameClear,		// ゲームクリア
+		kPlaying,
+		kGameOver,
+		kGameClear,
 	};
 
 public:
 
 	Player();
 
-	/// <summary>
-	/// 初期化
-	/// </summary>
 	void Init() override;
-
-	/// <summary>
-	/// 更新
-	/// </summary>
 	void Update() override;
-
-	/// <summary>
-	/// 開始演出の更新（ゲーム開始ロード画面から呼ぶ）
-	/// </summary>
 	void UpdateStartEffect();
 
-	/// <summary>
-	/// 描画
-	/// </summary>
 	void Draw(const ViewProjection& viewProjection) override;
 	void DrawAnimation(const ViewProjection& viewProjection);
 	void DrawSprite(const ViewProjection& viewProjection);
 	void DrawParticle(const ViewProjection& viewProjection);
 
-	/// <summary>
-	/// ImGui
-	/// </summary>
 	void ImGui();
 
 public:
 
-	/// <summary>
-	/// 当たり判定
-	/// </summary>
 	void OnCollision([[maybe_unused]] Collider* other) override;
 
 public:
@@ -96,183 +69,103 @@ public:
 	// =============================================================
 	// ゲッター
 	// =============================================================
-	Vector3  GetCenterPosition()  const override { return transform_.translation_; }
-	Vector3  GetCenterRotation()  const override { return transform_.rotation_; }
-	uint32_t GetSerialNumber()    const { return serialNumber_; }
-	Vector3  GetVelocity()        const { return velocity_; }
-	bool     GetIsEnd()           const { return startEffect_ && startEffect_->IsEnd(); }
-	bool     IsDodging()          const { return dodge_ && dodge_->IsDodging(); }
-	bool     IsHitReacting()      const { return isHitReacting_; }
-	GameState GetGameState()      const { return gameState_; }
+	Vector3   GetCenterPosition()  const override { return transform_.translation_; }
+	Vector3   GetCenterRotation()  const override { return transform_.rotation_; }
+	uint32_t  GetSerialNumber()    const { return serialNumber_; }
+	Vector3   GetVelocity()        const;
+	bool      GetIsEnd()           const { return startEffect_ && startEffect_->IsEnd(); }
+	bool      IsDodging()          const { return dodge_ && dodge_->IsDodging(); }
+	bool      IsHitReacting()      const { return hitReaction_ && hitReaction_->IsHitReacting(); }
+	GameState GetGameState()       const { return gameState_; }
 	const std::array<std::unique_ptr<PlayerArm>, kModelNum>& GetArms() const { return arms_; }
 
-	/// UI表示判定（サブクラスに委譲）
-	bool CanRightPunch() const;
-	bool CanLeftPunch() const;
-	bool CanRush()      const;
-
-	/// 攻撃実行中判定（サブクラスに委譲）
+	bool CanRightPunch()      const;
+	bool CanLeftPunch()       const;
+	bool CanRush()            const;
 	bool IsRightPunchActive() const;
 	bool IsLeftPunchActive()  const;
 	bool IsRushActive()       const;
 
-	/// <summary>
-	/// 外部からのダメージ受け付け（遠距離攻撃など）
-	/// </summary>
 	void ApplyDamage(uint32_t damage, const Vector3& hitPosition);
 
 	// =============================================================
 	// セッター
 	// =============================================================
 	void SetFollowCamera(FollowCamera* followCamera) { followCamera_ = followCamera; }
-	void SetViewProjection(const ViewProjection* viewProjection) { vp_ = viewProjection; }
+	void SetViewProjection(const ViewProjection* vp) { vp_ = vp; }
 	static void SetSerialNumber(int num) { nextSerialNumber_ = num; }
-	void SetTranslation(const Vector3& translation) { transform_.translation_ = translation; }
-	void SetVelocity(const Vector3& velocity) { velocity_ = velocity; }
+	void SetTranslation(const Vector3& t) { transform_.translation_ = t; }
+	void SetVelocity(const Vector3& v);
 	void SetGameState(GameState state) { gameState_ = state; }
 	void SetEnemy(Enemy* enemy) { enemy_ = enemy; }
 
-	/// 腕を全て更新
 	void UpdateArms();
-
-	/// アニメーション更新
 	void UpdateModelAnimation();
 
-
 private:
 
-	/// <summary>
-	/// 腕の初期化
-	/// </summary>
 	void InitArm();
-
-	/// <summary>
-	/// 移動
-	/// </summary>
 	void Move();
-
-	/// <summary>
-	/// ロックオン処理
-	/// </summary>
 	void UpdateLockOn();
-
-	/// <summary>
-	/// 演出用処理
-	/// </summary>
-	void UpdateTrailEffect();
-
-	/// <summary>
-	/// 被弾処理
-	/// </summary>
 	void TakeDamage(const Vector3& hitPosition);
-	void UpdateHitReaction();
-
-	/// <summary>
-	/// 攻撃アクション時関連関数
-	/// </summary>
-	void UpdateRushBodyPosture();
-	void UpdateFinisherAdvance();
 
 private:
 
-	// --- モデル ---
+	// モデル
 	std::unique_ptr<Object3d> obj3d_;
-
 	const ViewProjection* vp_ = nullptr;
 
-	// --- 腕 ---
+	// 腕
 	std::array<std::unique_ptr<PlayerArm>, kModelNum> arms_;
 
-	// --- 各ステータス ---
-	bool isAlive_ = true;
+	// サブシステム
+	std::unique_ptr<PlayerMove>           move_;
+	std::unique_ptr<PlayerAttack>         attack_;
+	std::unique_ptr<PlayerDodge>          dodge_;
+	std::unique_ptr<PlayerRushPosture>    rushPosture_;
+	std::unique_ptr<PlayerHitReaction>    hitReaction_;
 
-	// ゲーム状態
+	std::unique_ptr<PlayerStartEffect>    startEffect_;
+	std::unique_ptr<PlayerGameOverEffect> gameOverEffect_;
+	std::unique_ptr<PlayerGameClearEffect> gameClearEffect_;
+	
+	// ステータス
+	bool      isAlive_ = true;
 	GameState gameState_ = GameState::kPlaying;
-
-	// Behavior
-	Behavior behavior_ = Behavior::kRoot;
+	Behavior  behavior_ = Behavior::kRoot;
 
 	// HP
 	uint32_t kMaxHP_ = 1000;
 	uint32_t HP_ = kMaxHP_;
 
-	// HPバー（背景・本体）
-	std::unique_ptr<Sprite> hpBarBg_;   // ← 追加: HPバー背景
+	// HPバー
+	std::unique_ptr<Sprite> hpBarBg_;
 	std::unique_ptr<Sprite> hpBar_;
-	static constexpr float  kHpBarFullWidth_ = 350.0f;
-	static constexpr float  kHpBarHeight_ = 40.0f;
-	static constexpr float  kHpBarBgPadding_ = 4.0f;   // ← 追加: 背景の余白
+	static constexpr float kHpBarFullWidth_ = 350.0f;
+	static constexpr float kHpBarHeight_ = 40.0f;
+	static constexpr float kHpBarBgPadding_ = 4.0f;
 	Vector3 hpColor_ = { 0.0f, 1.0f, 0.0f };
 
-	// Move関連変数
-	bool    isMove_ = false;
-	Vector3 velocity_{};
-	float   kAcceleration_ = 0.1f;
-	const float kMaxSpeed_ = 0.1f;
-	float   kRotateAcceleration_ = 0.1f;
-
-	// Attack関連
+	// 攻撃関連（グローバルコンボ）
 	bool     isAttack_ = false;
 	uint32_t globalComboCount_ = 0;
 	uint32_t globalComboTimer_ = 0;
 
-	// 被弾リアクション関連変数
-	bool    isHitReacting_ = false;
-	int     hitReactionTimer_ = 0;
-	Vector3 hitShakeOffset_{};
-	Vector3 originalPosition_{};
-	static constexpr int   kHitReactionDuration_ = 15;
-	static constexpr float kHitShakeIntensity_ = 0.15f;
-
-	// 接触ダメージのクールダウン
-	int contactDamageCooldown_ = 0;
-	static constexpr int kContactDamageCooldownDuration_ = 90;
-
-	// ロックオン関連変数
-	bool    isLockOn_ = false;
-	float lockOnAngleY_ = 0.0f;
+	// ロックオン
+	bool   isLockOn_ = false;
+	float  lockOnAngleY_ = 0.0f;
 	Enemy* enemy_ = nullptr;
 
-	// --- ラッシュ中の姿勢制御 ---
-	Vector3 rushBaseRotation_{};        // ラッシュ開始時のプレイヤー回転（基準）
-	float   rushBodyPitchTarget_ = 0.0f;// 前傾ターゲット（X軸）
-	float   rushBodyPitchCurrent_ = 0.0f;// 現在の前傾量
-	float   rushBodyTwistTarget_ = 0.0f;// ひねりターゲット（Y軸オフセット）
-	float   rushBodyTwistCurrent_ = 0.0f;// 現在のひねり量
-
-	// フィニッシャー前進
-	bool  isFinisherAdvancing_ = false;
-	float finisherAdvanceAmount_ = 0.0f;
-
-	static constexpr float kRushLeanPitch_ = 0.18f;  // ラッシュ前傾角(rad)
-	static constexpr float kWindUpTwist_ = 0.22f;  // 振りかぶり時の右ひねり量(rad)
-	static constexpr float kFinisherTwist_ = -0.30f;  // 繰り出し時の左ひねり量(rad)
-	static constexpr float kFinisherMaxAdvance_ = 4.0f;   // プレイヤー前進最大距離
-
-	// --- 各エフェクト・演出 ---
+	// エフェクト
 	std::unique_ptr<ParticleEmitter> hitEffect_;
 	std::unique_ptr<ParticleEmitter> damageEffect_;
-
-	// 軌跡パーティクル関連変数
 	std::unique_ptr<ParticleEmitter> trailEffect_;
-	Vector3 lastTrailPosition_{};
-	float   trailEmitDistance_ = 0.5f;
-	bool    isTrailActive_ = false;
-	static constexpr float kFootOffsetY_ = -0.8f;
 
-	std::unique_ptr<PlayerStartEffect>    startEffect_;
-	std::unique_ptr<PlayerGameOverEffect> gameOverEffect_;
-	std::unique_ptr<PlayerGameClearEffect> gameClearEffect_;
-	std::unique_ptr<PlayerAttack>         attack_;
-	std::unique_ptr<PlayerDodge>          dodge_;
-
-	// --- シリアルナンバー ---
+	// シリアルナンバー
 	uint32_t          serialNumber_ = 0;
 	static inline int nextSerialNumber_ = 0;
 
-	// --- 各ポインタ ---
+	// ポインタ
 	FollowCamera* followCamera_ = nullptr;
-
-	// --- ステージマネージャー ---
 	StageManager* stageManager_ = nullptr;
 };

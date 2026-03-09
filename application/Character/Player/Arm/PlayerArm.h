@@ -87,6 +87,8 @@ public:
 	bool      IsWindUpPhase()         const { return rush_->IsWindUpPhase(); }
 	bool      IsRecoverPhase()        const { return rush_->IsRecoverPhase(); }
 	bool      IsFinisherHitFrame()    const { return rush_->IsFinisherHitFrame(); }
+	bool      HasFinisherHit()        const { return rush_->HasFinisherHit(); }
+	void      SetFinisherHit() { rush_->SetHasFinisherHit(true); }
 	float     GetFinisherProgress()   const { return rush_->GetFinisherProgress(); }
 	float     GetRushPhaseProgress()  const { return rush_->GetRushPhaseProgress(); }
 	bool      IsRightArm()            const { return isRightArm_; }

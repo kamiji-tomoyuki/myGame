@@ -68,10 +68,12 @@ void FollowCamera::Update()
 
 float FollowCamera::ResolveDestinationAngleY() const
 {
-	if (isFinisherMode_ && hasStableAngle_) {
+	// フィニッシャー中・ロックオン中は stableAngleY_ を優先
+	if (hasStableAngle_) {
 		return stableAngleY_;
 	}
 
+	// 通常時はプレイヤー回転に追従
 	if (target_) {
 		return target_->rotation_.y;
 	}
@@ -159,11 +161,6 @@ void FollowCamera::UpdateKeyboard()
 	if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
 		move += Vector3(0.0f, 1.0f, 0.0f);
 	}
-
-	// ★ キーボード側では destinationAngleY_ を更新しない。
-	//    Y角度の決定は ResolveDestinationAngleY() に一元化。
-	//    （以前は ここで target_->rotation_.y を毎フレーム代入していたが、
-	//      それがひねり時にカメラを振らせる原因だったため削除）
 }
 
 Vector3 FollowCamera::MakeOffset()

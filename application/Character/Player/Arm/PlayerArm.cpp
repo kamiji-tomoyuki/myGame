@@ -148,7 +148,7 @@ void PlayerArm::OnCollision(Collider* other)
 				enemy->TakeDamage(rush_->GetFinisherAttackDamage());
 				enemy->OnRushHit(true);
 				rush_->SetHasFinisherHit(true);
-				rush_->SetIsFinisherHitFrame(false);
+				// isFinisherHitFrame_ は PlayerArmRush 側でウィンドウを抜けたら自動的にオフになる
 			}
 		}
 		// -------------------------------------------------------
@@ -171,10 +171,9 @@ void PlayerArm::OnCollision(Collider* other)
 		// -------------------------------------------------------
 		else if (attack_->GetIsAttack()) {
 			float progress = attack_->GetAttackProgress();
-			if (progress >= 0.4f && progress <= 0.6f) {
-				// hasHitThisAttack_ は PlayerArmAttack 側で管理する想定
-				// 現状は毎フレーム TakeDamage しないよう PlayerArmAttack にフラグ追加を推奨
+			if (progress >= 0.4f && progress <= 0.6f && !attack_->GetHasHitThisAttack()) {
 				enemy->TakeDamage(attack_->GetAttackDamage());
+				attack_->SetHasHitThisAttack(true);	// 1回ヒットしたらフラグを立てる
 			}
 		}
 	}

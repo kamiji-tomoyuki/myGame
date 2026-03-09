@@ -71,12 +71,15 @@ public:
 	void SetComboCount(uint32_t c) { comboCount_ = c; }
 	void SetLastAttackType(AttackType t) { lastAttackType_ = t; }
 	void SetAttackDamage(uint32_t d) { attackDamage_ = d; }
+	bool GetHasHitThisAttack()       const { return hasHitThisAttack_; }
+	void SetHasHitThisAttack(bool v) { hasHitThisAttack_ = v; }
 
 #pragma endregion
 
 private:
 
 	bool        isAttack_ = false;
+	bool        hasHitThisAttack_ = false;	// 1回の攻撃で1度だけヒットさせるフラグ
 	AttackType  currentAttackType_ = AttackType::kNone;
 	AttackType  lastAttackType_ = AttackType::kNone;
 	Vector3     attackDirection_ = { 0.0f, 0.0f, 1.0f };

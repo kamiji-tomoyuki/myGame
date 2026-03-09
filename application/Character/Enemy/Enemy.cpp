@@ -90,10 +90,9 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 
 		CheckPlayerRushStatus();
 
-		if (isBeingRushed_) {
-			UpdateRushKnockback();
-		}
-		else {
+		// ラッシュスタン中は Approach・攻撃はすでに上でスキップ済み
+		// isBeingRushed_ はノックバック廃止により常に false になるが念のため残す
+		if (!isBeingRushed_) {
 			Approach();
 			RecoverRotation();
 			attackManager_->Update(this, player);
@@ -253,18 +252,19 @@ void Enemy::OnRushHit(bool isFinalHit)
 	if (!isAlive_) { return; }
 
 	if (isFinalHit) {
-		// 最後の一撃 → スタン解除してノックバック開始
-		isRushStunned_ = false;
-		rushStunTimer_ = 0;
-		rushFinalHitReceived_ = true;
+		// 最後の一撃 → 長めのスタンのみ（ノックバックなし）
+		isRushStunned_ = true;
+		rushStunTimer_ = kRushStunDuration_ * 3; // フィニッシャーは通常の3倍スタン
+		rushFinalHitReceived_ = false;
+		isBeingRushed_ = false;
 
-		if (!isBeingRushed_) {
-			isBeingRushed_ = true;
-			StartRushKnockback();
+		// 攻撃を中断
+		if (attackManager_) {
+			attackManager_->InterruptByRush();
 		}
 	}
 	else {
-		// 通常ラッシュヒット → 短時間スタン（ノックバックなし）
+		// 通常ラッシュヒット → 短時間スタン
 		isRushStunned_ = true;
 		rushStunTimer_ = kRushStunDuration_;
 	}
@@ -474,18 +474,20 @@ void Enemy::OnCollision(Collider* other)
 			return;
 		}
 
-		if (arm->GetBehavior() == PlayerArm::Behavior::kRush) {
-			if (!isBeingRushed_) {
-				// CheckPlayerRushStatus が検出する前に腕が当たった場合のフォールバック
-				isBeingRushed_ = true;
-				StartRushKnockback();
-			}
-			else {
-				// ラッシュ継続中はタイマーをリセットして解除されないようにする
-				if (rushKnockbackTimer_ > 30) {
-					rushKnockbackTimer_ = 30;
-				}
-			}
+		// フィニッシャー判定（右腕専用）
+		if (arm->GetIsRush() && arm->IsRightArm() &&
+			arm->GetRushPhase() == PlayerArm::RushPhase::kFinisher &&
+			arm->IsFinisherHitFrame() &&
+			!arm->HasFinisherHit()) {
+			TakeDamage(150); // フィニッシャーダメージ
+			OnRushHit(true);
+			arm->SetFinisherHit(); // 二重ダメージ防止
+		}
+		// 連続パンチ判定
+		else if (arm->GetIsRush() &&
+			arm->GetRushPhase() == PlayerArm::RushPhase::kRapidPunch &&
+			!isRushStunned_) {
+			OnRushHit(false);
 		}
 	}
 }

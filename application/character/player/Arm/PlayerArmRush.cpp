@@ -32,7 +32,6 @@ bool PlayerArmRush::Update()
 {
 	if (!isRush_) { return false; }
 
-	isFinisherHitFrame_ = false;
 	rushPhaseTimer_++;
 
 	switch (rushPhase_) {
@@ -199,9 +198,14 @@ void PlayerArmRush::UpdateFinisher()
 			windUpEndPos.z + (targetPosition_.z - windUpEndPos.z) * armEased
 		};
 
-		// ヒット判定フレーム（前進ピーク付近: t=0.45〜0.55）
-		if (t >= 0.45f && t <= 0.55f && !hasFinisherHit_) {
+		// ヒット判定ウィンドウ（前進中: t=0.3〜0.7）
+		// コライダーが敵に届くまでのラグを考慮して広めに設定
+		if (t >= 0.3f && t <= 0.7f && !hasFinisherHit_) {
 			isFinisherHitFrame_ = true;
+		}
+		else if (t > 0.7f) {
+			// ウィンドウを抜けたら確実にオフ
+			isFinisherHitFrame_ = false;
 		}
 	}
 	else {

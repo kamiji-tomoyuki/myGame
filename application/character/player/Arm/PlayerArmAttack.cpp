@@ -10,6 +10,7 @@ void PlayerArmAttack::StartAttack(AttackType attackType, bool isRightArm, const 
 	currentAttackType_ = attackType;
 	attackTimer_ = 0;
 	attackProgress_ = 0.0f;
+	hasHitThisAttack_ = false;	// ヒットフラグをリセット
 
 	if (attackType == AttackType::kRightPunch) {
 		comboTimer_ = kComboWindow;
@@ -24,10 +25,10 @@ void PlayerArmAttack::StartAttack(AttackType attackType, bool isRightArm, const 
 
 	switch (attackType) {
 	case AttackType::kRightPunch:
-		attackOffset.x += 0.7f;
+		attackOffset.x += -0.3f;
 		break;
 	case AttackType::kLeftPunch:
-		attackOffset.x += -0.7f;
+		attackOffset.x += 0.3f;
 		break;
 	default:
 		break;
@@ -81,6 +82,7 @@ bool PlayerArmAttack::Update()
 		isAttack_ = false;
 		attackTimer_ = 0;
 		attackProgress_ = 0.0f;
+		hasHitThisAttack_ = false;	// 次の攻撃に備えてリセット
 		currentTranslation_ = originalPosition_;
 		return true;	// 攻撃終了
 	}

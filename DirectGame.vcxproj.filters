@@ -407,10 +407,19 @@
     <ClCompile Include="application\character\player\action\PlayerDodge.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
-    <ClCompile Include="application\character\player\Arm\PlayerArmAttack.cpp">
+    <ClCompile Include="application\character\player\arm\PlayerArmAttack.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
-    <ClCompile Include="application\character\player\Arm\PlayerArmRush.cpp">
+    <ClCompile Include="application\character\player\arm\PlayerArmRush.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\action\PlayerMove.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\reaction\PlayerHitReaction.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\action\PlayerRushPosture.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -700,8 +709,11 @@
     <ClInclude Include="application\character\player\effect\PlayerGameClearEffect.h" />
     <ClInclude Include="application\character\player\action\PlayerAttack.h" />
     <ClInclude Include="application\character\player\action\PlayerDodge.h" />
-    <ClInclude Include="application\character\player\Arm\PlayerArmAttack.h" />
-    <ClInclude Include="application\character\player\Arm\PlayerArmRush.h" />
+    <ClInclude Include="application\character\player\arm\PlayerArmAttack.h" />
+    <ClInclude Include="application\character\player\arm\PlayerArmRush.h" />
+    <ClInclude Include="application\character\player\action\PlayerMove.h" />
+    <ClInclude Include="application\character\player\reaction\PlayerHitReaction.h" />
+    <ClInclude Include="application\character\player\action\PlayerRushPosture.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\particle\Particle.PS.hlsl">
