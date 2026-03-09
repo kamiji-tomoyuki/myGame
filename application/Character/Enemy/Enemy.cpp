@@ -75,23 +75,27 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 	// ゲーム状態に応じた更新処理
 	switch (gameState_) {
 	case GameState::kPlaying:
-		// ゲームプレイ中の処理
 		player_ = player;
 		vp_ = &vp;
 
-		// プレイヤーのラッシュ攻撃状態をチェック
+		// ラッシュスタン中は全ての行動をスキップ
+		if (isRushStunned_) {
+			rushStunTimer_--;
+			if (rushStunTimer_ <= 0) {
+				isRushStunned_ = false;
+				rushStunTimer_ = 0;
+			}
+			break; // Approach も攻撃管理も実行しない
+		}
+
 		CheckPlayerRushStatus();
 
-		// ラッシュ攻撃を受けている時の処理
 		if (isBeingRushed_) {
 			UpdateRushKnockback();
 		}
 		else {
-			// 通常時は接近処理
 			Approach();
 			RecoverRotation();
-
-			// 攻撃管理の更新
 			attackManager_->Update(this, player);
 		}
 		break;
@@ -230,21 +234,40 @@ void Enemy::CheckPlayerRushStatus()
 {
 	if (player_ == nullptr) return;
 
-	// プレイヤーの腕がラッシュ中かどうかを確認
 	bool isRushActive = player_->IsRushActive();
 
-	// ラッシュ開始を検出
-	if (!wasRushActive_ && isRushActive) {
-		isBeingRushed_ = true;
-		StartRushKnockback();
-	}
-
-	// ラッシュ終了を検出
+	// ラッシュ終了検出 → EndRushKnockback でクリーンアップのみ
 	if (wasRushActive_ && !isRushActive) {
-		EndRushKnockback();
+		// 最後の一撃フラグが立っていない場合（射程外で終わった等）はノックバックなし
+		if (!rushFinalHitReceived_) {
+			isBeingRushed_ = false;
+		}
+		rushFinalHitReceived_ = false;
 	}
 
 	wasRushActive_ = isRushActive;
+}
+
+void Enemy::OnRushHit(bool isFinalHit)
+{
+	if (!isAlive_) { return; }
+
+	if (isFinalHit) {
+		// 最後の一撃 → スタン解除してノックバック開始
+		isRushStunned_ = false;
+		rushStunTimer_ = 0;
+		rushFinalHitReceived_ = true;
+
+		if (!isBeingRushed_) {
+			isBeingRushed_ = true;
+			StartRushKnockback();
+		}
+	}
+	else {
+		// 通常ラッシュヒット → 短時間スタン（ノックバックなし）
+		isRushStunned_ = true;
+		rushStunTimer_ = kRushStunDuration_;
+	}
 }
 
 void Enemy::StartRushKnockback()
@@ -274,23 +297,14 @@ void Enemy::StartRushKnockback()
 	// ノックバック方向：プレイヤーのラッシュ攻撃方向（プレイヤー → 敵）で吹っ飛ばす
 	if (player_ != nullptr) {
 		// プレイヤーの速度ベクトルがある場合はそちらを優先（ラッシュ突進方向）
-		Vector3 playerVelocity = player_->GetVelocity();
-		playerVelocity.y = 0.0f;
+		Vector3 direction = GetCenterPosition() - player_->GetCenterPosition();
+		direction.y = 0.0f;
 
-		if (playerVelocity.Length() > 0.001f) {
-			// ラッシュの突進方向と同じ方向に吹っ飛ぶ
-			knockbackDirection_ = playerVelocity.Normalize();
+		if (direction.Length() > 0.001f) {
+			knockbackDirection_ = direction.Normalize();
 		}
 		else {
-			// 速度が取れない場合はプレイヤー→敵の方向にフォールバック
-			Vector3 direction = GetCenterPosition() - player_->GetCenterPosition();
-			direction.y = 0.0f;
-			if (direction.Length() > 0.0f) {
-				knockbackDirection_ = direction.Normalize();
-			}
-			else {
-				knockbackDirection_ = Vector3(0.0f, 0.0f, 1.0f);
-			}
+			knockbackDirection_ = Vector3(0.0f, 0.0f, 1.0f);
 		}
 	}
 }
@@ -313,8 +327,7 @@ void Enemy::UpdateRushKnockback()
 	knockbackVerticalVelocity_ -= knockbackGravity_;
 	float newY = currentPos.y + knockbackVerticalVelocity_;
 
-	// 地面クランプ：着地基準Yを下回ったら地面に固定し縦速度をリセット
-	if (newY <= knockbackGroundY_) {
+	if (newY <= knockbackGroundY_ && knockbackVerticalVelocity_ <= 0.0f) {
 		newY = knockbackGroundY_;
 		knockbackVerticalVelocity_ = 0.0f;
 	}

@@ -58,6 +58,7 @@ public:
 	/// </summary>
 	/// <param name="other"></param>
 	void OnCollision([[maybe_unused]] Collider* other) override;
+	void OnRushHit(bool isFinalHit);
 
 	/// <summary>
 	/// プレイヤーとの衝突処理
@@ -138,12 +139,20 @@ private:
 
 	// kRoot関連変数
 	Vector3 velocity_ = { 0.0f,0.0f,0.0f };
-	float shortDistance_ = 1.5f;
+	float shortDistance_ = 3.0f;
 	float approachSpeed_ = 0.05f;
 	float maxSpeed_ = 0.08f;
 
-	// 被弾時のノックバック
+
+	// --- ラッシュ被弾時演出 ---
+	// スタン
+	bool  isRushStunned_ = false;       // ラッシュ中スタンフラグ
+	int   rushStunTimer_ = 0;           // スタンタイマー
+	static constexpr int kRushStunDuration_ = 18;
+
+	// ノックバック
 	bool isBeingRushed_ = false;
+	bool rushFinalHitReceived_ = false; // 最後の一撃を受けたフラグ
 	uint32_t rushKnockbackTimer_ = 0;
 	bool wasRushActive_ = false;
 	Vector3 knockbackDirection_ = { 0.0f, 0.0f, 1.0f };
@@ -152,11 +161,11 @@ private:
 	float knockbackGroundY_ = 0.0f;             // 着地基準Y座標
 	Vector3 originalRotation_;
 
-	static constexpr float initialKnockbackSpeed_ = 0.35f;              // 吹っ飛び初速（大きく）
+	static constexpr float initialKnockbackSpeed_ = 0.35f;              // 吹っ飛び初速
 	static constexpr float minKnockbackSpeed_ = 0.0f;                   // 完全停止まで減衰
-	static constexpr float knockbackDecay_ = 0.88f;                     // 減衰率（速めに止まる）
+	static constexpr float knockbackDecay_ = 0.88f;                     // 減衰率
 	static constexpr float maxTiltAngle_ = 0.5f;
-	static constexpr float knockbackInitialVerticalVelocity_ = 0.22f;  // 初速（上方向）
+	static constexpr float knockbackInitialVerticalVelocity_ = 0.22f;	// 初速
 	static constexpr float knockbackGravity_ = 0.012f;                  // 重力加速度
 
 	// --- 各エフェクト・演出 ---

@@ -383,18 +383,18 @@ void PlayerArm::OnCollision(Collider* other)
 	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kEnemy)) {
 		Enemy* enemy = static_cast<Enemy*>(other);
 
-		// ヒット位置を計算（腕と敵の中間地点）
-		Vector3 hitPosition = (GetCenterPosition() + enemy->GetCenterPosition()) * 0.5f;
-
 		// ラッシュ攻撃中
 		if (isRush_ && rushAttackActive_) {
-			// ラッシュ攻撃の有効フレーム内でのみダメージを与える
 			if (rushAttackTimer_ >= 2 && rushAttackTimer_ <= 6) {
 				int currentFrame = static_cast<int>(rushTimer_);
 
-				// 前回のヒットから一定フレーム経過していれば新しいダメージを与える
 				if (currentFrame - lastRushHitFrame_ >= 3) {
+					// 最後の一撃かどうか判定
+					// 残りフレームが1インターバル以内 = これ以上ラッシュパンチは来ない
+					bool isFinalHit = (rushTimer_ >= kRushDuration - kRushInterval);
+
 					enemy->TakeDamage(rushAttackDamage_);
+					enemy->OnRushHit(isFinalHit);   // スタン or ノックバック通知
 					lastRushHitFrame_ = currentFrame;
 				}
 			}
