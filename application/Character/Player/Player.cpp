@@ -129,7 +129,9 @@ void Player::Update()
 		}
 
 		obj3d_->UpdateAnimation(true);
-		UpdateArms();  // ★ここで腕のUpdate()が呼ばれる
+		UpdateArms();
+		UpdateRushBodyPosture();
+		UpdateFinisherAdvance();
 
 
 
@@ -205,7 +207,7 @@ void Player::UpdateLockOn()
 
 		float targetRotationY = std::atan2(normalizedDirection.x, normalizedDirection.z);
 		Vector3 currentRotation = GetCenterRotation();
-		float   currentRotationY = currentRotation.y;
+		float currentRotationY = currentRotation.y;
 
 		float angleDiff = targetRotationY - currentRotationY;
 
@@ -217,6 +219,18 @@ void Player::UpdateLockOn()
 		float newRotationY = currentRotationY + angleDiff * lerpFactor;
 
 		BaseObject::SetRotation(Vector3(currentRotation.x, newRotationY, currentRotation.z));
+
+		// ロックオン時Y角度を保存してカメラへ送る
+		lockOnAngleY_ = targetRotationY;
+		if (followCamera_) {
+			followCamera_->SetStableAngleY(lockOnAngleY_);
+		}
+	}
+	else {
+		// ロックオンしていなければ stableAngle を解除
+		if (followCamera_) {
+			followCamera_->ClearStableAngle();
+		}
 	}
 }
 
@@ -259,6 +273,168 @@ void Player::UpdateHitReaction()
 		hitReactionTimer_ = 0;
 		hitShakeOffset_ = Vector3(0.0f, 0.0f, 0.0f);
 		BaseObject::SetWorldPosition(originalPosition_);
+	}
+}
+
+void Player::UpdateRushBodyPosture()
+{
+	// 右腕からラッシュフェーズを取得（右腕が姿勢制御の主体）
+	const auto& rArm = arms_[kRArm];
+	if (!rArm) { return; }
+
+	bool inRush = rArm->GetIsRush();
+
+	if (!inRush) {
+		if (followCamera_) {
+			followCamera_->SetFinisherMode(false);
+		}
+
+		// ラッシュ中でなければ姿勢を元に戻す（lerp）
+		rushBodyPitchCurrent_ = rushBodyPitchCurrent_ * 0.85f;
+		rushBodyTwistCurrent_ = rushBodyTwistCurrent_ * 0.85f;
+
+		if (std::abs(rushBodyPitchCurrent_) < 0.001f &&
+			std::abs(rushBodyTwistCurrent_) < 0.001f) {
+			rushBodyPitchCurrent_ = 0.0f;
+			rushBodyTwistCurrent_ = 0.0f;
+		}
+
+		if (rushBodyPitchCurrent_ != 0.0f || rushBodyTwistCurrent_ != 0.0f) {
+			Vector3 rot = rushBaseRotation_;
+			rot.x += rushBodyPitchCurrent_;
+			rot.y += rushBodyTwistCurrent_;
+			BaseObject::SetRotation(rot);
+		}
+		return;
+	}
+
+	// ラッシュ開始1フレーム目に基準回転を保存
+	PlayerArm::RushPhase phase = rArm->GetRushPhase();
+	float phaseProgress = rArm->GetRushPhaseProgress();
+
+	// WindUp・Finisher・Recoverフェーズ中はカメラをFinisherModeに
+	bool needFinisherCam = (phase == PlayerArm::RushPhase::kWindUp ||
+		phase == PlayerArm::RushPhase::kFinisher ||
+		phase == PlayerArm::RushPhase::kRecover);
+	if (followCamera_) {
+		followCamera_->SetFinisherMode(needFinisherCam);
+		if (needFinisherCam && !isLockOn_) {
+			followCamera_->SetStableAngleY(rushBaseRotation_.y);
+		}
+	}
+
+	// -------------------------------------------------------
+	// フェーズ別ターゲット設定
+	// -------------------------------------------------------
+	switch (phase) {
+	case PlayerArm::RushPhase::kRapidPunch:
+		// 前傾: ラッシュ開始直後に素早く前傾し、連打中は維持
+		rushBodyPitchTarget_ = kRushLeanPitch_;
+		rushBodyTwistTarget_ = 0.0f;
+		break;
+
+	case PlayerArm::RushPhase::kWindUp:
+		// 前傾を維持しながら右にひねる（振りかぶり）
+		// ひねりはフェーズ進行に合わせてスムーズに増加
+		rushBodyPitchTarget_ = kRushLeanPitch_;
+		rushBodyTwistTarget_ = kWindUpTwist_ * phaseProgress;
+		break;
+
+	case PlayerArm::RushPhase::kFinisher:
+		// フィニッシャー前半(0〜0.5): 右ひねりから左ひねりへ急転換（パンチの勢い）
+		// フィニッシャー後半(0.5〜1.0): 左ひねりを保ちつつ前傾も少し戻す
+	{
+		float fp = rArm->GetFinisherProgress();
+		if (fp <= 0.5f) {
+			// 右ひねり終端 → 左ひねりへ
+			float t = fp / 0.5f;
+			rushBodyTwistTarget_ = kWindUpTwist_ + (kFinisherTwist_ - kWindUpTwist_) * (t * t);
+			rushBodyPitchTarget_ = kRushLeanPitch_;
+		}
+		else {
+			// 左ひねりを維持、前傾を徐々に戻す
+			float t = (fp - 0.5f) / 0.5f;
+			rushBodyTwistTarget_ = kFinisherTwist_ * (1.0f - t * 0.4f);
+			rushBodyPitchTarget_ = kRushLeanPitch_ * (1.0f - t * 0.3f);
+		}
+	}
+	break;
+
+	case PlayerArm::RushPhase::kRecover:
+		// 全姿勢を元に戻す
+		rushBodyPitchTarget_ = kRushLeanPitch_ * (1.0f - phaseProgress);
+		rushBodyTwistTarget_ = kFinisherTwist_ * (1.0f - phaseProgress) * 0.6f;
+		break;
+	}
+
+	// lerp でスムーズに追従（ひねりは俊敏に、前傾はゆっくり）
+	float pitchSpeed = (phase == PlayerArm::RushPhase::kRapidPunch) ? 0.15f : 0.25f;
+	float twistSpeed = 0.30f;
+
+	rushBodyPitchCurrent_ += (rushBodyPitchTarget_ - rushBodyPitchCurrent_) * pitchSpeed;
+	rushBodyTwistCurrent_ += (rushBodyTwistTarget_ - rushBodyTwistCurrent_) * twistSpeed;
+
+	// 現在のプレイヤーベース回転（ロックオンや移動方向で変わる Y 軸）に乗せる
+	Vector3 currentRot = BaseObject::GetTransform().rotation_;
+	rushBaseRotation_ = { 0.0f, currentRot.y, 0.0f };
+
+	Vector3 newRot = rushBaseRotation_;
+	newRot.x += rushBodyPitchCurrent_;
+	newRot.y += rushBodyTwistCurrent_;
+	BaseObject::SetRotation(newRot);
+}
+
+void Player::UpdateFinisherAdvance()
+{
+	// 両腕のいずれかがフィニッシャーフェーズにいるか確認
+	bool anyFinishing = false;
+	float maxProgress = 0.0f;
+
+	for (const auto& arm : arms_) {
+		if (arm && arm->IsFinisherPhase()) {
+			anyFinishing = true;
+			float p = arm->GetFinisherProgress();
+			if (p > maxProgress) { maxProgress = p; }
+		}
+	}
+
+	if (!anyFinishing) {
+		isFinisherAdvancing_ = false;
+		finisherAdvanceAmount_ = 0.0f;
+		return;
+	}
+
+	// フィニッシャー前進カーブ（前半:急加速、後半:減速して止まる）
+	// 0.0〜0.5 の間に最大まで前進し、0.5〜1.0 は位置を維持
+	float clampedProgress = maxProgress > 0.5f ? 0.5f : maxProgress;
+	float advanceRatio = (clampedProgress / 0.5f);
+	advanceRatio = advanceRatio * advanceRatio; // イーズイン
+
+	float targetAdvance = advanceRatio * kFinisherMaxAdvance_;
+
+	// 前フレームからの差分だけ今フレームに移動
+	float delta = targetAdvance - finisherAdvanceAmount_;
+	finisherAdvanceAmount_ = targetAdvance;
+
+	if (delta > 0.0f) {
+		// プレイヤーの向いている方向に前進
+		float rotY = BaseObject::GetTransform().rotation_.y;
+		Vector3 forward = {
+			std::sin(rotY) * delta,
+			0.0f,
+			std::cos(rotY) * delta
+		};
+
+		Vector3 currentPos = BaseObject::GetWorldPosition();
+		Vector3 newPos = currentPos + forward;
+
+		// ステージ境界チェック
+		if (stageManager_ != nullptr && !stageManager_->IsWithinStageBounds(newPos)) {
+			newPos = stageManager_->ClampToStageBounds(newPos);
+		}
+
+		BaseObject::SetWorldPosition(newPos);
+		isFinisherAdvancing_ = true;
 	}
 }
 
@@ -418,74 +594,6 @@ void Player::ImGui()
 	damageEffect_->imgui();
 	trailEffect_->imgui();
 
-	// ★両腕のImGuiを表示
-	for (size_t i = 0; i < arms_.size(); ++i) {
-		if (arms_[i]) {
-			arms_[i]->ImGui();
-		}
-	}
-
-	ImGui::Begin("Player Debug");
-
-	float hpRatio = static_cast<float>(HP_) / static_cast<float>(kMaxHP_);
-	ImVec4 hpColor;
-	if (hpRatio > 0.5f) { hpColor = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); }
-	else if (hpRatio > 0.25f) { hpColor = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); }
-	else { hpColor = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); }
-	ImGui::TextColored(hpColor, "HP: %d / %d (%.1f%%)", HP_, kMaxHP_, hpRatio * 100.0f);
-	ImGui::ProgressBar(hpRatio, ImVec2(0.0f, 0.0f));
-
-	ImGui::Separator();
-	ImGui::Text("Player Rotation Y: %.2f", BaseObject::GetTransform().rotation_.y);
-	ImGui::Text("Player Position: (%.2f, %.2f, %.2f)",
-		BaseObject::GetWorldPosition().x,
-		BaseObject::GetWorldPosition().y,
-		BaseObject::GetWorldPosition().z);
-
-	const char* gameStateStr = "Unknown";
-	switch (gameState_) {
-	case GameState::kPlaying:   gameStateStr = "Playing";   break;
-	case GameState::kGameOver:  gameStateStr = "GameOver";  break;
-	case GameState::kGameClear: gameStateStr = "GameClear"; break;
-	}
-	ImGui::Text("Game State: %s", gameStateStr);
-
-	ImGui::Text("Behavior: %s",
-		behavior_ == Behavior::kRoot ? "Root" :
-		behavior_ == Behavior::kAttack ? "Attack" :
-		behavior_ == Behavior::kDodge ? "Dodge" : "Unknown");
-
-	ImGui::Separator();
-	ImGui::Text("Lock-On: %s", isLockOn_ ? "ON" : "OFF");
-
-	ImGui::Separator();
-	ImGui::Text("Hit Reaction: %s", isHitReacting_ ? "Active" : "Inactive");
-	if (isHitReacting_) {
-		ImGui::Text("Reaction Timer: %d / %d", hitReactionTimer_, kHitReactionDuration_);
-		ImGui::Text("Shake Offset: (%.3f, %.3f, %.3f)",
-			hitShakeOffset_.x, hitShakeOffset_.y, hitShakeOffset_.z);
-	}
-
-	if (dodge_->IsDodging()) {
-		ImGui::Text("Dodge: Active");
-	}
-
-	ImGui::Text("Global Combo Count: %d", globalComboCount_);
-	ImGui::Text("Global Combo Timer: %d", globalComboTimer_);
-
-	if (arms_[kRArm]) {
-		ImGui::Text("Right Arm State: %s",
-			arms_[kRArm]->GetBehavior() == PlayerArm::Behavior::kAttack ? "Attacking" :
-			arms_[kRArm]->GetBehavior() == PlayerArm::Behavior::kRush ? "Rush" : "Normal");
-		ImGui::Text("Right Arm Collision: %s", arms_[kRArm]->IsCollisionEnabled() ? "Enabled" : "Disabled");
-	}
-	if (arms_[kLArm]) {
-		ImGui::Text("Left Arm State: %s",
-			arms_[kLArm]->GetBehavior() == PlayerArm::Behavior::kAttack ? "Attacking" :
-			arms_[kLArm]->GetBehavior() == PlayerArm::Behavior::kRush ? "Rush" : "Normal");
-		ImGui::Text("Left Arm Collision: %s", arms_[kLArm]->IsCollisionEnabled() ? "Enabled" : "Disabled");
-	}
-
 	ImGui::End();
 }
 
@@ -546,21 +654,23 @@ void Player::OnCollision(Collider* other)
 // =============================================================
 void Player::InitArm()
 {
-	// ★右腕の初期化
+	// 右腕の初期化
 	arms_[kRArm] = std::make_unique<PlayerArm>();
 	arms_[kRArm]->Init("player/Arm/playerArm.gltf");
 	arms_[kRArm]->SetPlayer(this);
 	arms_[kRArm]->SetID(serialNumber_);
 	arms_[kRArm]->SetColliderID(CollisionTypeIdDef::kPRArm);
-	arms_[kRArm]->SetTranslation(Vector3(-1.7f, 0.0f, 1.3f));
+	arms_[kRArm]->SetIsRightArm(true);
+	arms_[kRArm]->SetTranslation(Vector3(1.7f, 0.0f, 1.3f));
 	arms_[kRArm]->SetScale(Vector3(0.8f, 0.8f, 0.8f));
 
-	// ★左腕の初期化
+	// 左腕の初期化
 	arms_[kLArm] = std::make_unique<PlayerArm>();
 	arms_[kLArm]->Init("player/Arm/playerArm.gltf");
 	arms_[kLArm]->SetPlayer(this);
 	arms_[kLArm]->SetID(serialNumber_);
 	arms_[kLArm]->SetColliderID(CollisionTypeIdDef::kPLArm);
-	arms_[kLArm]->SetTranslation(Vector3(1.7f, 0.0f, 1.3f));
+	arms_[kLArm]->SetIsRightArm(false);
+	arms_[kLArm]->SetTranslation(Vector3(-1.7f, 0.0f, 1.3f));
 	arms_[kLArm]->SetScale(Vector3(0.8f, 0.8f, 0.8f));
 }

@@ -407,6 +407,12 @@
     <ClCompile Include="application\character\player\action\PlayerDodge.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
+    <ClCompile Include="application\character\player\Arm\PlayerArmAttack.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\Arm\PlayerArmRush.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -694,6 +700,8 @@
     <ClInclude Include="application\character\player\effect\PlayerGameClearEffect.h" />
     <ClInclude Include="application\character\player\action\PlayerAttack.h" />
     <ClInclude Include="application\character\player\action\PlayerDodge.h" />
+    <ClInclude Include="application\character\player\Arm\PlayerArmAttack.h" />
+    <ClInclude Include="application\character\player\Arm\PlayerArmRush.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\particle\Particle.PS.hlsl">

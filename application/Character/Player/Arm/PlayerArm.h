@@ -2,7 +2,10 @@
 #include "BaseObject.h"
 #include "WorldTransform.h"
 #include "ViewProjection.h"
+#include "PlayerArmAttack.h"
+#include "PlayerArmRush.h"
 #include <CollisionTypeIdDef.h>
+#include <memory>
 
 class Player;
 
@@ -17,21 +20,15 @@ public:
 	/// 状態
 	/// </summary>
 	enum class Behavior {
-		kNormal,		// 通常
-		kAttack,		// 攻撃中
-		kSkill,			// スキル
-		kRush,			// ラッシュ攻撃中
+		kNormal,	// 通常
+		kAttack,	// 攻撃中
+		kSkill,		// スキル
+		kRush,		// ラッシュ攻撃中
 	};
 
-	/// <summary>
-	/// 攻撃の種類
-	/// </summary>
-	enum class AttackType {
-		kNone,			// 攻撃なし
-		kRightPunch,	// 右パンチ
-		kLeftPunch,		// 左パンチ
-		kRush,			// ラッシュ攻撃
-	};
+	// 外部から使う型は Attack / Rush クラスのものをそのまま公開
+	using AttackType = PlayerArmAttack::AttackType;
+	using RushPhase = PlayerArmRush::RushPhase;
 
 public:
 
@@ -45,10 +42,7 @@ public:
 	/// <summary>
 	/// 更新
 	/// </summary>
-	void Update()override;
-	void UpdateComboTime();
-	void UpdateAttack();
-	void UpdateRush();
+	void Update() override;
 
 	/// <summary>
 	/// 描画
@@ -58,51 +52,51 @@ public:
 	void DrawParticle(const ViewProjection& viewProjection);
 
 	/// <summary>
-	/// ImGui
-	/// </summary>
-	void ImGui();
-
-	/// <summary>
 	/// 攻撃処理
 	/// </summary>
 	void StartAttack(AttackType attackType);
 	void StartRush();
-	void ProcessAttack();
-	bool CanCombo() const;
-	bool CanStartRush() const;
+	bool CanCombo()      const;
+	bool CanStartRush()  const;
 
 public:
 
 	/// <summary>
 	/// 当たり判定
 	/// </summary>
-	/// <param name="other"></param>
 	void OnCollision([[maybe_unused]] Collider* other) override;
 
 public:
 #pragma region getter setter
 
-	/// 各ステータス取得関数
-	/// <returns></returns>
-	int GetID() { return serialNumber_; }
+	int       GetID() { return serialNumber_; }
 	Player* GetPlayer() { return player_; }
-	bool GetIsAttack() { return isAttack_; }
-	bool GetIsRush() { return isRush_; }
-	AttackType GetCurrentAttackType() { return currentAttackType_; }
-	AttackType GetLastAttackType() { return lastAttackType_; }
-	Behavior GetBehavior() { return behavior_; }
-	Vector3 GetCenterPosition() const override { return GetWorldPosition(); }
-	Vector3 GetCenterRotation() const override { return GetWorldRotation(); }
-	Vector3 GetAttackDirection() const { return attackDirection_; }
-	uint32_t GetComboCount() const { return comboCount_; }
+	bool      GetIsAttack() { return attack_->GetIsAttack(); }
+	bool      GetIsRush() { return rush_->GetIsRush(); }
+	AttackType GetCurrentAttackType() { return attack_->GetCurrentAttackType(); }
+	AttackType GetLastAttackType() { return attack_->GetLastAttackType(); }
+	Behavior  GetBehavior() { return behavior_; }
+	Vector3   GetCenterPosition() const override { return GetWorldPosition(); }
+	Vector3   GetCenterRotation() const override { return GetWorldRotation(); }
+	Vector3   GetAttackDirection() const;
+	uint32_t  GetComboCount()     const { return attack_->GetComboCount(); }
 
-	/// 各ステータス設定関数
-	/// <returns></returns>
+	// ラッシュフェーズ情報
+	RushPhase GetRushPhase()          const { return rush_->GetRushPhase(); }
+	bool      IsFinisherPhase()       const { return rush_->IsFinisherPhase(); }
+	bool      IsWindUpPhase()         const { return rush_->IsWindUpPhase(); }
+	bool      IsRecoverPhase()        const { return rush_->IsRecoverPhase(); }
+	bool      IsFinisherHitFrame()    const { return rush_->IsFinisherHitFrame(); }
+	float     GetFinisherProgress()   const { return rush_->GetFinisherProgress(); }
+	float     GetRushPhaseProgress()  const { return rush_->GetRushPhaseProgress(); }
+	bool      IsRightArm()            const { return isRightArm_; }
+
 	void SetID(int id) { serialNumber_ = id; }
 	void SetColliderID(CollisionTypeIdDef id) { Collider::SetTypeID(static_cast<uint32_t>(id)); }
 	void SetPlayer(Player* player);
-	void SetComboTimer(uint32_t comboT) { comboTimer_ = comboT; }
-	void SetComboCount(uint32_t count) { comboCount_ = count; }
+	void SetComboTimer(uint32_t comboT) { attack_->SetComboTimer(comboT); }
+	void SetComboCount(uint32_t count) { attack_->SetComboCount(count); }
+	void SetIsRightArm(bool isRight) { isRightArm_ = isRight; }
 
 	void SetTranslation(Vector3 pos) { transform_.translation_ = pos; }
 	void SetTranslationY(float pos) { transform_.translation_.y = pos; }
@@ -115,60 +109,31 @@ public:
 	void SetRotationZ(float rotate) { transform_.rotation_.z = rotate; }
 
 	void SetScale(Vector3 scale) { transform_.scale_ = scale; }
-
 	void SetColliderSize(float size) { Collider::SetRadius(size); }
+	void SetOriginalPosition(const Vector3& pos) { originalPosition_ = pos; }
 
 #pragma endregion
+
 private:
 
-	// --- モデル ---
+	// モデル
 	std::unique_ptr<Object3d> obj3d_;
 
-	// --- 各ステータス ---
-	bool isAttack_ = false;
-	bool isRush_ = false;
+	// 攻撃・ラッシュのロジック
+	std::unique_ptr<PlayerArmAttack> attack_;
+	std::unique_ptr<PlayerArmRush>   rush_;
+
+	// 腕の基本状態
+	bool     isRightArm_ = true;
 	Behavior behavior_ = Behavior::kNormal;
-	AttackType currentAttackType_ = AttackType::kNone;
-	AttackType lastAttackType_ = AttackType::kNone;
 
-	// 攻撃関連
-	Vector3 attackDirection_ = { 0.0f, 0.0f, 1.0f };  // 攻撃方向（正面）
-	Vector3 originalPosition_;		// 元の位置
-	Vector3 targetPosition_;		// 攻撃時の目標位置
-	float attackProgress_ = 0.0f;	// 攻撃の進行度（0.0f〜1.0f）
-	uint32_t attackDamage_;			// ダメージ
-	bool hasHitThisAttack_ = false; // この攻撃で既にダメージを与えたか
-
-	// ラッシュ関連
-	uint32_t rushTimer_ = 0;        // ラッシュ攻撃継続時間
-	uint32_t rushAttackTimer_ = 0;  // 個別のラッシュ攻撃タイマー
-	uint32_t rushCount_ = 0;        // ラッシュ攻撃回数カウント
-	bool rushAttackActive_ = false; // 個別のラッシュ攻撃が実行中かどうか
-	uint32_t rushAttackDamage_;		// ダメージ
-
-	// ラッシュ連続ヒット防止用
-	int lastRushHitFrame_ = -999;   // 前回のラッシュヒットフレーム
-
-	// タイマー関連
-	uint32_t attackTimer_ = 0;      // 攻撃アニメーション用タイマー
-	uint32_t comboTimer_ = 0;       // コンボ受付時間
-	uint32_t comboCount_ = 0;       // コンボ数
-
-	// 定数
-	static constexpr uint32_t kAttackDuration = 20;		// 攻撃アニメーション時間（フレーム）
-	static constexpr uint32_t kComboWindow = 30;		// コンボ受付時間（フレーム）
-	static constexpr uint32_t kRushDuration = 120;		// ラッシュ攻撃継続時間（フレーム）
-	static constexpr uint32_t kRushInterval = 8;		// ラッシュ攻撃間隔（フレーム）
-	static constexpr uint32_t kRushAttackDuration = 12; // 個別ラッシュ攻撃時間（フレーム）
-	static constexpr float kAttackDistance = 2.0f;		// 攻撃時の前進距離
-	static constexpr float kRushDistance = 1.5f;		// ラッシュ攻撃時の前進距離
-	static constexpr float kRightPunchOffset = -0.5f;	// 右パンチの横オフセット
-	static constexpr float kLeftPunchOffset = 0.5f;		// 左パンチの横オフセット
+	// 腕の基準位置（Init時に設定、SetOriginalPosition でも更新可能）
+	Vector3 originalPosition_ = {};
 
 	// シリアルナンバー
-	uint32_t serialNumber_ = 0;
+	uint32_t          serialNumber_ = 0;
 	static inline int nextSerialNumber_ = 0;
 
-	// --- 各ポインタ ---
+	// ポインタ
 	Player* player_ = nullptr;
 };

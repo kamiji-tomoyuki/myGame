@@ -13,406 +13,176 @@ PlayerArm::PlayerArm()
 void PlayerArm::Init(std::string filePath)
 {
 	BaseObject::Init();
-
 	Collider::Initialize();
 
-	// --- モデルの初期化 ---
 	obj3d_ = std::make_unique<Object3d>();
 	obj3d_->Initialize(filePath);
 
-	// 初期位置を保存
-	originalPosition_ = transform_.translation_;
-	targetPosition_ = originalPosition_;
+	attack_ = std::make_unique<PlayerArmAttack>();
+	rush_ = std::make_unique<PlayerArmRush>();
 
 	// ダメージ設定
-	attackDamage_ = 50;      // 通常攻撃のダメージ
-	rushAttackDamage_ = 20;  // ラッシュ攻撃1ヒットあたりのダメージ
+	attack_->SetAttackDamage(50);
+	rush_->SetRushAttackDamage(20);
+	rush_->SetFinisherAttackDamage(150);
 
-	// コリダーサイズの設定（衝突検出を有効にする）
+	originalPosition_ = transform_.translation_;
+
 	Collider::SetRadius(0.8f);
-
-	// ★重要: 当たり判定を有効化
 	Collider::SetCollisionEnabled(true);
 }
 
+// =============================================================
+//  更新
+// =============================================================
 void PlayerArm::Update()
 {
 	BaseObject::Update();
 
-	// 攻撃処理の更新
-	UpdateAttack();
+	switch (behavior_) {
+	case Behavior::kAttack:
+	{
+		bool finished = attack_->Update();
+		// 攻撃終了 → Normal に戻す
+		if (finished) {
+			behavior_ = Behavior::kNormal;
+		}
+		// 攻撃中の腕位置を反映
+		transform_.translation_ = attack_->GetCurrentTranslation();
+		break;
+	}
+	case Behavior::kRush:
+	{
+		bool finished = rush_->Update();
+		// ラッシュ終了 → Normal に戻す＆攻撃タイプをリセット
+		if (finished) {
+			behavior_ = Behavior::kNormal;
+			attack_->SetComboCount(0);
+			attack_->SetComboTimer(0);
+			attack_->SetLastAttackType(AttackType::kNone);
+		}
+		// ラッシュ中の腕位置を反映
+		transform_.translation_ = rush_->GetCurrentTranslation();
+		break;
+	}
+	default:
+		break;
+	}
 
-	// ラッシュ処理の更新
-	UpdateRush();
-
-	// コンボタイマーの更新
-	UpdateComboTime();
+	attack_->UpdateComboTimer();
 
 	obj3d_->UpdateAnimation(true);
-
-	// ★重要: 当たり判定の更新
 	Collider::UpdateWorldTransform();
 }
 
-void PlayerArm::UpdateComboTime()
-{
-	if (comboTimer_ > 0) {
-		comboTimer_--;
-		if (comboTimer_ == 0) {
-			comboCount_ = 0;
-		}
-	}
-}
-
-void PlayerArm::UpdateAttack()
-{
-	if (behavior_ != Behavior::kAttack) {
-		return;
-	}
-
-	attackTimer_++;
-
-	attackProgress_ = static_cast<float>(attackTimer_) / static_cast<float>(kAttackDuration);
-
-	if (attackProgress_ >= 1.0f) {
-		attackProgress_ = 1.0f;
-	}
-
-	float easedProgress = 1.0f - (1.0f - attackProgress_) * (1.0f - attackProgress_);
-	if (attackProgress_ > 0.5f) {
-		easedProgress = 1.0f - (attackProgress_ - 0.5f) * 2.0f;
-	}
-
-	Vector3 currentPos = {
-		originalPosition_.x + (targetPosition_.x - originalPosition_.x) * easedProgress,
-		originalPosition_.y + (targetPosition_.y - originalPosition_.y) * easedProgress,
-		originalPosition_.z + (targetPosition_.z - originalPosition_.z) * easedProgress
-	};
-	transform_.translation_ = currentPos;
-
-	if (attackTimer_ >= kAttackDuration) {
-		// ★ lastAttackType_ を behavior_=kNormal にする「より前」にセットする。
-		// CanCombo() は (comboTimer_>0 && behavior_==kNormal) で成立するため、
-		// 同じフレームで lastAttackType_ が正しい値になっている必要がある。
-		lastAttackType_ = currentAttackType_;
-		currentAttackType_ = AttackType::kNone;
-
-		behavior_ = Behavior::kNormal;
-		isAttack_ = false;
-		attackTimer_ = 0;
-		attackProgress_ = 0.0f;
-		transform_.translation_ = originalPosition_;
-	}
-}
-
-void PlayerArm::UpdateRush()
-{
-	if (behavior_ != Behavior::kRush) {
-		return;
-	}
-
-	rushTimer_++;
-
-	if (rushTimer_ % kRushInterval == 0) {
-		rushAttackActive_ = true;
-		rushAttackTimer_ = 0;
-		rushCount_++;
-
-		float randomOffset = (static_cast<float>(rand()) / RAND_MAX - 0.5f) * 2.0f;
-
-		Vector3 forward = { 0.0f, 0.0f, 1.0f };
-		Vector3 attackOffset = {
-			forward.x * kRushDistance + randomOffset,
-			forward.y * kRushDistance,
-			forward.z * kRushDistance
-		};
-
-		targetPosition_ = {
-			originalPosition_.x + attackOffset.x,
-			originalPosition_.y + attackOffset.y,
-			originalPosition_.z + attackOffset.z
-		};
-
-		attackDirection_ = attackOffset;
-		float attackDirLength = sqrt(attackDirection_.x * attackDirection_.x +
-			attackDirection_.y * attackDirection_.y +
-			attackDirection_.z * attackDirection_.z);
-		if (attackDirLength > 0.0f) {
-			attackDirection_.x /= attackDirLength;
-			attackDirection_.y /= attackDirLength;
-			attackDirection_.z /= attackDirLength;
-		}
-	}
-
-	if (rushAttackActive_) {
-		rushAttackTimer_++;
-
-		float rushProgress = static_cast<float>(rushAttackTimer_) / static_cast<float>(kRushAttackDuration);
-		if (rushProgress >= 1.0f) {
-			rushProgress = 1.0f;
-		}
-
-		float easedProgress = 1.0f - (1.0f - rushProgress) * (1.0f - rushProgress);
-		if (rushProgress > 0.6f) {
-			easedProgress = 1.0f - (rushProgress - 0.6f) * 2.5f;
-		}
-
-		Vector3 currentPos = {
-			originalPosition_.x + (targetPosition_.x - originalPosition_.x) * easedProgress,
-			originalPosition_.y + (targetPosition_.y - originalPosition_.y) * easedProgress,
-			originalPosition_.z + (targetPosition_.z - originalPosition_.z) * easedProgress
-		};
-		transform_.translation_ = currentPos;
-
-		if (rushAttackTimer_ >= kRushAttackDuration) {
-			rushAttackActive_ = false;
-			rushAttackTimer_ = 0;
-			transform_.translation_ = originalPosition_;
-		}
-	}
-
-	if (rushTimer_ >= kRushDuration) {
-		behavior_ = Behavior::kNormal;
-		isRush_ = false;
-		rushTimer_ = 0;
-		rushAttackTimer_ = 0;
-		rushCount_ = 0;
-		rushAttackActive_ = false;
-		transform_.translation_ = originalPosition_;
-
-		comboCount_ = 0;
-		comboTimer_ = 0;
-		currentAttackType_ = AttackType::kNone;
-		lastAttackType_ = AttackType::kNone;
-	}
-}
-
+// =============================================================
+//  攻撃開始
+// =============================================================
 void PlayerArm::StartAttack(AttackType attackType)
 {
-	if (behavior_ == Behavior::kAttack || behavior_ == Behavior::kRush) {
-		return;
-	}
+	if (behavior_ == Behavior::kAttack || behavior_ == Behavior::kRush) { return; }
 
 	behavior_ = Behavior::kAttack;
-	isAttack_ = true;
-	currentAttackType_ = attackType;
-	attackTimer_ = 0;
-	attackProgress_ = 0.0f;
-	hasHitThisAttack_ = false; // 新しい攻撃なのでリセット
-
-	if (attackType == AttackType::kRightPunch) {
-		comboTimer_ = kComboWindow;
-		comboCount_ = 1;
-	}
-	else if (attackType == AttackType::kLeftPunch) {
-		comboTimer_ = kComboWindow;
-		comboCount_ = 2;
-	}
-
-	Vector3 forward = { 0.0f, 0.0f, 1.0f };
-	Vector3 right = { 1.0f, 0.0f, 0.0f };
-
-	float forwardLength = sqrt(forward.x * forward.x + forward.y * forward.y + forward.z * forward.z);
-	if (forwardLength > 0.0f) {
-		forward.x /= forwardLength;
-		forward.y /= forwardLength;
-		forward.z /= forwardLength;
-	}
-
-	float rightLength = sqrt(right.x * right.x + right.y * right.y + right.z * right.z);
-	if (rightLength > 0.0f) {
-		right.x /= rightLength;
-		right.y /= rightLength;
-		right.z /= rightLength;
-	}
-
-	Vector3 attackOffset = {
-		forward.x * kAttackDistance,
-		forward.y * kAttackDistance,
-		forward.z * kAttackDistance
-	};
-
-	switch (attackType) {
-	case AttackType::kRightPunch:
-		attackOffset.x += 0.7f;
-		attackOffset.y += right.y * kRightPunchOffset;
-		attackOffset.z += right.z * kRightPunchOffset;
-		break;
-	case AttackType::kLeftPunch:
-		attackOffset.x += -0.7f;
-		attackOffset.y += right.y * kLeftPunchOffset;
-		attackOffset.z += right.z * kLeftPunchOffset;
-		break;
-	}
-
-	originalPosition_ = transform_.translation_;
-	targetPosition_ = {
-		originalPosition_.x + attackOffset.x,
-		originalPosition_.y + attackOffset.y,
-		originalPosition_.z + attackOffset.z
-	};
-
-	attackDirection_ = attackOffset;
-	float attackDirLength = sqrt(attackDirection_.x * attackDirection_.x +
-		attackDirection_.y * attackDirection_.y +
-		attackDirection_.z * attackDirection_.z);
-	if (attackDirLength > 0.0f) {
-		attackDirection_.x /= attackDirLength;
-		attackDirection_.y /= attackDirLength;
-		attackDirection_.z /= attackDirLength;
-	}
+	attack_->StartAttack(attackType, isRightArm_, transform_.translation_);
 }
 
+// =============================================================
+//  ラッシュ開始
+// =============================================================
 void PlayerArm::StartRush()
 {
-	if (behavior_ == Behavior::kAttack || behavior_ == Behavior::kRush) {
-		return;
-	}
+	if (behavior_ == Behavior::kAttack || behavior_ == Behavior::kRush) { return; }
 
 	behavior_ = Behavior::kRush;
-	isRush_ = true;
-	currentAttackType_ = AttackType::kRush;
-	rushTimer_ = 0;
-	rushAttackTimer_ = 0;
-	rushCount_ = 0;
-	rushAttackActive_ = false;
-	lastRushHitFrame_ = -999; // ラッシュヒットフレームをリセット
-
-	originalPosition_ = transform_.translation_;
-}
-
-void PlayerArm::ProcessAttack()
-{
-	if (!isAttack_ && !isRush_) {
-		return;
-	}
-
-	if (isAttack_) {
-		if (attackProgress_ >= 0.5f && attackProgress_ < 0.6f) {
-			// 攻撃判定のタイミング
-		}
-	}
-
-	if (isRush_ && rushAttackActive_) {
-		if (rushAttackTimer_ >= 2 && rushAttackTimer_ <= 6) {
-			// ラッシュ攻撃の当たり判定タイミング
-		}
-	}
+	rush_->StartRush(isRightArm_, transform_.translation_);
 }
 
 bool PlayerArm::CanCombo() const
 {
-	return (comboTimer_ > 0 && behavior_ == Behavior::kNormal);
+	return (attack_->CanCombo() && behavior_ == Behavior::kNormal);
 }
 
 bool PlayerArm::CanStartRush() const
 {
-	return (behavior_ == Behavior::kNormal &&
-		lastAttackType_ == AttackType::kLeftPunch &&
-		comboTimer_ > 0);
+	return (behavior_ == Behavior::kNormal && attack_->CanStartRush());
 }
 
-void PlayerArm::Draw(const ViewProjection& viewProjection)
+Vector3 PlayerArm::GetAttackDirection() const
 {
+	if (behavior_ == Behavior::kRush) {
+		return rush_->GetAttackDirection();
+	}
+	return attack_->GetAttackDirection();
 }
+
+// =============================================================
+//  描画
+// =============================================================
+void PlayerArm::Draw(const ViewProjection& viewProjection) {}
 
 void PlayerArm::DrawAnimation(const ViewProjection& viewProjection)
 {
 	obj3d_->Draw(BaseObject::GetWorldTransform(), viewProjection);
 }
 
-void PlayerArm::DrawParticle(const ViewProjection& viewProjection)
-{
-}
+void PlayerArm::DrawParticle(const ViewProjection& viewProjection) {}
 
-void PlayerArm::ImGui()
-{
-	ImGui::Begin("PlayerArm Debug");
-
-	const char* behaviorNames[] = { "Normal", "Attack", "Skill", "Rush" };
-	ImGui::Text("Behavior: %s", behaviorNames[static_cast<int>(behavior_)]);
-
-	const char* attackTypeNames[] = { "None", "RightPunch", "LeftPunch", "Rush" };
-	ImGui::Text("Current Attack: %s", attackTypeNames[static_cast<int>(currentAttackType_)]);
-	ImGui::Text("Last Attack: %s", attackTypeNames[static_cast<int>(lastAttackType_)]);
-
-	ImGui::Text("Attack Timer: %d / %d", attackTimer_, kAttackDuration);
-	ImGui::Text("Combo Timer: %d", comboTimer_);
-	ImGui::Text("Combo Count: %d", comboCount_);
-	ImGui::Text("Attack Progress: %.2f", attackProgress_);
-
-	ImGui::Text("Rush Timer: %d / %d", rushTimer_, kRushDuration);
-	ImGui::Text("Rush Count: %d", rushCount_);
-	ImGui::Text("Rush Attack Active: %s", rushAttackActive_ ? "Yes" : "No");
-
-	ImGui::Text("Can Combo: %s", CanCombo() ? "Yes" : "No");
-	ImGui::Text("Can Start Rush: %s", CanStartRush() ? "Yes" : "No");
-	ImGui::Text("Is Attack: %s", isAttack_ ? "Yes" : "No");
-	ImGui::Text("Is Rush: %s", isRush_ ? "Yes" : "No");
-
-	ImGui::Text("Collision Enabled: %s", IsCollisionEnabled() ? "Yes" : "No");
-	ImGui::Text("TypeID: %u", GetTypeID());
-
-	ImGui::Text("Original Pos: (%.2f, %.2f, %.2f)",
-		originalPosition_.x, originalPosition_.y, originalPosition_.z);
-	ImGui::Text("Target Pos: (%.2f, %.2f, %.2f)",
-		targetPosition_.x, targetPosition_.y, targetPosition_.z);
-	ImGui::Text("Current Pos: (%.2f, %.2f, %.2f)",
-		transform_.translation_.x, transform_.translation_.y, transform_.translation_.z);
-	ImGui::Text("Attack Direction: (%.2f, %.2f, %.2f)",
-		attackDirection_.x, attackDirection_.y, attackDirection_.z);
-
-	ImGui::Separator();
-	ImGui::Text("Damage Settings:");
-	ImGui::Text("Attack Damage: %d", attackDamage_);
-	ImGui::Text("Rush Attack Damage: %d", rushAttackDamage_);
-
-	ImGui::End();
-}
-
+// =============================================================
+//  OnCollision（当たり判定は本体に残す）
+// =============================================================
 void PlayerArm::OnCollision(Collider* other)
 {
-	// 攻撃中またはラッシュ中でない場合は処理しない
-	if (!isAttack_ && !isRush_) {
-		return;
-	}
+	if (!attack_->GetIsAttack() && !rush_->GetIsRush()) { return; }
 
 	uint32_t typeID = other->GetTypeID();
 
-	// 敵との当たり判定
 	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kEnemy)) {
 		Enemy* enemy = static_cast<Enemy*>(other);
 
-		// ラッシュ攻撃中
-		if (isRush_ && rushAttackActive_) {
-			if (rushAttackTimer_ >= 2 && rushAttackTimer_ <= 6) {
-				int currentFrame = static_cast<int>(rushTimer_);
-
-				if (currentFrame - lastRushHitFrame_ >= 3) {
-					// 最後の一撃かどうか判定
-					// 残りフレームが1インターバル以内 = これ以上ラッシュパンチは来ない
-					bool isFinalHit = (rushTimer_ >= kRushDuration - kRushInterval);
-
-					enemy->TakeDamage(rushAttackDamage_);
-					enemy->OnRushHit(isFinalHit);   // スタン or ノックバック通知
-					lastRushHitFrame_ = currentFrame;
+		// -------------------------------------------------------
+		// フィニッシャー判定（右腕専用・最優先）
+		// -------------------------------------------------------
+		if (rush_->GetIsRush() && isRightArm_ &&
+			rush_->GetRushPhase() == RushPhase::kFinisher && rush_->IsFinisherHitFrame()) {
+			if (!rush_->HasFinisherHit()) {
+				enemy->TakeDamage(rush_->GetFinisherAttackDamage());
+				enemy->OnRushHit(true);
+				rush_->SetHasFinisherHit(true);
+				rush_->SetIsFinisherHitFrame(false);
+			}
+		}
+		// -------------------------------------------------------
+		// 連続パンチ判定
+		// -------------------------------------------------------
+		else if (rush_->GetIsRush() &&
+			rush_->GetRushPhase() == RushPhase::kRapidPunch && rush_->IsRushAttackActive()) {
+			uint32_t rushAttackTimer = rush_->GetRushAttackTimer();
+			if (rushAttackTimer >= 2 && rushAttackTimer <= 6) {
+				int currentFrame = static_cast<int>(rush_->GetRushTimer());
+				if (currentFrame - rush_->GetLastRushHitFrame() >= 3) {
+					enemy->TakeDamage(rush_->GetRushAttackDamage());
+					enemy->OnRushHit(false);
+					rush_->SetLastRushHitFrame(currentFrame);
 				}
 			}
 		}
-		// 通常攻撃中
-		else if (isAttack_) {
-			// 攻撃の最大前進時のみダメージを与える
-			if (attackProgress_ >= 0.4f && attackProgress_ <= 0.6f) {
-				// まだこの攻撃でヒットしていなければダメージを与える
-				if (!hasHitThisAttack_) {
-					enemy->TakeDamage(attackDamage_);
-					hasHitThisAttack_ = true;
-				}
+		// -------------------------------------------------------
+		// 通常攻撃判定
+		// -------------------------------------------------------
+		else if (attack_->GetIsAttack()) {
+			float progress = attack_->GetAttackProgress();
+			if (progress >= 0.4f && progress <= 0.6f) {
+				// hasHitThisAttack_ は PlayerArmAttack 側で管理する想定
+				// 現状は毎フレーム TakeDamage しないよう PlayerArmAttack にフラグ追加を推奨
+				enemy->TakeDamage(attack_->GetAttackDamage());
 			}
 		}
 	}
 }
 
+// =============================================================
+//  SetPlayer
+// =============================================================
 void PlayerArm::SetPlayer(Player* player)
 {
 	player_ = player;

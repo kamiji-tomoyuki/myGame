@@ -167,6 +167,12 @@ private:
 	void TakeDamage(const Vector3& hitPosition);
 	void UpdateHitReaction();
 
+	/// <summary>
+	/// 攻撃アクション時関連関数
+	/// </summary>
+	void UpdateRushBodyPosture();
+	void UpdateFinisherAdvance();
+
 private:
 
 	// --- モデル ---
@@ -183,8 +189,7 @@ private:
 	// ゲーム状態
 	GameState gameState_ = GameState::kPlaying;
 
-	// Behavior（回避中は dodge_->IsDodging() で判定するが、
-	//           他箇所との整合のためにも維持）
+	// Behavior
 	Behavior behavior_ = Behavior::kRoot;
 
 	// HP
@@ -225,7 +230,24 @@ private:
 
 	// ロックオン関連変数
 	bool    isLockOn_ = false;
+	float lockOnAngleY_ = 0.0f;
 	Enemy* enemy_ = nullptr;
+
+	// --- ラッシュ中の姿勢制御 ---
+	Vector3 rushBaseRotation_{};        // ラッシュ開始時のプレイヤー回転（基準）
+	float   rushBodyPitchTarget_ = 0.0f;// 前傾ターゲット（X軸）
+	float   rushBodyPitchCurrent_ = 0.0f;// 現在の前傾量
+	float   rushBodyTwistTarget_ = 0.0f;// ひねりターゲット（Y軸オフセット）
+	float   rushBodyTwistCurrent_ = 0.0f;// 現在のひねり量
+
+	// フィニッシャー前進
+	bool  isFinisherAdvancing_ = false;
+	float finisherAdvanceAmount_ = 0.0f;
+
+	static constexpr float kRushLeanPitch_ = 0.18f;  // ラッシュ前傾角(rad)
+	static constexpr float kWindUpTwist_ = 0.22f;  // 振りかぶり時の右ひねり量(rad)
+	static constexpr float kFinisherTwist_ = -0.30f;  // 繰り出し時の左ひねり量(rad)
+	static constexpr float kFinisherMaxAdvance_ = 4.0f;   // プレイヤー前進最大距離
 
 	// --- 各エフェクト・演出 ---
 	std::unique_ptr<ParticleEmitter> hitEffect_;

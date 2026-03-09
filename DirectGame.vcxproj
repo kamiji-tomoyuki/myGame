@@ -116,6 +116,8 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\character\enemy\action\EnemyAttackRanged.cpp" />
     <ClCompile Include="application\character\player\action\PlayerAttack.cpp" />
     <ClCompile Include="application\character\player\action\PlayerDodge.cpp" />
+    <ClCompile Include="application\character\player\Arm\PlayerArmAttack.cpp" />
+    <ClCompile Include="application\character\player\Arm\PlayerArmRush.cpp" />
     <ClCompile Include="application\character\player\effect\PlayerGameClearEffect.cpp" />
     <ClCompile Include="application\character\player\effect\PlayerGameOverEffect.cpp" />
     <ClCompile Include="application\character\player\effect\PlayerStartEffect.cpp" />
@@ -230,6 +232,8 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\character\player\action\PlayerAttack.h" />
     <ClInclude Include="application\character\player\action\PlayerDodge.h" />
     <ClInclude Include="application\character\player\arm\PlayerArm.h" />
+    <ClInclude Include="application\character\player\Arm\PlayerArmAttack.h" />
+    <ClInclude Include="application\character\player\Arm\PlayerArmRush.h" />
     <ClInclude Include="application\character\player\effect\PlayerGameClearEffect.h" />
     <ClInclude Include="application\character\player\effect\PlayerGameOverEffect.h" />
     <ClInclude Include="application\character\player\effect\PlayerStartEffect.h" />
