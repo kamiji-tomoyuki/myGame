@@ -53,7 +53,12 @@ void PlayerArm::Update()
 	}
 	case Behavior::kRush:
 	{
-		bool finished = rush_->Update();
+		float bodyRotY = 0.0f;
+		if (transform_.parent_ != nullptr) {
+			bodyRotY = transform_.parent_->rotation_.y;
+		}
+
+		bool finished = rush_->Update(bodyRotY);
 		// ラッシュ終了 → Normal に戻す＆攻撃タイプをリセット
 		if (finished) {
 			behavior_ = Behavior::kNormal;
@@ -128,9 +133,10 @@ void PlayerArm::DrawAnimation(const ViewProjection& viewProjection)
 void PlayerArm::DrawParticle(const ViewProjection& viewProjection) {}
 
 // =============================================================
-//  OnCollision（当たり判定は本体に残す）
+//  HandleHit（OnCollision / OnCollisionEnter の共通処理）
+//  [FIX] 衝突初回(OnCollisionEnter)でもダメージが入るよう共通関数に切り出し
 // =============================================================
-void PlayerArm::OnCollision(Collider* other)
+void PlayerArm::HandleHit(Collider* other)
 {
 	if (!attack_->GetIsAttack() && !rush_->GetIsRush()) { return; }
 
@@ -148,7 +154,7 @@ void PlayerArm::OnCollision(Collider* other)
 				enemy->TakeDamage(rush_->GetFinisherAttackDamage());
 				enemy->OnRushHit(true);
 				rush_->SetHasFinisherHit(true);
-				// isFinisherHitFrame_ は PlayerArmRush 側でウィンドウを抜けたら自動的にオフになる
+				rush_->SetIsFinisherHitFrame(false); // 同フレームでの二重ヒット防止
 			}
 		}
 		// -------------------------------------------------------
@@ -173,10 +179,26 @@ void PlayerArm::OnCollision(Collider* other)
 			float progress = attack_->GetAttackProgress();
 			if (progress >= 0.4f && progress <= 0.6f && !attack_->GetHasHitThisAttack()) {
 				enemy->TakeDamage(attack_->GetAttackDamage());
-				attack_->SetHasHitThisAttack(true);	// 1回ヒットしたらフラグを立てる
+				attack_->SetHasHitThisAttack(true);
 			}
 		}
 	}
+}
+
+// =============================================================
+//  OnCollisionEnter（衝突開始フレーム）
+// =============================================================
+void PlayerArm::OnCollisionEnter(Collider* other)
+{
+	HandleHit(other);
+}
+
+// =============================================================
+//  OnCollision（衝突継続フレーム）
+// =============================================================
+void PlayerArm::OnCollision(Collider* other)
+{
+	HandleHit(other);
 }
 
 // =============================================================

@@ -64,6 +64,7 @@ public:
 	/// <summary>
 	/// 当たり判定
 	/// </summary>
+	void OnCollisionEnter([[maybe_unused]] Collider* other) override; // [FIX] 追加：衝突初回フレームの処理
 	void OnCollision([[maybe_unused]] Collider* other) override;
 
 public:
@@ -117,6 +118,9 @@ public:
 #pragma endregion
 
 private:
+
+	// [FIX] 追加：OnCollision / OnCollisionEnter の共通ヒット処理
+	void HandleHit(Collider* other);
 
 	// モデル
 	std::unique_ptr<Object3d> obj3d_;

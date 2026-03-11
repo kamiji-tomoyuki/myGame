@@ -128,7 +128,7 @@ private:
 	std::unique_ptr<PlayerStartEffect>    startEffect_;
 	std::unique_ptr<PlayerGameOverEffect> gameOverEffect_;
 	std::unique_ptr<PlayerGameClearEffect> gameClearEffect_;
-	
+
 	// ステータス
 	bool      isAlive_ = true;
 	GameState gameState_ = GameState::kPlaying;
@@ -152,8 +152,6 @@ private:
 	uint32_t globalComboTimer_ = 0;
 
 	// ロックオン
-	bool   isLockOn_ = false;
-	float  lockOnAngleY_ = 0.0f;
 	Enemy* enemy_ = nullptr;
 
 	// エフェクト

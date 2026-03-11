@@ -24,12 +24,10 @@ public:
 	/// ラッシュ姿勢更新
 	/// </summary>
 	/// <param name="arms">プレイヤーの腕配列</param>
-	/// <param name="isLockOn">ロックオン中か</param>
 	/// <param name="currentRotation">現在のプレイヤー回転</param>
 	/// <param name="outRotation">適用すべき新しい回転（出力）</param>
 	void UpdateBodyPosture(
 		const std::array<std::unique_ptr<PlayerArm>, 2>& arms,
-		bool          isLockOn,
 		const Vector3& currentRotation,
 		Vector3& outRotation);
 

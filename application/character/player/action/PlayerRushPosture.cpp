@@ -21,7 +21,6 @@ void PlayerRushPosture::Init(FollowCamera* followCamera, StageManager* stageMana
 // =============================================================
 void PlayerRushPosture::UpdateBodyPosture(
 	const std::array<std::unique_ptr<PlayerArm>, 2>& arms,
-	bool           isLockOn,
 	const Vector3& currentRotation,
 	Vector3& outRotation)
 {
@@ -69,9 +68,6 @@ void PlayerRushPosture::UpdateBodyPosture(
 
 	if (followCamera_) {
 		followCamera_->SetFinisherMode(needFinisherCam);
-		if (needFinisherCam && !isLockOn) {
-			followCamera_->SetStableAngleY(rushBaseRotation_.y);
-		}
 	}
 
 	switch (phase) {

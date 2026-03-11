@@ -123,7 +123,7 @@ void Player::Update()
 		{
 			Vector3 currentRot = BaseObject::GetTransform().rotation_;
 			Vector3 newRot = currentRot;
-			rushPosture_->UpdateBodyPosture(arms_, isLockOn_, currentRot, newRot);
+			rushPosture_->UpdateBodyPosture(arms_, currentRot, newRot);
 
 			// ひねり量を抑制（元の回転との差分をスケールダウン）
 			const float kTwistScale = 0.4f;
@@ -231,11 +231,7 @@ void Player::ApplyDamage(uint32_t damage, const Vector3& hitPosition)
 // =============================================================
 void Player::UpdateLockOn()
 {
-	if (Input::GetInstance()->TriggerKey(DIK_R)) {
-		isLockOn_ = !isLockOn_;
-	}
-
-	if (isLockOn_ && enemy_ != nullptr) {
+	if (enemy_ != nullptr) {
 		Vector3 playerPos = GetCenterPosition();
 		Vector3 enemyPos = enemy_->GetCenterPosition();
 		Vector3 dir = (enemyPos - playerPos).Normalize();
@@ -252,11 +248,7 @@ void Player::UpdateLockOn()
 		Vector3 rot = GetCenterRotation();
 		BaseObject::SetRotation({ rot.x, newRotY, rot.z });
 
-		lockOnAngleY_ = targetRotY;
-		if (followCamera_) { followCamera_->SetStableAngleY(lockOnAngleY_); }
-	}
-	else {
-		if (followCamera_) { followCamera_->ClearStableAngle(); }
+		if (followCamera_) { followCamera_->SetStableAngleY(targetRotY); }
 	}
 }
 

@@ -449,7 +449,7 @@ void Enemy::OnCollision(Collider* other)
 		Player* player = static_cast<Player*>(other);
 
 		//------------------------------------------
-		if (HP_ < 0) {
+		if (HP_ == 0) {
 			isAlive_ = false;
 		}
 		//------------------------------------------
@@ -461,34 +461,6 @@ void Enemy::OnCollision(Collider* other)
 
 		// 衝突時の反発処理
 		HandleCollisionWithPlayer(player);
-	}
-
-	// プレイヤーの腕との衝突処理
-	if (typeID == static_cast<uint32_t>(CollisionTypeIdDef::kPRArm) ||
-		typeID == static_cast<uint32_t>(CollisionTypeIdDef::kPLArm)) {
-
-		PlayerArm* arm = static_cast<PlayerArm*>(other);
-
-		if (HP_ == 0) {
-			isAlive_ = false;
-			return;
-		}
-
-		// フィニッシャー判定（右腕専用）
-		if (arm->GetIsRush() && arm->IsRightArm() &&
-			arm->GetRushPhase() == PlayerArm::RushPhase::kFinisher &&
-			arm->IsFinisherHitFrame() &&
-			!arm->HasFinisherHit()) {
-			TakeDamage(150); // フィニッシャーダメージ
-			OnRushHit(true);
-			arm->SetFinisherHit(); // 二重ダメージ防止
-		}
-		// 連続パンチ判定
-		else if (arm->GetIsRush() &&
-			arm->GetRushPhase() == PlayerArm::RushPhase::kRapidPunch &&
-			!isRushStunned_) {
-			OnRushHit(false);
-		}
 	}
 }
 

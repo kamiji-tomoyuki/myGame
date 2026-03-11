@@ -1,6 +1,7 @@
 #pragma once
 #include "Vector3.h"
 #include <cstdint>
+#include <cmath>
 
 /// <summary>
 /// プレイヤー腕 - ラッシュ攻撃ロジック
@@ -25,14 +26,15 @@ public:
 	/// ラッシュ開始
 	/// </summary>
 	/// <param name="isRightArm">右腕かどうか</param>
-	/// <param name="currentTranslation">現在の腕の位置</param>
+	/// <param name="currentTranslation">現在の腕の位置（ローカル座標）</param>
 	void StartRush(bool isRightArm, const Vector3& currentTranslation);
 
 	/// <summary>
 	/// 更新（毎フレーム呼ぶ）
 	/// </summary>
+	/// <param name="currentBodyRotY">現在のプレイヤー体のY回転（ラジアン）</param>
 	/// <returns>ラッシュ全体が終了したら true</returns>
-	bool Update();
+	bool Update(float currentBodyRotY);
 
 public:
 #pragma region getter
@@ -72,13 +74,22 @@ private:
 	void UpdateFinisher();
 	void UpdateRecover();
 
+	/// <summary>
+	/// ワールド空間のオフセットを、現在の体回転を考慮したローカル座標に変換する。
+	/// 体がひねられていても腕がワールド的にまっすぐ前に出るよう補正する。
+	/// </summary>
+	/// <param name="worldOffset">ワールド空間での移動オフセット（ラッシュ開始時の体向きを基準）</param>
+	/// <param name="currentBodyRotY">現在の体のY回転（ラジアン）</param>
+	/// <returns>ローカル空間でのオフセット</returns>
+	Vector3 WorldOffsetToLocal(const Vector3& worldOffset, float currentBodyRotY) const;
+
 private:
 
 	bool      isRush_ = false;
 	bool      isRightArm_ = true;
 	RushPhase rushPhase_ = RushPhase::kRapidPunch;
 
-	// 位置情報
+	// 位置情報（すべてローカル座標）
 	Vector3   originalPosition_ = {};
 	Vector3   targetPosition_ = {};
 	Vector3   currentTranslation_ = {};
@@ -103,6 +114,14 @@ private:
 	// ダメージ
 	uint32_t  rushAttackDamage_ = 20;
 	uint32_t  finisherAttackDamage_ = 150;
+
+	// -------------------------------------------------------
+	// フィニッシャー補正用
+	//   WindUp開始時点のプレイヤー体のY回転を保存し、
+	//   フィニッシャー中は毎フレームの体回転との差分でローカル座標を補正する
+	// -------------------------------------------------------
+	float     bodyRotYAtWindUpStart_ = 0.0f;	// WindUp開始時の体のY回転（ラジアン）
+	float     currentBodyRotY_ = 0.0f;			// 毎フレーム更新される現在の体のY回転
 
 	// -------------------------------------------------------
 	// 定数
