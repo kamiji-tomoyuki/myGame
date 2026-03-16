@@ -26,7 +26,7 @@ void PlayerArmRush::StartRush(bool isRightArm, const Vector3& currentTranslation
 	currentTranslation_ = currentTranslation;
 }
 
- bool PlayerArmRush::Update(float currentBodyRotY)
+bool PlayerArmRush::Update(float currentBodyRotY)
 {
 	if (!isRush_) { return false; }
 
@@ -234,9 +234,6 @@ void PlayerArmRush::UpdateFinisher()
 		if (t >= 0.3f && t <= 0.7f && !hasFinisherHit_) {
 			isFinisherHitFrame_ = true;
 		}
-		else if (t > 0.7f) {
-			isFinisherHitFrame_ = false;
-		}
 	}
 	else {
 		// 左腕もひねり補正を適用（左腕は引き気味なので補正量は小さい）
@@ -275,6 +272,10 @@ void PlayerArmRush::UpdateFinisher()
 
 void PlayerArmRush::UpdateRecover()
 {
+	if (rushPhaseTimer_ >= 2) {
+		isFinisherHitFrame_ = false;
+	}
+
 	float t = static_cast<float>(rushPhaseTimer_) / static_cast<float>(kRecoverDuration);
 	if (t > 1.0f) { t = 1.0f; }
 	rushPhaseProgress_ = t;

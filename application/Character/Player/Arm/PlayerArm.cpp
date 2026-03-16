@@ -134,7 +134,6 @@ void PlayerArm::DrawParticle(const ViewProjection& viewProjection) {}
 
 // =============================================================
 //  HandleHit（OnCollision / OnCollisionEnter の共通処理）
-//  [FIX] 衝突初回(OnCollisionEnter)でもダメージが入るよう共通関数に切り出し
 // =============================================================
 void PlayerArm::HandleHit(Collider* other)
 {
@@ -146,11 +145,15 @@ void PlayerArm::HandleHit(Collider* other)
 		Enemy* enemy = static_cast<Enemy*>(other);
 
 		// -------------------------------------------------------
-		// フィニッシャー判定（右腕専用・最優先）
+		// フィニッシャー判定（右腕専用）
 		// -------------------------------------------------------
-		if (rush_->GetIsRush() && isRightArm_ &&
-			rush_->GetRushPhase() == RushPhase::kFinisher && rush_->IsFinisherHitFrame()) {
-			if (!rush_->HasFinisherHit()) {
+		if (rush_->GetIsRush() && isRightArm_ && !rush_->HasFinisherHit()) {
+
+			bool isFinisherOrEarlyRecover =
+				(rush_->GetRushPhase() == RushPhase::kFinisher ||
+					rush_->GetRushPhase() == RushPhase::kRecover);
+
+			if (isFinisherOrEarlyRecover && rush_->IsFinisherHitFrame()) {
 				enemy->TakeDamage(rush_->GetFinisherAttackDamage());
 				enemy->OnRushHit(true);
 				rush_->SetHasFinisherHit(true);
