@@ -422,6 +422,75 @@
     <ClCompile Include="application\character\player\action\PlayerRushPosture.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
+    <ClCompile Include="application\character\player\behavior\PlayerBehaviorDodge.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\behavior\PlayerBehaviorHitReact.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\behavior\PlayerBehaviorRoot.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\state\PlayerStateGameClear.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\state\PlayerStateGameOver.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\state\PlayerStatePlaying.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\action\PlayerAttack.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\action\PlayerDodge.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\action\PlayerMove.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\action\PlayerRushPosture.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\arm\PlayerArm.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\arm\PlayerArmAttack.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\arm\PlayerArmRush.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\reaction\PlayerHitReaction.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\enemy\effect\EnemyEffect.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\enemy\state\EnemyStateGameClear.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\enemy\state\EnemyStateGameOver.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\enemy\state\EnemyStatePlaying.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\enemy\component\action\EnemyAttackManager.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\enemy\component\action\EnemyAttackMelee.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\enemy\component\action\EnemyAttackRanged.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\enemy\component\action\EnemyMove.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\enemy\component\reaction\EnemyHitReaction.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -714,6 +783,32 @@
     <ClInclude Include="application\character\player\action\PlayerMove.h" />
     <ClInclude Include="application\character\player\reaction\PlayerHitReaction.h" />
     <ClInclude Include="application\character\player\action\PlayerRushPosture.h" />
+    <ClInclude Include="application\character\player\behavior\IPlayerBehavior.h" />
+    <ClInclude Include="application\character\player\behavior\PlayerBehaviorDodge.h" />
+    <ClInclude Include="application\character\player\behavior\PlayerBehaviorHitReact.h" />
+    <ClInclude Include="application\character\player\behavior\PlayerBehaviorRoot.h" />
+    <ClInclude Include="application\character\player\state\IPlayerState.h" />
+    <ClInclude Include="application\character\player\state\PlayerStateGameClear.h" />
+    <ClInclude Include="application\character\player\state\PlayerStateGameOver.h" />
+    <ClInclude Include="application\character\player\state\PlayerStatePlaying.h" />
+    <ClInclude Include="application\character\player\component\action\PlayerAttack.h" />
+    <ClInclude Include="application\character\player\component\action\PlayerDodge.h" />
+    <ClInclude Include="application\character\player\component\action\PlayerMove.h" />
+    <ClInclude Include="application\character\player\component\action\PlayerRushPosture.h" />
+    <ClInclude Include="application\character\player\component\arm\PlayerArm.h" />
+    <ClInclude Include="application\character\player\component\arm\PlayerArmAttack.h" />
+    <ClInclude Include="application\character\player\component\arm\PlayerArmRush.h" />
+    <ClInclude Include="application\character\player\component\reaction\PlayerHitReaction.h" />
+    <ClInclude Include="application\character\enemy\effect\EnemyEffect.h" />
+    <ClInclude Include="application\character\enemy\state\EnemyStateGameClear.h" />
+    <ClInclude Include="application\character\enemy\state\EnemyStateGameOver.h" />
+    <ClInclude Include="application\character\enemy\state\EnemyStatePlaying.h" />
+    <ClInclude Include="application\character\enemy\state\IEnemyState.h" />
+    <ClInclude Include="application\character\enemy\component\action\EnemyAttackManager.h" />
+    <ClInclude Include="application\character\enemy\component\action\EnemyAttackMelee.h" />
+    <ClInclude Include="application\character\enemy\component\action\EnemyAttackRanged.h" />
+    <ClInclude Include="application\character\enemy\component\action\EnemyMove.h" />
+    <ClInclude Include="application\character\enemy\component\reaction\EnemyHitReaction.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\particle\Particle.PS.hlsl">

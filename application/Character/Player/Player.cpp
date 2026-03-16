@@ -6,6 +6,11 @@
 #include <Enemy.h>
 #include <EnemyAttackManager.h>
 
+// State Pattern
+#include "PlayerStatePlaying.h"
+#include "PlayerStateGameOver.h"
+#include "PlayerStateGameClear.h"
+
 Player::Player()
 {
 	serialNumber_ = nextSerialNumber_;
@@ -61,13 +66,11 @@ void Player::Init()
 	move_ = std::make_unique<PlayerMove>();
 	move_->Init(stageManager_);
 	move_->SetTrailEmitter(trailEffect_.get());
-	// 軌跡パーティクルの初期位置を設定（元コードと同じ）
 	move_->SetLastTrailPosition(BaseObject::GetWorldPosition());
 
 	rushPosture_ = std::make_unique<PlayerRushPosture>();
 	rushPosture_->Init(followCamera_, stageManager_);
 
-	// 既存サブクラス
 	startEffect_ = std::make_unique<PlayerStartEffect>(this);
 	gameOverEffect_ = std::make_unique<PlayerGameOverEffect>(this);
 	gameClearEffect_ = std::make_unique<PlayerGameClearEffect>(this);
@@ -76,6 +79,25 @@ void Player::Init()
 
 	isAlive_ = true;
 	gameState_ = GameState::kPlaying;
+
+	// =============================================================
+	// State Pattern — 初期状態を Playing に設定
+	// =============================================================
+	ChangeState(new PlayerStatePlaying());
+}
+
+// =============================================================
+//  State の切り替え（Enter / Exit を確実に呼ぶ）
+// =============================================================
+void Player::ChangeState(IPlayerState* next)
+{
+	if (currentState_) {
+		currentState_->Exit(this);
+	}
+	currentState_.reset(next);
+	if (currentState_) {
+		currentState_->Enter(this);
+	}
 }
 
 // =============================================================
@@ -88,81 +110,23 @@ void Player::UpdateStartEffect()
 }
 
 // =============================================================
-//  メイン Update
+//  メイン Update — switch 文の代わりに currentState_ へ委譲
 // =============================================================
 void Player::Update()
 {
 	BaseObject::Update();
 
-	switch (gameState_) {
-	case GameState::kPlaying:
-		if (isAlive_) {
-			hitReaction_->UpdateContactCooldown();
-
-			if (hitReaction_->IsHitReacting()) {
-				// Update でシェイクオフセットを計算させるだけ（実座標は動かさない）
-				hitReaction_->Update();
-			}
-			else if (dodge_->IsDodging()) {
-				behavior_ = Behavior::kDodge;
-				dodge_->Update();
-			}
-			else {
-				behavior_ = Behavior::kRoot;
-				hitEffect_->SetPosition(BaseObject::GetWorldPosition());
-				Move();
-				attack_->Update();
-				UpdateLockOn();
-			}
+	// 現在の状態を更新し、次状態が返ってきたら遷移する
+	if (currentState_) {
+		IPlayerState* next = currentState_->Update(this);
+		if (next) {
+			ChangeState(next);
 		}
-
-		obj3d_->UpdateAnimation(true);
-		UpdateArms();
-
-		// ラッシュ姿勢
-		{
-			Vector3 currentRot = BaseObject::GetTransform().rotation_;
-			Vector3 newRot = currentRot;
-			rushPosture_->UpdateBodyPosture(arms_, currentRot, newRot);
-
-			// ひねり量を抑制（元の回転との差分をスケールダウン）
-			const float kTwistScale = 0.4f;
-			newRot.y = currentRot.y + (newRot.y - currentRot.y) * kTwistScale;
-			newRot.z = currentRot.z + (newRot.z - currentRot.z) * kTwistScale;
-
-			BaseObject::SetRotation(newRot);
-		}
-
-		// フィニッシャー前進（ラッシュ中のみ座標を上書き）
-		{
-			Vector3 currentPos = BaseObject::GetWorldPosition();
-			Vector3 newPos = currentPos;
-			rushPosture_->UpdateFinisherAdvance(
-				arms_,
-				currentPos,
-				BaseObject::GetTransform().rotation_.y,
-				newPos);
-			if (rushPosture_->IsFinisherAdvancing()) {
-				BaseObject::SetWorldPosition(newPos);
-			}
-		}
-
-		break;
-
-	case GameState::kGameOver:
-		gameOverEffect_->Update();
-		isAlive_ = gameOverEffect_->IsAlive();
-		break;
-
-	case GameState::kGameClear:
-		gameClearEffect_->Update();
-		break;
 	}
 
-	// HPバー更新
+	// HPバー更新（状態に関わらず毎フレーム更新）
 	float hpRatio = static_cast<float>(HP_) / static_cast<float>(kMaxHP_);
-	float currentWidth = kHpBarFullWidth_ * hpRatio;
-	hpBar_->SetSize({ currentWidth, kHpBarHeight_ });
+	hpBar_->SetSize({ kHpBarFullWidth_ * hpRatio, kHpBarHeight_ });
 
 	trailEffect_->UpdateOnce(*vp_);
 	Collider::UpdateWorldTransform();
@@ -174,9 +138,9 @@ void Player::Update()
 }
 
 // =============================================================
-//  移動（PlayerMoveに委譲）
+//  移動（PlayerMove に委譲 — BehaviorRoot から呼ばれる）
 // =============================================================
-void Player::Move()
+void Player::MoveInternal()
 {
 	Vector3 currentPos = BaseObject::GetWorldPosition();
 	float   currentRotY = BaseObject::GetTransform().rotation_.y;
@@ -187,14 +151,11 @@ void Player::Move()
 
 	Vector3 dodgeDir = move_->Update(currentPos, currentRotY, newPos, newRotY);
 
-	// Y軸回転を反映
 	currentRot.y = newRotY;
 	BaseObject::SetRotation(currentRot);
 
-	// 回避リクエストがあれば Dodge に渡す
 	if (move_->IsDodgeRequested()) {
 		dodge_->Start(dodgeDir);
-		behavior_ = Behavior::kDodge;
 		return;
 	}
 
@@ -202,7 +163,7 @@ void Player::Move()
 }
 
 // =============================================================
-//  被弾（PlayerHitReactionに委譲）
+//  被弾（PlayerHitReaction に委譲）
 // =============================================================
 void Player::TakeDamage(const Vector3& hitPosition)
 {
@@ -217,9 +178,12 @@ void Player::ApplyDamage(uint32_t damage, const Vector3& hitPosition)
 {
 	if (dodge_->IsDodging() || hitReaction_->IsHitReacting()) { return; }
 
-	if (HP_ > damage) { HP_ -= damage; }
+	if (HP_ > damage) {
+		HP_ -= damage;
+	}
 	else {
 		HP_ = 0;
+		// gameState_ を更新するだけ — 次フレームの State::Update() で ChangeState が走る
 		gameState_ = GameState::kGameOver;
 	}
 
@@ -231,25 +195,25 @@ void Player::ApplyDamage(uint32_t damage, const Vector3& hitPosition)
 // =============================================================
 void Player::UpdateLockOn()
 {
-	if (enemy_ != nullptr) {
-		Vector3 playerPos = GetCenterPosition();
-		Vector3 enemyPos = enemy_->GetCenterPosition();
-		Vector3 dir = (enemyPos - playerPos).Normalize();
+	if (enemy_ == nullptr) { return; }
 
-		float targetRotY = std::atan2(dir.x, dir.z);
-		float currentRotY = GetCenterRotation().y;
+	Vector3 playerPos = GetCenterPosition();
+	Vector3 enemyPos = enemy_->GetCenterPosition();
+	Vector3 dir = (enemyPos - playerPos).Normalize();
 
-		float diff = targetRotY - currentRotY;
-		const float PI = 3.14159265359f;
-		while (diff > PI) { diff -= 2.0f * PI; }
-		while (diff < -PI) { diff += 2.0f * PI; }
+	float targetRotY = std::atan2(dir.x, dir.z);
+	float currentRotY = GetCenterRotation().y;
 
-		float newRotY = currentRotY + diff * 0.2f;
-		Vector3 rot = GetCenterRotation();
-		BaseObject::SetRotation({ rot.x, newRotY, rot.z });
+	float diff = targetRotY - currentRotY;
+	const float PI = 3.14159265359f;
+	while (diff > PI) { diff -= 2.0f * PI; }
+	while (diff < -PI) { diff += 2.0f * PI; }
 
-		if (followCamera_) { followCamera_->SetStableAngleY(targetRotY); }
-	}
+	float newRotY = currentRotY + diff * 0.2f;
+	Vector3 rot = GetCenterRotation();
+	BaseObject::SetRotation({ rot.x, newRotY, rot.z });
+
+	if (followCamera_) { followCamera_->SetStableAngleY(targetRotY); }
 }
 
 // =============================================================
@@ -268,7 +232,7 @@ void Player::UpdateModelAnimation()
 }
 
 // =============================================================
-//  UI判定・攻撃実行中判定（PlayerAttackに委譲）
+//  UI判定・攻撃実行中判定（PlayerAttack に委譲）
 // =============================================================
 bool Player::CanRightPunch()      const { return attack_->CanRightPunch(); }
 bool Player::CanLeftPunch()       const { return attack_->CanLeftPunch(); }
@@ -278,7 +242,7 @@ bool Player::IsLeftPunchActive()  const { return attack_->IsLeftPunchActive(); }
 bool Player::IsRushActive()       const { return attack_->IsRushActive(); }
 
 // =============================================================
-//  velocity getter/setter（PlayerMoveに委譲）
+//  velocity getter/setter（PlayerMove に委譲）
 // =============================================================
 Vector3 Player::GetVelocity() const { return move_ ? move_->GetVelocity() : Vector3{}; }
 void    Player::SetVelocity(const Vector3& v) { if (move_) { move_->SetVelocity(v); } }
@@ -292,7 +256,6 @@ void Player::Draw(const ViewProjection& viewProjection)
 
 	WorldTransform tempTransform = BaseObject::GetWorldTransform();
 	if (hitReaction_->IsHitReacting()) {
-		// 実座標はそのままに、描画位置だけオフセットを乗せる（元コードと同じ方式）
 		tempTransform.translation_ += hitReaction_->GetShakeOffset();
 		tempTransform.UpdateMatrix();
 	}

@@ -17,14 +17,26 @@
 #include "PlayerMove.h"
 #include "PlayerRushPosture.h"
 
+// State Pattern
+#include "IPlayerState.h"
+
 class FollowCamera;
 class Enemy;
 
 /// <summary>
 /// プレイヤークラス
+/// State Pattern により行動・状態管理を各状態クラスへ委譲する
 /// </summary>
 class Player : public BaseObject
 {
+	// 各状態クラス・行動クラスが内部メンバに直接アクセスできるようにする
+	friend class PlayerStatePlaying;
+	friend class PlayerStateGameOver;
+	friend class PlayerStateGameClear;
+	friend class PlayerBehaviorRoot;
+	friend class PlayerBehaviorDodge;
+	friend class PlayerBehaviorHitReact;
+
 public:
 
 	enum ModelArm {
@@ -33,12 +45,8 @@ public:
 		kModelNum,
 	};
 
-	enum class Behavior {
-		kRoot,
-		kAttack,
-		kDodge,
-	};
-
+	// ※ Behavior enum は削除 — IPlayerBehavior の派生クラスで表現する
+	// ※ GameState enum は状態遷移トリガーとして残す（外部通知用）
 	enum class GameState {
 		kPlaying,
 		kGameOver,
@@ -105,9 +113,15 @@ public:
 private:
 
 	void InitArm();
-	void Move();
+
+	/// <summary>State クラスから呼ばれる移動処理</summary>
+	void MoveInternal();
+
 	void UpdateLockOn();
 	void TakeDamage(const Vector3& hitPosition);
+
+	/// <summary>State を切り替える</summary>
+	void ChangeState(IPlayerState* next);
 
 private:
 
@@ -131,8 +145,14 @@ private:
 
 	// ステータス
 	bool      isAlive_ = true;
+
+	// GameState
 	GameState gameState_ = GameState::kPlaying;
-	Behavior  behavior_ = Behavior::kRoot;
+
+	// ===========================================================
+	//  State Pattern — 状態オブジェクト
+	// ===========================================================
+	std::unique_ptr<IPlayerState> currentState_;
 
 	// HP
 	uint32_t kMaxHP_ = 1000;
