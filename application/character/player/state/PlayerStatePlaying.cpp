@@ -1,5 +1,6 @@
 #include "PlayerStatePlaying.h"
 #include "PlayerStateGameOver.h"
+#include "PlayerStateGameClear.h"
 #include "PlayerBehaviorRoot.h"
 #include "IPlayerBehavior.h"
 #include "Player.h"

@@ -1,8 +1,7 @@
 #pragma once
 #include "IPlayerState.h"
+#include "IPlayerBehavior.h"
 #include <memory>
-
-class IPlayerBehavior;
 
 /// <summary>
 /// プレイ中状態
