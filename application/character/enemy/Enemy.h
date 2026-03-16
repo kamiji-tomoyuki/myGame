@@ -4,181 +4,147 @@
 #include "ViewProjection.h"
 #include <Sprite.h>
 
+// コンポーネント
+#include "EnemyMove.h"
+#include "EnemyHitReaction.h"
+
+// エフェクト
+#include "EnemyEffect.h"
+
+// State Pattern
+#include "IEnemyState.h"
+
 class Player;
 class EnemyAttackManager;
 
 /// <summary>
 /// 敵クラス
+/// State Pattern により状態管理を各状態クラスへ委譲する
 /// </summary>
 class Enemy : public BaseObject
 {
+	// 各状態クラス・コンポーネントが内部メンバに直接アクセスできるようにする
+	friend class EnemyStatePlaying;
+	friend class EnemyStateGameOver;
+	friend class EnemyStateGameClear;
+
 public:
 
 	/// <summary>
-	/// ゲーム状態
+	/// ゲーム状態（外部通知・遷移トリガー用）
 	/// </summary>
 	enum class GameState {
-		kPlaying,		// ゲームプレイ中
-		kGameOver,		// ゲームオーバー
-		kGameClear,		// ゲームクリア
+		kPlaying,
+		kGameOver,
+		kGameClear,
 	};
 
 public:
 
 	Enemy();
 
-	/// <summary>
-	/// 初期化
-	/// </summary>
 	void Init() override;
-
-	/// <summary>
-	/// 更新
-	/// </summary>
 	void Update(Player* player, const ViewProjection& vp);
 	void UpdateStartEffect();
 
-	/// <summary>
-	/// 描画
-	/// </summary>
 	void Draw(const ViewProjection& viewProjection) override;
 	void DrawAnimation(const ViewProjection& viewProjection);
 	void DrawParticle(const ViewProjection& viewProjection);
 	void DrawSprite(const ViewProjection& viewProjection);
 
-	/// <summary>
-	/// ImGui
-	/// </summary>
 	void ImGui();
 
 public:
 
-	/// <summary>
-	/// 当たり判定
-	/// </summary>
-	/// <param name="other"></param>
 	void OnCollision([[maybe_unused]] Collider* other) override;
+	void OnRushHit(bool isFinalHit);
 
-	/// <summary>
-	/// プレイヤーとの衝突処理
-	/// </summary>
 	void HandleCollisionWithPlayer(Player* player);
-
 	void TakeDamage(uint32_t damage);
+
+	/// <summary>状態を切り替える</summary>
+	void ChangeState(IEnemyState* next);
 
 public:
 
-	/// 各ステータス取得関数
-	Vector3 GetCenterPosition() const override { return transform_.translation_; }
-	Vector3 GetCenterRotation() const override { return transform_.rotation_; }
-	uint32_t GetSerialNumber() const { return serialNumber_; }
-	static uint32_t GetNextSerialNumber() { return nextSerialNumber_; }
-	float GetShortDistance() { return shortDistance_; }
-	uint32_t GetHP() { return HP_; }
-	bool GetIsAlive() { return isAlive_; }
-	GameState GetGameState() const { return gameState_; }
-	Vector3 GetVelocity() const { return velocity_; }
-	bool IsAttacking() const;
-	EnemyAttackManager* GetAttackManager() const { return attackManager_.get(); }
+	// --- ゲッター ---
+	Vector3          GetCenterPosition()  const override { return transform_.translation_; }
+	Vector3          GetCenterRotation()  const override { return transform_.rotation_; }
+	uint32_t         GetSerialNumber()    const { return serialNumber_; }
+	static uint32_t  GetNextSerialNumber() { return nextSerialNumber_; }
+	uint32_t         GetHP()              const { return HP_; }
+	bool             GetIsAlive()         const { return isAlive_; }
+	GameState        GetGameState()       const { return gameState_; }
+	Vector3          GetVelocity()        const { return move_ ? move_->GetVelocity() : Vector3{}; }
+	bool             IsAttacking()        const;
+	bool             IsRushActive()       const { return false; } // 敵はラッシュを行わない
 
-	/// 各ステータス設定関数
+	EnemyAttackManager* GetAttackManager() const { return attackManager_.get(); }
+	EnemyHitReaction* GetHitReaction()   const { return hitReaction_.get(); }
+	EnemyMove* GetMove()          const { return move_.get(); }
+	Player* GetPlayer()        const { return player_; }
+	Vector3             GetObjRotation()   const;
+	Vector3             GetOriginalRotation() const { return originalRotation_; }
+
+	// --- セッター ---
 	static void SetSerialNumber(int num) { nextSerialNumber_ = num; }
-	void SetTranslation(const Vector3& translation) { transform_.translation_ = translation; }
+	void SetTranslation(const Vector3& t) { transform_.translation_ = t; }
 	void SetIsStart(bool isStart) { isStart_ = isStart; }
 	void SetGameState(GameState state) { gameState_ = state; }
-	void SetVelocity(const Vector3& velocity) { velocity_ = velocity; }
+	void SetVelocity(const Vector3& v) { if (move_) { move_->SetVelocity(v); } }
+	void SetIsAlive(bool alive) { isAlive_ = alive; }
+	void SetObjRotation(const Vector3& rot);
+	void UpdateBaseObject() { BaseObject::Update(); }
+
+	// BaseObject ラッパー（State・コンポーネントクラスから使用）
+	void    SetWorldPosition(const Vector3& pos) { BaseObject::SetWorldPosition(pos); }
+	void    SetRotation(const Vector3& rot) { BaseObject::SetRotation(rot); }
+	void    SetScale(const Vector3& scale) { BaseObject::SetScale(scale); }
+	Vector3 GetWorldRotation()   const { return BaseObject::GetWorldRotation(); }
+	Vector3 GetWorldSize()       const { return BaseObject::GetWorldSize(); }
 
 private:
 
-	/// <summary>
-	/// 移動
-	/// </summary>
-	void Approach();
-
-	/// <summary>
-	/// ラッシュ攻撃関連処理
-	/// </summary>
-	void CheckPlayerRushStatus();
-	void StartRushKnockback();
-	void UpdateRushKnockback();
-	void EndRushKnockback();
-	void RecoverRotation();
-
-	/// <summary>
-	/// ゲームオーバー演出
-	/// </summary>
-	void UpdateGameOverEffect();
-
-	/// <summary>
-	/// ゲームクリア演出
-	/// </summary>
-	void UpdateGameClearEffect();
-
-private:
 	// --- 参照 ---
 	Player* player_ = nullptr;
+	const ViewProjection* vp_ = nullptr;
 
 	// --- モデル ---
 	std::unique_ptr<Object3d> obj3d_;
 
-	const ViewProjection* vp_ = nullptr;
-
 	// --- 攻撃管理 ---
 	std::unique_ptr<EnemyAttackManager> attackManager_;
 
-	// --- 各ステータス ---
-	bool isAlive_ = true;
+	// --- コンポーネント ---
+	std::unique_ptr<EnemyMove>        move_;
+	std::unique_ptr<EnemyHitReaction> hitReaction_;
 
-	// ゲーム状態
+	// --- エフェクト ---
+	std::unique_ptr<EnemyEffect> effect_;
+
+	// --- State Pattern ---
+	std::unique_ptr<IEnemyState> currentState_;
+
+	// --- ステータス ---
+	bool      isAlive_ = true;
 	GameState gameState_ = GameState::kPlaying;
 
-	// HP
 	uint32_t kMaxHP_ = 1000;
 	uint32_t HP_ = kMaxHP_;
 
-	// kRoot関連変数
-	Vector3 velocity_ = { 0.0f,0.0f,0.0f };
-	float shortDistance_ = 1.5f;
-	float approachSpeed_ = 0.05f;
-	float maxSpeed_ = 0.08f;
-
-	// 被弾時のノックバック
-	bool isBeingRushed_ = false;
-	uint32_t rushKnockbackTimer_ = 0;
-	bool wasRushActive_ = false;
-	Vector3 knockbackDirection_ = { 0.0f, 0.0f, 1.0f };
-	float knockbackSpeed_ = 0.02f;
-	float knockbackVerticalVelocity_ = 0.0f;   // ノックアップ用 縦速度
-	float knockbackGroundY_ = 0.0f;             // 着地基準Y座標
-	Vector3 originalRotation_;
-
-	static constexpr float initialKnockbackSpeed_ = 0.35f;              // 吹っ飛び初速（大きく）
-	static constexpr float minKnockbackSpeed_ = 0.0f;                   // 完全停止まで減衰
-	static constexpr float knockbackDecay_ = 0.88f;                     // 減衰率（速めに止まる）
-	static constexpr float maxTiltAngle_ = 0.5f;
-	static constexpr float knockbackInitialVerticalVelocity_ = 0.22f;  // 初速（上方向）
-	static constexpr float knockbackGravity_ = 0.012f;                  // 重力加速度
-
-	// --- 各エフェクト・演出 ---
 	bool isStart_ = false;
 
-	float fallTimer_ = 0.0f;
-	const float kFallDuration_ = 60.0f;
-	Vector3 fallStartPos_ = { 0.0f, 10.0f, 15.0f };
-	Vector3 fallEndPos_ = { 0.0f, 0.0f, 15.0f };
-	bool isFallComplete_ = false;
+	// 元の回転（ノックバック後の戻し基準）
+	Vector3 originalRotation_;
 
-	// ゲームクリア演出関連変数
-	float clearEffectTimer_ = 0.0f;
-
-	// --- HPバー（背景・本体）---
-	std::unique_ptr<Sprite> hpBarBg_;   // ← 追加: HPバー背景
+	// --- HPバー ---
+	std::unique_ptr<Sprite> hpBarBg_;
 	std::unique_ptr<Sprite> hpBar_;
 	static constexpr float kHpBarFullWidth_ = 350.0f;
 	static constexpr float kHpBarHeight_ = 40.0f;
-	static constexpr float kHpBarBgPadding_ = 4.0f;   // ← 追加: 背景の余白
+	static constexpr float kHpBarBgPadding_ = 4.0f;
 
-	// シリアルナンバー
-	uint32_t serialNumber_ = 0;
+	// --- シリアルナンバー ---
+	uint32_t        serialNumber_ = 0;
 	static uint32_t nextSerialNumber_;
 };

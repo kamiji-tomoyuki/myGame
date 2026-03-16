@@ -65,7 +65,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)engine;$(ProjectDir)engine\2d;$(ProjectDir)engine\3d;$(ProjectDir)engine\3d\camera;$(ProjectDir)engine\3d\light;$(ProjectDir)engine\3d\line;$(ProjectDir)engine\3d\model;$(ProjectDir)engine\3d\particle;$(ProjectDir)engine\3d\skybox;$(ProjectDir)engine\3d\transform;$(ProjectDir)engine\audio;$(ProjectDir)engine\base;$(ProjectDir)engine\core;$(ProjectDir)engine\Frame;$(ProjectDir)engine\input;$(ProjectDir)engine\math;$(ProjectDir)engine\offscreen;$(ProjectDir)engine\utility;$(ProjectDir)engine\utility\collider;$(ProjectDir)engine\utility\debug;$(ProjectDir)engine\utility\edit;$(ProjectDir)engine\utility\graphics;$(ProjectDir)engine\utility\string;$(ProjectDir)engine\utility\json;$(ProjectDir)engine\utility\scene;$(ProjectDir)externals\assimp\include;$(ProjectDir)externals\DirectXTex;$(ProjectDir)externals\imgui;$(ProjectDir)externals\nlohmann;$(ProjectDir)application;$(ProjectDir)application\Camera;$(ProjectDir)application\Character;$(ProjectDir)application\Character\Base;$(ProjectDir)application\Character\Enemy;$(ProjectDir)application\Character\Enemy\action;$(ProjectDir)application\Character\Player;$(ProjectDir)application\Character\Player\action;$(ProjectDir)application\Character\Player\arm;$(ProjectDir)application\Character\Player\effect;$(ProjectDir)application\Field;$(ProjectDir)application\Field\Ground;$(ProjectDir)application\Other;$(ProjectDir)application\Scene;$(ProjectDir)application\Scene\Base;$(ProjectDir)application\Scene\GameClearScene;$(ProjectDir)application\Scene\GameOverScene;$(ProjectDir)application\Scene\GameScene;$(ProjectDir)application\Scene\GameScene\Pause;$(ProjectDir)application\Scene\TitleScene</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)engine;$(ProjectDir)engine\2d;$(ProjectDir)engine\3d;$(ProjectDir)engine\3d\camera;$(ProjectDir)engine\3d\light;$(ProjectDir)engine\3d\line;$(ProjectDir)engine\3d\model;$(ProjectDir)engine\3d\particle;$(ProjectDir)engine\3d\skybox;$(ProjectDir)engine\3d\transform;$(ProjectDir)engine\audio;$(ProjectDir)engine\base;$(ProjectDir)engine\core;$(ProjectDir)engine\Frame;$(ProjectDir)engine\input;$(ProjectDir)engine\math;$(ProjectDir)engine\offscreen;$(ProjectDir)engine\utility;$(ProjectDir)engine\utility\collider;$(ProjectDir)engine\utility\debug;$(ProjectDir)engine\utility\edit;$(ProjectDir)engine\utility\graphics;$(ProjectDir)engine\utility\string;$(ProjectDir)engine\utility\json;$(ProjectDir)engine\utility\scene;$(ProjectDir)externals\assimp\include;$(ProjectDir)externals\DirectXTex;$(ProjectDir)externals\imgui;$(ProjectDir)externals\nlohmann;$(ProjectDir)application;$(ProjectDir)application\Camera;$(ProjectDir)application\Character;$(ProjectDir)application\Character\Base;$(ProjectDir)application\Character\Enemy;$(ProjectDir)application\Character\Enemy\component;$(ProjectDir)application\Character\Enemy\component\action;$(ProjectDir)application\Character\Enemy\component\reaction;$(ProjectDir)application\Character\Enemy\effect;$(ProjectDir)application\Character\Enemy\state;$(ProjectDir)application\Character\Player;$(ProjectDir)application\Character\Player\behavior;$(ProjectDir)application\Character\Player\component;$(ProjectDir)application\Character\Player\component\action;$(ProjectDir)application\Character\Player\component\arm;$(ProjectDir)application\Character\Player\component\reaction;$(ProjectDir)application\Character\Player\effect;$(ProjectDir)application\Character\Player\state;$(ProjectDir)application\Field;$(ProjectDir)application\Field\Ground;$(ProjectDir)application\Other;$(ProjectDir)application\Scene;$(ProjectDir)application\Scene\Base;$(ProjectDir)application\Scene\GameClearScene;$(ProjectDir)application\Scene\GameOverScene;$(ProjectDir)application\Scene\GameScene;$(ProjectDir)application\Scene\GameScene\Pause;$(ProjectDir)application\Scene\TitleScene</AdditionalIncludeDirectories>
       <Optimization>Custom</Optimization>
     </ClCompile>
     <Link>
@@ -92,7 +92,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
       <AdditionalOptions>/utf-8</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)engine;$(ProjectDir)engine\2d;$(ProjectDir)engine\3d;$(ProjectDir)engine\3d\camera;$(ProjectDir)engine\3d\light;$(ProjectDir)engine\3d\line;$(ProjectDir)engine\3d\model;$(ProjectDir)engine\3d\particle;$(ProjectDir)engine\3d\skybox;$(ProjectDir)engine\3d\transform;$(ProjectDir)engine\audio;$(ProjectDir)engine\base;$(ProjectDir)engine\core;$(ProjectDir)engine\Frame;$(ProjectDir)engine\input;$(ProjectDir)engine\math;$(ProjectDir)engine\offscreen;$(ProjectDir)engine\utility;$(ProjectDir)engine\utility\collider;$(ProjectDir)engine\utility\debug;$(ProjectDir)engine\utility\edit;$(ProjectDir)engine\utility\graphics;$(ProjectDir)engine\utility\string;$(ProjectDir)engine\utility\json;$(ProjectDir)engine\utility\scene;$(ProjectDir)externals\assimp\include;$(ProjectDir)externals\DirectXTex;$(ProjectDir)externals\imgui;$(ProjectDir)externals\nlohmann;$(ProjectDir)application;$(ProjectDir)application\Camera;$(ProjectDir)application\Character;$(ProjectDir)application\Character\Base;$(ProjectDir)application\Character\Enemy;$(ProjectDir)application\Character\Enemy\action;$(ProjectDir)application\Character\Player;$(ProjectDir)application\Character\Player\action;$(ProjectDir)application\Character\Player\arm;$(ProjectDir)application\Character\Player\effect;$(ProjectDir)application\Field;$(ProjectDir)application\Field\Ground;$(ProjectDir)application\Other;$(ProjectDir)application\Scene;$(ProjectDir)application\Scene\Base;$(ProjectDir)application\Scene\GameClearScene;$(ProjectDir)application\Scene\GameOverScene;$(ProjectDir)application\Scene\GameScene;$(ProjectDir)application\Scene\GameScene\Pause;$(ProjectDir)application\Scene\TitleScene</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)engine;$(ProjectDir)engine\2d;$(ProjectDir)engine\3d;$(ProjectDir)engine\3d\camera;$(ProjectDir)engine\3d\light;$(ProjectDir)engine\3d\line;$(ProjectDir)engine\3d\model;$(ProjectDir)engine\3d\particle;$(ProjectDir)engine\3d\skybox;$(ProjectDir)engine\3d\transform;$(ProjectDir)engine\audio;$(ProjectDir)engine\base;$(ProjectDir)engine\core;$(ProjectDir)engine\Frame;$(ProjectDir)engine\input;$(ProjectDir)engine\math;$(ProjectDir)engine\offscreen;$(ProjectDir)engine\utility;$(ProjectDir)engine\utility\collider;$(ProjectDir)engine\utility\debug;$(ProjectDir)engine\utility\edit;$(ProjectDir)engine\utility\graphics;$(ProjectDir)engine\utility\string;$(ProjectDir)engine\utility\json;$(ProjectDir)engine\utility\scene;$(ProjectDir)externals\assimp\include;$(ProjectDir)externals\DirectXTex;$(ProjectDir)externals\imgui;$(ProjectDir)externals\nlohmann;$(ProjectDir)application;$(ProjectDir)application\Camera;$(ProjectDir)application\Character;$(ProjectDir)application\Character\Base;$(ProjectDir)application\Character\Enemy;$(ProjectDir)application\Character\Enemy\component;$(ProjectDir)application\Character\Enemy\component\action;$(ProjectDir)application\Character\Enemy\component\reaction;$(ProjectDir)application\Character\Enemy\effect;$(ProjectDir)application\Character\Enemy\state;$(ProjectDir)application\Character\Player;$(ProjectDir)application\Character\Player\behavior;$(ProjectDir)application\Character\Player\component;$(ProjectDir)application\Character\Player\component\action;$(ProjectDir)application\Character\Player\component\arm;$(ProjectDir)application\Character\Player\component\reaction;$(ProjectDir)application\Character\Player\effect;$(ProjectDir)application\Character\Player\state;$(ProjectDir)application\Field;$(ProjectDir)application\Field\Ground;$(ProjectDir)application\Other;$(ProjectDir)application\Scene;$(ProjectDir)application\Scene\Base;$(ProjectDir)application\Scene\GameClearScene;$(ProjectDir)application\Scene\GameOverScene;$(ProjectDir)application\Scene\GameScene;$(ProjectDir)application\Scene\GameScene\Pause;$(ProjectDir)application\Scene\TitleScene</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
     </ClCompile>
     <Link>
@@ -110,16 +110,34 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="application\Camera\FollowCamera.cpp" />
+    <ClCompile Include="application\character\enemy\component\action\EnemyAttackManager.cpp" />
+    <ClCompile Include="application\character\enemy\component\action\EnemyAttackMelee.cpp" />
+    <ClCompile Include="application\character\enemy\component\action\EnemyAttackRanged.cpp" />
+    <ClCompile Include="application\character\enemy\component\action\EnemyMove.cpp" />
+    <ClCompile Include="application\character\enemy\component\reaction\EnemyHitReaction.cpp" />
+    <ClCompile Include="application\character\enemy\effect\EnemyEffect.cpp" />
     <ClCompile Include="application\character\enemy\Enemy.cpp" />
-    <ClCompile Include="application\character\enemy\action\EnemyAttackManager.cpp" />
-    <ClCompile Include="application\character\enemy\action\EnemyAttackMelee.cpp" />
-    <ClCompile Include="application\character\enemy\action\EnemyAttackRanged.cpp" />
-    <ClCompile Include="application\character\player\action\PlayerAttack.cpp" />
-    <ClCompile Include="application\character\player\action\PlayerDodge.cpp" />
+    <ClCompile Include="application\character\enemy\state\EnemyStateGameClear.cpp" />
+    <ClCompile Include="application\character\enemy\state\EnemyStateGameOver.cpp" />
+    <ClCompile Include="application\character\enemy\state\EnemyStatePlaying.cpp" />
+    <ClCompile Include="application\character\player\component\action\PlayerAttack.cpp" />
+    <ClCompile Include="application\character\player\component\action\PlayerDodge.cpp" />
+    <ClCompile Include="application\character\player\component\action\PlayerMove.cpp" />
+    <ClCompile Include="application\character\player\component\action\PlayerRushPosture.cpp" />
+    <ClCompile Include="application\character\player\component\arm\PlayerArmAttack.cpp" />
+    <ClCompile Include="application\character\player\component\arm\PlayerArmRush.cpp" />
+    <ClCompile Include="application\character\player\behavior\PlayerBehaviorDodge.cpp" />
+    <ClCompile Include="application\character\player\behavior\PlayerBehaviorHitReact.cpp" />
+    <ClCompile Include="application\character\player\behavior\PlayerBehaviorRoot.cpp" />
+    <ClCompile Include="application\character\player\component\arm\PlayerArm.cpp" />
+    <ClCompile Include="application\character\player\component\reaction\PlayerHitReaction.cpp" />
     <ClCompile Include="application\character\player\effect\PlayerGameClearEffect.cpp" />
     <ClCompile Include="application\character\player\effect\PlayerGameOverEffect.cpp" />
     <ClCompile Include="application\character\player\effect\PlayerStartEffect.cpp" />
     <ClCompile Include="application\character\player\Player.cpp" />
+    <ClCompile Include="application\character\player\state\PlayerStateGameClear.cpp" />
+    <ClCompile Include="application\character\player\state\PlayerStateGameOver.cpp" />
+    <ClCompile Include="application\character\player\state\PlayerStatePlaying.cpp" />
     <ClCompile Include="application\field\StageManager.cpp" />
     <ClCompile Include="application\scene\gameScene\Pause\Pause.cpp" />
     <ClCompile Include="application\other\temp\TempObj.cpp" />
@@ -196,7 +214,6 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\scene\gameScene\GameScene.cpp" />
     <ClCompile Include="application\scene\titleScene\TitleScene.cpp" />
     <ClCompile Include="engine\3d\model\animation\Skin.cpp" />
-    <ClCompile Include="application\character\player\arm\PlayerArm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -223,28 +240,44 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application\Camera\FollowCamera.h" />
+    <ClInclude Include="application\character\enemy\component\action\EnemyAttackManager.h" />
+    <ClInclude Include="application\character\enemy\component\action\EnemyAttackMelee.h" />
+    <ClInclude Include="application\character\enemy\component\action\EnemyAttackRanged.h" />
+    <ClInclude Include="application\character\enemy\component\action\EnemyMove.h" />
+    <ClInclude Include="application\character\enemy\component\reaction\EnemyHitReaction.h" />
+    <ClInclude Include="application\character\enemy\effect\EnemyEffect.h" />
     <ClInclude Include="application\character\enemy\Enemy.h" />
-    <ClInclude Include="application\character\enemy\action\EnemyAttackManager.h" />
-    <ClInclude Include="application\character\enemy\action\EnemyAttackMelee.h" />
-    <ClInclude Include="application\character\enemy\action\EnemyAttackRanged.h" />
-    <ClInclude Include="application\character\player\action\PlayerAttack.h" />
-    <ClInclude Include="application\character\player\action\PlayerDodge.h" />
-    <ClInclude Include="application\character\player\arm\PlayerArm.h" />
+    <ClInclude Include="application\character\enemy\state\EnemyStateGameClear.h" />
+    <ClInclude Include="application\character\enemy\state\EnemyStateGameOver.h" />
+    <ClInclude Include="application\character\enemy\state\EnemyStatePlaying.h" />
+    <ClInclude Include="application\character\enemy\state\IEnemyState.h" />
+    <ClInclude Include="application\character\player\component\action\PlayerAttack.h" />
+    <ClInclude Include="application\character\player\component\action\PlayerDodge.h" />
+    <ClInclude Include="application\character\player\component\action\PlayerMove.h" />
+    <ClInclude Include="application\character\player\component\action\PlayerRushPosture.h" />
+    <ClInclude Include="application\character\player\component\arm\PlayerArm.h" />
+    <ClInclude Include="application\character\player\component\arm\PlayerArmAttack.h" />
+    <ClInclude Include="application\character\player\component\arm\PlayerArmRush.h" />
+    <ClInclude Include="application\character\player\behavior\IPlayerBehavior.h" />
+    <ClInclude Include="application\character\player\behavior\PlayerBehaviorDodge.h" />
+    <ClInclude Include="application\character\player\behavior\PlayerBehaviorHitReact.h" />
+    <ClInclude Include="application\character\player\behavior\PlayerBehaviorRoot.h" />
+    <ClInclude Include="application\character\player\component\reaction\PlayerHitReaction.h" />
     <ClInclude Include="application\character\player\effect\PlayerGameClearEffect.h" />
     <ClInclude Include="application\character\player\effect\PlayerGameOverEffect.h" />
     <ClInclude Include="application\character\player\effect\PlayerStartEffect.h" />
     <ClInclude Include="application\character\player\Player.h" />
+    <ClInclude Include="application\character\player\state\IPlayerState.h" />
+    <ClInclude Include="application\character\player\state\PlayerStateGameClear.h" />
+    <ClInclude Include="application\character\player\state\PlayerStateGameOver.h" />
+    <ClInclude Include="application\character\player\state\PlayerStatePlaying.h" />
     <ClInclude Include="application\CollisionTypeIdDef.h" />
     <ClInclude Include="application\Enemy\Enemy.h" />
-    <ClInclude Include="application\Enemy\EnemyAttackManager.h" />
-    <ClInclude Include="application\Enemy\EnemyAttackMelee.h" />
-    <ClInclude Include="application\Enemy\EnemyAttackRanged.h" />
     <ClInclude Include="application\field\StageManager.h" />
     <ClInclude Include="application\other\CollisionTypeIdDef.h" />
     <ClInclude Include="application\scene\gameScene\Pause\Pause.h" />
     <ClInclude Include="application\other\temp\TempObj.h" />
     <ClInclude Include="application\Player\Player.h" />
-    <ClInclude Include="application\Player\Arm\PlayerArm.h" />
     <ClInclude Include="application\Stage\StageManager.h" />
     <ClInclude Include="application\temp\TempObj.h" />
     <ClInclude Include="application\character\TitleCharacter.h" />
