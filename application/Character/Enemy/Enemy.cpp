@@ -16,6 +16,7 @@
 #include "myMath.h"
 
 uint32_t Enemy::nextSerialNumber_ = 0;
+const std::string Enemy::kGroupName_ = "Enemy";
 
 Enemy::Enemy()
 {
@@ -27,6 +28,16 @@ void Enemy::Init()
 {
 	BaseObject::Init();
 	BaseObject::SetWorldPosition(Vector3{ 0.0f, 2.0f, 15.0f });
+
+	// =============================================================
+	// GlobalVariables の初期化
+	// =============================================================
+	variables_ = GlobalVariables::GetInstance();
+	if (!variables_->GroupExists(kGroupName_)) {
+		variables_->CreateGroup(kGroupName_);
+	}
+	variables_->AddItem(kGroupName_, "Max HP", static_cast<int32_t>(kMaxHP_Adjustable_));
+	ApplyVariables();
 
 	float size = 1.0f;
 
@@ -96,6 +107,7 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 {
 	player_ = player;
 	vp_ = &vp;
+	ApplyVariables();
 
 	// 現在の状態を更新し、次状態が返ってきたら遷移する
 	if (currentState_) {
@@ -255,6 +267,15 @@ void Enemy::DrawSprite(const ViewProjection& viewProjection)
 void Enemy::ImGui()
 {
 	// ImGui処理
+}
+
+// =============================================================
+//  ApplyVariables — GlobalVariables から値を取得して反映
+// =============================================================
+void Enemy::ApplyVariables()
+{
+	kMaxHP_Adjustable_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Max HP"));
+	kMaxHP_ = kMaxHP_Adjustable_;
 }
 
 // =============================================================

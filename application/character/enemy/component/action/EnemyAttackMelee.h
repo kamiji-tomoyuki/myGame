@@ -1,5 +1,6 @@
 #pragma once
 #include "Vector3.h"
+#include "GlobalVariables.h"
 #include <memory>
 
 class Enemy;
@@ -61,61 +62,47 @@ public:
 	void SetMaxChargeCount(uint32_t count) { maxChargeCount_ = count; }
 
 private:
-	/// <summary>
-	/// 予備動作更新
-	/// </summary>
 	void UpdatePreparation(Enemy* enemy);
-
-	/// <summary>
-	/// 突進更新
-	/// </summary>
 	void UpdateCharging(Enemy* enemy, Player* player);
-
-	/// <summary>
-	/// 回復動作更新
-	/// </summary>
 	void UpdateRecovery(Enemy* enemy);
-
-	/// <summary>
-	/// 突進中の当たり判定チェック
-	/// </summary>
 	void CheckCollision(Player* player);
+	void ApplyVariables();
 
 private:
-	// フェーズ
 	Phase phase_ = Phase::kNone;
 	bool isComplete_ = false;
 
-	// 突進方向と開始位置
 	Vector3 chargeDirection_ = { 0.0f, 0.0f, 1.0f };
 	Vector3 chargeStartPos_ = { 0.0f, 0.0f, 0.0f };
 
-	// タイマー
 	uint32_t preparationTimer_ = 0;
 	uint32_t chargingTimer_ = 0;
 	uint32_t recoveryTimer_ = 0;
 
-	// 突進回数
 	uint32_t chargeCount_ = 0;
 	uint32_t maxChargeCount_ = 1;
 
-	// 元の回転
 	Vector3 originalRotation_ = { 0.0f, 0.0f, 0.0f };
 
-	// 定数
-	static constexpr uint32_t kPreparationTime_ = 60;		// 予備動作時間
-	static constexpr uint32_t kChargingTime_ = 60;			// 突進時間
-	static constexpr uint32_t kRecoveryTime_ = 20;			// 回復時間
-	static constexpr uint32_t kNextChargeDelay_ = 30;		// 次の突進までの待機時間
-	static constexpr float kChargeSpeed_ = 0.3f;			// 突進速度
-	static constexpr float kPreparationTiltAngle_ = 0.5f;	// 予備動作の傾き角度
-	static constexpr float kMeleeHitRadius_ = 1.5f;		// 突進の当たり判定半径
-	static constexpr int kMeleeDamage_ = 100;			// 突進ダメージ
-	bool hitRegistered_ = false;						// 1回の突進あたりのダメージ多重ヒット防止フラグ
+	// -------------------------------------------------------
+	// GlobalVariables で調整可能な変数（constexpr から昇格）
+	// -------------------------------------------------------
+	uint32_t kPreparationTime_ = 60;    // 予備動作時間
+	uint32_t kChargingTime_ = 60;    // 突進時間
+	uint32_t kRecoveryTime_ = 20;    // 回復時間
+	uint32_t kNextChargeDelay_ = 30;    // 次の突進までの待機時間
+	float    kChargeSpeed_ = 0.3f;  // 突進速度
+	float    kPreparationTiltAngle_ = 0.5f;  // 予備動作の傾き角度
+	float    kMeleeHitRadius_ = 1.5f;  // 突進の当たり判定半径
+	int32_t  kMeleeDamage_ = 100;   // 突進ダメージ
 
-	// 軌跡パーティクル
+	bool hitRegistered_ = false;
+
 	std::unique_ptr<ParticleEmitter> trailEffect_;
 	Vector3 lastTrailPosition_ = { 0.0f, 0.0f, 0.0f };
 	float trailEmitDistance_ = 0.5f;
 	static constexpr float kFootOffsetY_ = -0.8f;
+
+	GlobalVariables* variables_ = nullptr;
+	static const std::string kGroupName_;
 };

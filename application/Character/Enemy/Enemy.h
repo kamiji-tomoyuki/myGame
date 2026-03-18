@@ -2,6 +2,7 @@
 #include "BaseObject.h"
 #include "WorldTransform.h"
 #include "ViewProjection.h"
+#include "GlobalVariables.h"
 #include <Sprite.h>
 
 // コンポーネント
@@ -147,4 +148,13 @@ private:
 	// --- シリアルナンバー ---
 	uint32_t        serialNumber_ = 0;
 	static uint32_t nextSerialNumber_;
+
+	// --- GlobalVariables ---
+	GlobalVariables* variables_ = nullptr;
+	static const std::string kGroupName_;
+
+	// GlobalVariables で調整可能な変数
+	uint32_t kMaxHP_Adjustable_ = 1000; // 最大HP（調整用）
+
+	void ApplyVariables();
 };

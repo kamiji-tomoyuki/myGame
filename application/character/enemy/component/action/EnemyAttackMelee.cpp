@@ -4,9 +4,28 @@
 #include <ParticleEmitter.h>
 #include <cmath>
 
+const std::string EnemyAttackMelee::kGroupName_ = "EnemyAttackMelee";
+
 EnemyAttackMelee::EnemyAttackMelee()
 {
 	trailEffect_ = std::make_unique<ParticleEmitter>();
+
+	variables_ = GlobalVariables::GetInstance();
+
+	if (!variables_->GroupExists(kGroupName_)) {
+		variables_->CreateGroup(kGroupName_);
+	}
+
+	// タイマー系
+	variables_->AddItem(kGroupName_, "Preparation Time", static_cast<int32_t>(kPreparationTime_));
+	variables_->AddItem(kGroupName_, "Charging Time", static_cast<int32_t>(kChargingTime_));
+	variables_->AddItem(kGroupName_, "Recovery Time", static_cast<int32_t>(kRecoveryTime_));
+	variables_->AddItem(kGroupName_, "Next Charge Delay", static_cast<int32_t>(kNextChargeDelay_));
+	// 挙動
+	variables_->AddItem(kGroupName_, "Charge Speed", kChargeSpeed_);
+	variables_->AddItem(kGroupName_, "Preparation Tilt Angle", kPreparationTiltAngle_);
+	variables_->AddItem(kGroupName_, "Melee Hit Radius", kMeleeHitRadius_);
+	variables_->AddItem(kGroupName_, "Melee Damage", kMeleeDamage_);
 }
 
 EnemyAttackMelee::~EnemyAttackMelee() = default;
@@ -28,6 +47,8 @@ void EnemyAttackMelee::Initialize()
 void EnemyAttackMelee::Start(Enemy* enemy, Player* player)
 {
 	if (enemy == nullptr || player == nullptr) return;
+
+	ApplyVariables();
 
 	phase_ = Phase::kPreparation;
 	isComplete_ = false;
@@ -79,12 +100,10 @@ void EnemyAttackMelee::UpdatePreparation(Enemy* enemy)
 {
 	preparationTimer_++;
 
-	// 硬直状態を維持(移動しない)
 	enemy->SetVelocity(Vector3(0.0f, 0.0f, 0.0f));
 
-	// 前に傾く予備動作アニメーション
 	if (preparationTimer_ < kPreparationTime_) {
-		float preparationProgress = static_cast<float>(preparationTimer_) / kPreparationTime_;
+		float preparationProgress = static_cast<float>(preparationTimer_) / static_cast<float>(kPreparationTime_);
 		float tiltAmount = preparationProgress * kPreparationTiltAngle_;
 
 		Vector3 baseRotation = enemy->GetWorldRotation();
@@ -93,7 +112,6 @@ void EnemyAttackMelee::UpdatePreparation(Enemy* enemy)
 		enemy->SetRotation(objRotation);
 	}
 
-	// 予備動作完了後、突進開始
 	if (preparationTimer_ >= kPreparationTime_) {
 		phase_ = Phase::kCharging;
 		chargingTimer_ = 0;
@@ -105,17 +123,12 @@ void EnemyAttackMelee::UpdateCharging(Enemy* enemy, Player* player)
 {
 	chargingTimer_++;
 
-	// 突進移動
 	Vector3 chargeVelocity = chargeDirection_ * kChargeSpeed_;
 	enemy->SetWorldPosition(enemy->GetCenterPosition() + chargeVelocity);
 
-	// 軌跡エフェクトの更新
 	UpdateTrailEffect(enemy);
-
-	// 当たり判定チェック
 	CheckCollision(player);
 
-	// 突進時間が終了したら回復フェーズへ
 	if (chargingTimer_ >= kChargingTime_) {
 		phase_ = Phase::kRecovery;
 		recoveryTimer_ = 0;
@@ -126,11 +139,9 @@ void EnemyAttackMelee::UpdateRecovery(Enemy* enemy)
 {
 	recoveryTimer_++;
 
-	// 硬直状態を維持(移動しない)
 	enemy->SetVelocity(Vector3(0.0f, 0.0f, 0.0f));
 
-	// 傾きを徐々に元に戻す補間処理
-	float recoveryProgress = static_cast<float>(recoveryTimer_) / kRecoveryTime_;
+	float recoveryProgress = static_cast<float>(recoveryTimer_) / static_cast<float>(kRecoveryTime_);
 	float currentTilt = kPreparationTiltAngle_ * (1.0f - recoveryProgress);
 
 	Vector3 baseRotation = enemy->GetWorldRotation();
@@ -138,22 +149,17 @@ void EnemyAttackMelee::UpdateRecovery(Enemy* enemy)
 	objRotation.x = originalRotation_.x + currentTilt;
 	enemy->SetRotation(objRotation);
 
-	// 回復時間が終了したら次の行動へ
 	if (recoveryTimer_ >= kRecoveryTime_) {
-		// 完全に元の姿勢に戻す
 		Vector3 currentRotation = enemy->GetWorldRotation();
 		currentRotation.x = originalRotation_.x;
 		enemy->SetRotation(currentRotation);
 
-		// まだ突進回数が残っている場合
 		if (chargeCount_ < maxChargeCount_) {
-			// 次の突進の準備
 			phase_ = Phase::kPreparation;
 			preparationTimer_ = kPreparationTime_ - kNextChargeDelay_;
-			hitRegistered_ = false;	// 次の突進で再度ダメージを入れられるようにリセット
+			hitRegistered_ = false;
 		}
 		else {
-			// 全ての突進が終了
 			phase_ = Phase::kNone;
 			isComplete_ = true;
 		}
@@ -163,22 +169,20 @@ void EnemyAttackMelee::UpdateRecovery(Enemy* enemy)
 void EnemyAttackMelee::CheckCollision(Player* player)
 {
 	if (player == nullptr) return;
-	if (hitRegistered_) return;	// この突進で既にダメージを入れた場合はスキップ
+	if (hitRegistered_) return;
 
-	Vector3 enemyPos = chargeStartPos_ + chargeDirection_ * (kChargeSpeed_ * chargingTimer_);
+	Vector3 enemyPos = chargeStartPos_ + chargeDirection_ * (kChargeSpeed_ * static_cast<float>(chargingTimer_));
 	Vector3 playerPos = player->GetCenterPosition();
 
-	// XZ平面での距離を計算
 	float distanceXZ = std::sqrt(
 		std::pow(playerPos.x - enemyPos.x, 2.0f) +
 		std::pow(playerPos.z - enemyPos.z, 2.0f)
 	);
 
-	// 当たり判定半径以内にプレイヤーがいる場合
 	if (distanceXZ <= kMeleeHitRadius_) {
 		if (!player->IsDodging()) {
-			player->ApplyDamage(kMeleeDamage_, enemyPos);
-			hitRegistered_ = true;	// この突進では以降ダメージを入れない
+			player->ApplyDamage(static_cast<uint32_t>(kMeleeDamage_), enemyPos);
+			hitRegistered_ = true;
 		}
 	}
 }
@@ -217,4 +221,19 @@ void EnemyAttackMelee::UpdateTrailEffect(Enemy* enemy)
 void EnemyAttackMelee::DrawTrailEffect()
 {
 	trailEffect_->Draw(Normal);
+}
+
+// =============================================================
+//  ApplyVariables — GlobalVariables から値を取得して反映
+// =============================================================
+void EnemyAttackMelee::ApplyVariables()
+{
+	kPreparationTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Preparation Time"));
+	kChargingTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Charging Time"));
+	kRecoveryTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Recovery Time"));
+	kNextChargeDelay_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Next Charge Delay"));
+	kChargeSpeed_ = variables_->GetFloatValue(kGroupName_, "Charge Speed");
+	kPreparationTiltAngle_ = variables_->GetFloatValue(kGroupName_, "Preparation Tilt Angle");
+	kMeleeHitRadius_ = variables_->GetFloatValue(kGroupName_, "Melee Hit Radius");
+	kMeleeDamage_ = variables_->GetIntValue(kGroupName_, "Melee Damage");
 }

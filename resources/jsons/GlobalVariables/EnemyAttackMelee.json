@@ -1,0 +1,12 @@
+{
+    "EnemyAttackMelee": {
+        "Charge Speed": 0.30000001192092896,
+        "Charging Time": 60,
+        "Melee Damage": 100,
+        "Melee Hit Radius": 1.5,
+        "Next Charge Delay": 30,
+        "Preparation Tilt Angle": 0.5,
+        "Preparation Time": 60,
+        "Recovery Time": 20
+    }
+}
