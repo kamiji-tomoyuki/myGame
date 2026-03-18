@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <memory>
+#include "GlobalVariables.h"
 
 class Player;
 class PlayerArm;
@@ -12,45 +13,34 @@ class PlayerArm;
 class PlayerAttack
 {
 public:
-	/// <summary>
-	/// @param player   オーナープレイヤー
-	/// @param arms     Player側で持つ arms_ の参照を受け取る
-	/// </summary>
 	PlayerAttack(Player* player, const std::array<std::unique_ptr<PlayerArm>, 2>& arms);
 
-	/// <summary>
-	/// 毎フレーム入力チェックと攻撃開始
-	/// </summary>
 	void Update();
 
-	// -------------------------------------------------------
-	// UI表示判定
-	// -------------------------------------------------------
 	bool CanRightPunch() const;
-	bool CanLeftPunch() const;
-	bool CanRush() const;
+	bool CanLeftPunch()  const;
+	bool CanRush()       const;
 
-	// -------------------------------------------------------
-	// 攻撃実行中判定
-	// -------------------------------------------------------
 	bool IsRightPunchActive() const;
-	bool IsLeftPunchActive() const;
-	bool IsRushActive() const;
+	bool IsLeftPunchActive()  const;
+	bool IsRushActive()       const;
+
+private:
+	void ApplyVariables();
 
 private:
 	Player* player_ = nullptr;
-
-	/// Player側 arms_ へのポインタ（読み取りのみ）
 	const std::array<std::unique_ptr<PlayerArm>, 2>* arms_ = nullptr;
 
-	// --- 腕インデックス定数（Player::ModelArm と対応） ---
 	static constexpr int kRArm = 0;
 	static constexpr int kLArm = 1;
 
-	// --- コンボ保護バッファ ---
-	// 被弾リアクション中でもコンボ状態を一定フレーム保持する
-	// 右パンチ後のコンボウィンドウを被弾で潰されないようにするため
-	bool  comboProtected_ = false;   // コンボ保護中フラグ
-	int   comboProtectTimer_ = 0;       // 保護タイマー
-	static constexpr int kComboProtectDuration_ = 25; // 保護フレーム数（コンボウィンドウより少し長め）
+	bool  comboProtected_ = false;
+	int   comboProtectTimer_ = 0;
+
+	// GlobalVariables で調整可能な変数
+	int kComboProtectDuration_ = 25; // 保護フレーム数
+
+	GlobalVariables* variables_ = nullptr;
+	static const std::string kGroupName_;
 };

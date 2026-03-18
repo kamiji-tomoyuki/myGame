@@ -1,0 +1,16 @@
+{
+    "EnemyAttackRanged": {
+        "Attack Count": 3,
+        "Attack Interval": 40,
+        "Preparation Tilt Angle": 0.4000000059604645,
+        "Preparation Time": 45,
+        "Ranged Damage": 100,
+        "Recovery Time": 40,
+        "Spike Fall Duration": 20,
+        "Spike Hold Duration": 30,
+        "Spike Max Height": 3.0,
+        "Spike Rise Duration": 15,
+        "Warning Circle Radius": 2.0,
+        "Warning Duration": 30
+    }
+}

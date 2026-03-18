@@ -353,9 +353,6 @@
     <ClCompile Include="application\field\ground\Ground.cpp">
       <Filter>ソースファイル\application\Field\Ground</Filter>
     </ClCompile>
-    <ClCompile Include="application\character\player\arm\PlayerArm.cpp">
-      <Filter>ソースファイル\application\Character\Player</Filter>
-    </ClCompile>
     <ClCompile Include="application\scene\gameClearScene\GameClearScene.cpp">
       <Filter>ソースファイル\application\Scene</Filter>
     </ClCompile>
@@ -366,15 +363,6 @@
       <Filter>ソースファイル</Filter>
     </ClCompile>
     <ClCompile Include="application\character\enemy\Enemy.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\enemy\action\EnemyAttackManager.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\enemy\action\EnemyAttackMelee.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\enemy\action\EnemyAttackRanged.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
     <ClCompile Include="application\character\player\Player.cpp">
@@ -458,28 +446,7 @@
     <ClCompile Include="application\character\enemy\component\reaction\EnemyHitReaction.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
-    <ClCompile Include="application\character\player\reaction\PlayerHitReaction.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
     <ClCompile Include="application\character\player\component\arm\PlayerArm.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\arm\PlayerArmAttack.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\arm\PlayerArmRush.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\action\PlayerAttack.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\action\PlayerDodge.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\action\PlayerMove.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\action\PlayerRushPosture.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
     <ClCompile Include="application\character\enemy\component\action\EnemyAttackManager.cpp">
@@ -489,6 +456,9 @@
       <Filter>ソースファイル</Filter>
     </ClCompile>
     <ClCompile Include="application\character\enemy\component\action\EnemyAttackRanged.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\arm\PlayerArm.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -749,23 +719,16 @@
       <Filter>ソースファイル\application\Scene</Filter>
     </ClInclude>
     <ClInclude Include="application\Stage\StageManager.h" />
-    <ClInclude Include="application\Player\Arm\PlayerArm.h" />
     <ClInclude Include="engine\3d\skybox\SkyboxTransform.h" />
     <ClInclude Include="engine\3d\skybox\SkyboxManager.h" />
     <ClInclude Include="engine\3d\skybox\SkyboxGeometry.h" />
     <ClInclude Include="engine\3d\skybox\Skybox.h" />
     <ClInclude Include="application\character\TitleCharacter.h" />
-    <ClInclude Include="application\Enemy\EnemyAttackManager.h" />
-    <ClInclude Include="application\Enemy\EnemyAttackMelee.h" />
-    <ClInclude Include="application\Enemy\EnemyAttackRanged.h" />
     <ClInclude Include="application\CollisionTypeIdDef.h" />
     <ClInclude Include="application\Enemy\Enemy.h" />
     <ClInclude Include="application\Player\Player.h" />
     <ClInclude Include="application\temp\TempObj.h" />
     <ClInclude Include="application\character\enemy\Enemy.h" />
-    <ClInclude Include="application\character\enemy\action\EnemyAttackManager.h" />
-    <ClInclude Include="application\character\enemy\action\EnemyAttackMelee.h" />
-    <ClInclude Include="application\character\enemy\action\EnemyAttackRanged.h" />
     <ClInclude Include="application\character\player\Player.h" />
     <ClInclude Include="application\character\player\component\arm\PlayerArm.h" />
     <ClInclude Include="application\field\StageManager.h" />
@@ -798,17 +761,10 @@
     <ClInclude Include="application\character\enemy\state\IEnemyState.h" />
     <ClInclude Include="application\character\enemy\component\action\EnemyMove.h" />
     <ClInclude Include="application\character\enemy\component\reaction\EnemyHitReaction.h" />
-    <ClInclude Include="application\character\player\reaction\PlayerHitReaction.h" />
-    <ClInclude Include="application\character\player\arm\PlayerArm.h" />
-    <ClInclude Include="application\character\player\arm\PlayerArmAttack.h" />
-    <ClInclude Include="application\character\player\arm\PlayerArmRush.h" />
-    <ClInclude Include="application\character\player\action\PlayerAttack.h" />
-    <ClInclude Include="application\character\player\action\PlayerDodge.h" />
-    <ClInclude Include="application\character\player\action\PlayerMove.h" />
-    <ClInclude Include="application\character\player\action\PlayerRushPosture.h" />
     <ClInclude Include="application\character\enemy\component\action\EnemyAttackManager.h" />
     <ClInclude Include="application\character\enemy\component\action\EnemyAttackMelee.h" />
     <ClInclude Include="application\character\enemy\component\action\EnemyAttackRanged.h" />
+    <ClInclude Include="application\character\player\arm\PlayerArm.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\particle\Particle.PS.hlsl">

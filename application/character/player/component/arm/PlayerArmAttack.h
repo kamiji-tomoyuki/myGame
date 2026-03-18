@@ -1,5 +1,6 @@
 #pragma once
 #include "Vector3.h"
+#include "GlobalVariables.h"
 #include <cstdint>
 
 /// <summary>
@@ -20,6 +21,8 @@ public:
 	};
 
 public:
+
+	PlayerArmAttack();
 
 	/// <summary>
 	/// 攻撃開始
@@ -78,6 +81,10 @@ public:
 
 private:
 
+	void ApplyVariables();
+
+private:
+
 	bool        isAttack_ = false;
 	bool        hasHitThisAttack_ = false;	// 1回の攻撃で1度だけヒットさせるフラグ
 	AttackType  currentAttackType_ = AttackType::kNone;
@@ -93,11 +100,14 @@ private:
 	uint32_t    attackDamage_ = 50;
 
 	// -------------------------------------------------------
-	// 定数
+	// GlobalVariables で調整可能な変数（constexpr から昇格）
 	// -------------------------------------------------------
-	static constexpr uint32_t kAttackDuration = 20;
-	static constexpr uint32_t kComboWindow = 30;
-	static constexpr float    kAttackDistance = 2.0f;
-	static constexpr float    kRightPunchOffset = -0.5f;
-	static constexpr float    kLeftPunchOffset = 0.5f;
+	uint32_t kAttackDuration_ = 20;       // 攻撃モーションのフレーム数
+	uint32_t kComboWindow_ = 30;          // コンボ受付ウィンドウのフレーム数
+	float    kAttackDistance_ = 2.0f;     // 攻撃時の腕の前進距離
+	float    kRightPunchOffsetX_ = -0.3f; // 右パンチ時のX軸オフセット
+	float    kLeftPunchOffsetX_ = 0.3f;   // 左パンチ時のX軸オフセット
+
+	GlobalVariables* variables_ = nullptr;
+	static const std::string kGroupName_;
 };

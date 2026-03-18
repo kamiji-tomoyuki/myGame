@@ -1,5 +1,6 @@
 #pragma once
 #include "Vector3.h"
+#include "GlobalVariables.h"
 #include <cstdint>
 #include <cmath>
 
@@ -21,6 +22,8 @@ public:
 	};
 
 public:
+
+	PlayerArmRush();
 
 	/// <summary>
 	/// ラッシュ開始
@@ -73,14 +76,8 @@ private:
 	void UpdateWindUp();
 	void UpdateFinisher();
 	void UpdateRecover();
+	void ApplyVariables();
 
-	/// <summary>
-	/// ワールド空間のオフセットを、現在の体回転を考慮したローカル座標に変換する。
-	/// 体がひねられていても腕がワールド的にまっすぐ前に出るよう補正する。
-	/// </summary>
-	/// <param name="worldOffset">ワールド空間での移動オフセット（ラッシュ開始時の体向きを基準）</param>
-	/// <param name="currentBodyRotY">現在の体のY回転（ラジアン）</param>
-	/// <returns>ローカル空間でのオフセット</returns>
 	Vector3 WorldOffsetToLocal(const Vector3& worldOffset, float currentBodyRotY) const;
 
 private:
@@ -89,13 +86,11 @@ private:
 	bool      isRightArm_ = true;
 	RushPhase rushPhase_ = RushPhase::kRapidPunch;
 
-	// 位置情報（すべてローカル座標）
 	Vector3   originalPosition_ = {};
 	Vector3   targetPosition_ = {};
 	Vector3   currentTranslation_ = {};
 	Vector3   attackDirection_ = { 0.0f, 0.0f, 1.0f };
 
-	// タイマー類
 	uint32_t  rushTimer_ = 0;
 	uint32_t  rushAttackTimer_ = 0;
 	uint32_t  rushCount_ = 0;
@@ -103,48 +98,37 @@ private:
 	bool      rushAttackActive_ = false;
 	int       lastRushHitFrame_ = -999;
 
-	// フェーズ進行度
 	float     rushPhaseProgress_ = 0.0f;
 	float     finisherProgress_ = 0.0f;
 
-	// フィニッシャー
 	bool      isFinisherHitFrame_ = false;
 	bool      hasFinisherHit_ = false;
 
-	// ダメージ
 	uint32_t  rushAttackDamage_ = 20;
 	uint32_t  finisherAttackDamage_ = 150;
 
-	// -------------------------------------------------------
-	// フィニッシャー補正用
-	//   WindUp開始時点のプレイヤー体のY回転を保存し、
-	//   フィニッシャー中は毎フレームの体回転との差分でローカル座標を補正する
-	// -------------------------------------------------------
-	float     bodyRotYAtWindUpStart_ = 0.0f;	// WindUp開始時の体のY回転（ラジアン）
-	float     currentBodyRotY_ = 0.0f;			// 毎フレーム更新される現在の体のY回転
+	float     bodyRotYAtWindUpStart_ = 0.0f;
+	float     currentBodyRotY_ = 0.0f;
 
 	// -------------------------------------------------------
-	// 定数
+	// GlobalVariables で調整可能な変数（constexpr から昇格）
 	// -------------------------------------------------------
 	// 連打フェーズ
-	static constexpr uint32_t kRushDuration = 80;
-	static constexpr uint32_t kRushInterval = 8;
-	static constexpr uint32_t kRushAttackDuration = 12;
-
+	uint32_t kRushDuration_ = 80;
+	uint32_t kRushInterval_ = 8;
+	uint32_t kRushAttackDuration_ = 12;
 	// フィニッシャーフェーズ
-	static constexpr uint32_t kWindUpDuration = 22;
-	static constexpr uint32_t kFinisherDuration = 28;
-	static constexpr uint32_t kRecoverDuration = 25;
-
+	uint32_t kWindUpDuration_ = 22;
+	uint32_t kFinisherDuration_ = 28;
+	uint32_t kRecoverDuration_ = 25;
 	// 腕移動量
-	static constexpr float kRushDistance = 1.5f;
+	float kRushDistance_ = 1.5f;
+	float kWindUpArmRetreat_ = -1.6f;
+	float kWindUpArmSideR_ = 0.8f;
+	float kFinisherArmAdvance_ = 4.0f;
+	float kLArmWindUpZ_ = -0.6f;
+	float kLArmFinisherZ_ = -1.0f;
 
-	// 右腕フィニッシャー移動量
-	static constexpr float kWindUpArmRetreat = -1.6f;
-	static constexpr float kWindUpArmSideR = 0.8f;
-	static constexpr float kFinisherArmAdvance = 4.0f;
-
-	// 左腕フィニッシャー移動量
-	static constexpr float kLArmWindUpZ = -0.6f;
-	static constexpr float kLArmFinisherZ = -1.0f;
+	GlobalVariables* variables_ = nullptr;
+	static const std::string kGroupName_;
 };

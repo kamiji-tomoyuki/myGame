@@ -3,11 +3,21 @@
 #include "Input.h"
 #include <Arm/PlayerArm.h>
 
+const std::string PlayerAttack::kGroupName_ = "PlayerAttack";
+
 PlayerAttack::PlayerAttack(Player* player,
 	const std::array<std::unique_ptr<PlayerArm>, 2>& arms)
 	: player_(player)
 	, arms_(&arms)
 {
+	variables_ = GlobalVariables::GetInstance();
+
+	if (!variables_->GroupExists(kGroupName_)) {
+		variables_->CreateGroup(kGroupName_);
+	}
+
+	// コンボ保護フレーム数
+	variables_->AddItem(kGroupName_, "Combo Protect Duration", kComboProtectDuration_);
 }
 
 // =============================================================
@@ -15,6 +25,8 @@ PlayerAttack::PlayerAttack(Player* player,
 // =============================================================
 void PlayerAttack::Update()
 {
+	ApplyVariables();
+
 	const auto& a = *arms_;
 
 	// --- コンボ保護バッファの更新 ---
@@ -209,4 +221,12 @@ bool PlayerAttack::IsRushActive() const
 		}
 	}
 	return false;
+}
+
+// =============================================================
+//  ApplyVariables — GlobalVariables から値を取得して反映
+// =============================================================
+void PlayerAttack::ApplyVariables()
+{
+	kComboProtectDuration_ = variables_->GetIntValue(kGroupName_, "Combo Protect Duration");
 }

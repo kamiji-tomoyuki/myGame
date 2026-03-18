@@ -1,0 +1,10 @@
+{
+    "PlayerArmAttack": {
+        "Attack Damage": 50,
+        "Attack Distance": 2.0,
+        "Attack Duration": 20,
+        "Combo Window": 30,
+        "Left Punch Offset X": 0.30000001192092896,
+        "Right Punch Offset X": -0.30000001192092896
+    }
+}

@@ -1,5 +1,5 @@
 {
-    "playerTrail": {
+    "playerDamage": {
         "AllScale Max": [
             0.0,
             0.0,
@@ -16,19 +16,19 @@
             0.0
         ],
         "Emit scale": [
-            0.10000000149011612,
-            0.10000000149011612,
-            0.10000000149011612
+            1.0,
+            1.0,
+            1.0
         ],
         "Emit translation": [
-            -13.84185791015625,
-            -0.800000011920929,
-            1.0755090713500977
-        ],
-        "Particle EndAcce": [
             0.0,
             0.0,
             0.0
+        ],
+        "Particle EndAcce": [
+            1.0,
+            1.0,
+            1.0
         ],
         "Particle EndRote": [
             0.0,
@@ -41,9 +41,9 @@
             1.0
         ],
         "Particle StartAcce": [
-            0.0,
-            0.0,
-            0.0
+            1.0,
+            1.0,
+            1.0
         ],
         "Particle StartRote": [
             0.0,
@@ -69,27 +69,27 @@
         "Scale Min": 0.0,
         "alphaMax": 1.0,
         "alphaMin": 1.0,
-        "count": 1,
-        "emitFrequency": 3.490000009536743,
+        "count": 3,
+        "emitFrequency": 0.10000000149011612,
         "isAcceMultiply": false,
         "isAllRamdomScale": false,
         "isBillBoard": true,
-        "isRamdomColor": false,
+        "isRamdomColor": true,
         "isRandomRotate": false,
         "isRandomScale": false,
         "isSinMove": false,
         "isVisible": true,
-        "lifeTimeMax": 0.7400000095367432,
-        "lifeTimeMin": 0.7400000095367432,
+        "lifeTimeMax": 3.0,
+        "lifeTimeMin": 1.0,
         "maxVelocity": [
-            0.0,
-            1.5,
-            0.0
+            1.0,
+            1.0,
+            1.0
         ],
         "minVelocity": [
-            0.0,
-            0.0,
-            0.0
+            -1.0,
+            -1.0,
+            -1.0
         ]
     }
 }
