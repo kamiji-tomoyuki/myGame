@@ -1,11 +1,37 @@
 #include "PlayerArmAttack.h"
 #include <cmath>
 
+const std::string PlayerArmAttack::kGroupName_ = "PlayerArmAttack";
+
+// =============================================================
+//  コンストラクタ — GlobalVariables への登録
+// =============================================================
+PlayerArmAttack::PlayerArmAttack()
+{
+	variables_ = GlobalVariables::GetInstance();
+
+	if (!variables_->GroupExists(kGroupName_)) {
+		variables_->CreateGroup(kGroupName_);
+	}
+
+	// 攻撃モーション
+	variables_->AddItem(kGroupName_, "Attack Duration", static_cast<int32_t>(kAttackDuration_));
+	variables_->AddItem(kGroupName_, "Combo Window", static_cast<int32_t>(kComboWindow_));
+	// 腕移動量
+	variables_->AddItem(kGroupName_, "Attack Distance", kAttackDistance_);
+	variables_->AddItem(kGroupName_, "Right Punch Offset X", kRightPunchOffsetX_);
+	variables_->AddItem(kGroupName_, "Left Punch Offset X", kLeftPunchOffsetX_);
+	// ダメージ
+	variables_->AddItem(kGroupName_, "Attack Damage", static_cast<int32_t>(attackDamage_));
+}
+
 // =============================================================
 //  攻撃開始
 // =============================================================
 void PlayerArmAttack::StartAttack(AttackType attackType, bool isRightArm, const Vector3& currentTranslation)
 {
+	ApplyVariables();
+
 	isAttack_ = true;
 	currentAttackType_ = attackType;
 	attackTimer_ = 0;
@@ -13,22 +39,22 @@ void PlayerArmAttack::StartAttack(AttackType attackType, bool isRightArm, const 
 	hasHitThisAttack_ = false;	// ヒットフラグをリセット
 
 	if (attackType == AttackType::kRightPunch) {
-		comboTimer_ = kComboWindow;
+		comboTimer_ = kComboWindow_;
 		comboCount_ = 1;
 	}
 	else if (attackType == AttackType::kLeftPunch) {
-		comboTimer_ = kComboWindow;
+		comboTimer_ = kComboWindow_;
 		comboCount_ = 2;
 	}
 
-	Vector3 attackOffset = { 0.0f, 0.0f, kAttackDistance };
+	Vector3 attackOffset = { 0.0f, 0.0f, kAttackDistance_ };
 
 	switch (attackType) {
 	case AttackType::kRightPunch:
-		attackOffset.x += -0.3f;
+		attackOffset.x += kRightPunchOffsetX_;
 		break;
 	case AttackType::kLeftPunch:
-		attackOffset.x += 0.3f;
+		attackOffset.x += kLeftPunchOffsetX_;
 		break;
 	default:
 		break;
@@ -62,7 +88,7 @@ bool PlayerArmAttack::Update()
 	if (!isAttack_) { return false; }
 
 	attackTimer_++;
-	attackProgress_ = static_cast<float>(attackTimer_) / static_cast<float>(kAttackDuration);
+	attackProgress_ = static_cast<float>(attackTimer_) / static_cast<float>(kAttackDuration_);
 	if (attackProgress_ >= 1.0f) { attackProgress_ = 1.0f; }
 
 	float easedProgress = 1.0f - (1.0f - attackProgress_) * (1.0f - attackProgress_);
@@ -76,7 +102,7 @@ bool PlayerArmAttack::Update()
 		originalPosition_.z + (targetPosition_.z - originalPosition_.z) * easedProgress
 	};
 
-	if (attackTimer_ >= kAttackDuration) {
+	if (attackTimer_ >= kAttackDuration_) {
 		lastAttackType_ = currentAttackType_;
 		currentAttackType_ = AttackType::kNone;
 		isAttack_ = false;
@@ -93,6 +119,9 @@ bool PlayerArmAttack::Update()
 // =============================================================
 //  コンボウィンドウ更新
 // =============================================================
+// =============================================================
+//  UpdateComboTimer
+// =============================================================
 void PlayerArmAttack::UpdateComboTimer()
 {
 	if (comboTimer_ > 0) {
@@ -101,4 +130,17 @@ void PlayerArmAttack::UpdateComboTimer()
 			comboCount_ = 0;
 		}
 	}
+}
+
+// =============================================================
+//  ApplyVariables — GlobalVariables から値を取得して反映
+// =============================================================
+void PlayerArmAttack::ApplyVariables()
+{
+	kAttackDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Attack Duration"));
+	kComboWindow_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Combo Window"));
+	kAttackDistance_ = variables_->GetFloatValue(kGroupName_, "Attack Distance");
+	kRightPunchOffsetX_ = variables_->GetFloatValue(kGroupName_, "Right Punch Offset X");
+	kLeftPunchOffsetX_ = variables_->GetFloatValue(kGroupName_, "Left Punch Offset X");
+	attackDamage_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Attack Damage"));
 }

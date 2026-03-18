@@ -1,0 +1,18 @@
+{
+    "PlayerArmRush": {
+        "Finisher Arm Advance": 4.0,
+        "Finisher Attack Damage": 150,
+        "Finisher Duration": 28,
+        "L Arm Finisher Z": -1.0,
+        "L Arm WindUp Z": -0.6000000238418579,
+        "Recover Duration": 25,
+        "Rush Attack Damage": 20,
+        "Rush Attack Duration": 12,
+        "Rush Distance": 1.5,
+        "Rush Duration": 80,
+        "Rush Interval": 8,
+        "WindUp Arm Retreat": -1.600000023841858,
+        "WindUp Arm Side R": 0.800000011920929,
+        "WindUp Duration": 22
+    }
+}

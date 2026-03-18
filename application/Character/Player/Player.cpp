@@ -11,6 +11,8 @@
 #include "PlayerStateGameOver.h"
 #include "PlayerStateGameClear.h"
 
+const std::string Player::kGroupName_ = "Player";
+
 Player::Player()
 {
 	serialNumber_ = nextSerialNumber_;
@@ -21,6 +23,19 @@ void Player::Init()
 {
 	BaseObject::Init();
 	Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kPlayer));
+
+	// =============================================================
+	// GlobalVariables の初期化
+	// =============================================================
+	variables_ = GlobalVariables::GetInstance();
+	if (!variables_->GroupExists(kGroupName_)) {
+		variables_->CreateGroup(kGroupName_);
+	}
+	variables_->AddItem(kGroupName_, "Max HP", static_cast<int32_t>(kMaxHP_Adjustable_));
+	variables_->AddItem(kGroupName_, "Right Arm Translation", kRightArmTranslation_);
+	variables_->AddItem(kGroupName_, "Left Arm Translation", kLeftArmTranslation_);
+	variables_->AddItem(kGroupName_, "Arm Scale", kArmScale_);
+	ApplyVariables();
 
 	stageManager_ = StageManager::GetInstance();
 	stageManager_->Initialize();
@@ -115,6 +130,7 @@ void Player::UpdateStartEffect()
 void Player::Update()
 {
 	BaseObject::Update();
+	ApplyVariables();
 
 	// 現在の状態を更新し、次状態が返ってきたら遷移する
 	if (currentState_) {
@@ -294,6 +310,30 @@ void Player::ImGui()
 }
 
 // =============================================================
+//  ApplyVariables — GlobalVariables から値を取得して反映
+// =============================================================
+void Player::ApplyVariables()
+{
+	kMaxHP_Adjustable_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Max HP"));
+	kRightArmTranslation_ = variables_->GetVector3Value(kGroupName_, "Right Arm Translation");
+	kLeftArmTranslation_ = variables_->GetVector3Value(kGroupName_, "Left Arm Translation");
+	kArmScale_ = variables_->GetVector3Value(kGroupName_, "Arm Scale");
+
+	// 最大HPを反映（HPが満タンのときは追従、それ以外は上限だけ更新）
+	kMaxHP_ = kMaxHP_Adjustable_;
+
+	// 腕の位置・スケールをリアルタイム反映
+	if (arms_[kRArm]) {
+		arms_[kRArm]->SetTranslation(kRightArmTranslation_);
+		arms_[kRArm]->SetScale(kArmScale_);
+	}
+	if (arms_[kLArm]) {
+		arms_[kLArm]->SetTranslation(kLeftArmTranslation_);
+		arms_[kLArm]->SetScale(kArmScale_);
+	}
+}
+
+// =============================================================
 //  OnCollision
 // =============================================================
 void Player::OnCollision(Collider* other)
@@ -347,8 +387,8 @@ void Player::InitArm()
 	arms_[kRArm]->SetID(serialNumber_);
 	arms_[kRArm]->SetColliderID(CollisionTypeIdDef::kPRArm);
 	arms_[kRArm]->SetIsRightArm(true);
-	arms_[kRArm]->SetTranslation(Vector3(1.7f, 0.0f, 1.3f));
-	arms_[kRArm]->SetScale(Vector3(0.8f, 0.8f, 0.8f));
+	arms_[kRArm]->SetTranslation(kRightArmTranslation_);
+	arms_[kRArm]->SetScale(kArmScale_);
 
 	arms_[kLArm] = std::make_unique<PlayerArm>();
 	arms_[kLArm]->Init("player/Arm/playerArm.gltf");
@@ -356,6 +396,6 @@ void Player::InitArm()
 	arms_[kLArm]->SetID(serialNumber_);
 	arms_[kLArm]->SetColliderID(CollisionTypeIdDef::kPLArm);
 	arms_[kLArm]->SetIsRightArm(false);
-	arms_[kLArm]->SetTranslation(Vector3(-1.7f, 0.0f, 1.3f));
-	arms_[kLArm]->SetScale(Vector3(0.8f, 0.8f, 0.8f));
+	arms_[kLArm]->SetTranslation(kLeftArmTranslation_);
+	arms_[kLArm]->SetScale(kArmScale_);
 }

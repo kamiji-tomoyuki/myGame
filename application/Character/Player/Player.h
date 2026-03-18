@@ -2,6 +2,7 @@
 #include "BaseObject.h"
 #include "WorldTransform.h"
 #include "ViewProjection.h"
+#include "GlobalVariables.h"
 
 #include <Sprite.h>
 #include <StageManager.h>
@@ -113,15 +114,11 @@ public:
 private:
 
 	void InitArm();
-
-	/// <summary>State クラスから呼ばれる移動処理</summary>
 	void MoveInternal();
-
 	void UpdateLockOn();
 	void TakeDamage(const Vector3& hitPosition);
-
-	/// <summary>State を切り替える</summary>
 	void ChangeState(IPlayerState* next);
+	void ApplyVariables();
 
 private:
 
@@ -186,4 +183,14 @@ private:
 	// ポインタ
 	FollowCamera* followCamera_ = nullptr;
 	StageManager* stageManager_ = nullptr;
+
+	// GlobalVariables
+	GlobalVariables* variables_ = nullptr;
+	static const std::string kGroupName_;
+
+	// GlobalVariables で調整可能な変数
+	uint32_t kMaxHP_Adjustable_ = 1000;       // 最大HP
+	Vector3  kRightArmTranslation_ = { 1.7f, 0.0f, 1.3f };  // 右腕 初期位置
+	Vector3  kLeftArmTranslation_ = { -1.7f, 0.0f, 1.3f };  // 左腕 初期位置
+	Vector3  kArmScale_ = { 0.8f, 0.8f, 0.8f };  // 腕スケール
 };
