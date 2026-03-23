@@ -59,8 +59,6 @@ void Player::Init()
 	hpBar_->SetColor(hpColor_);
 	hpBar_->SetSize({ kHpBarFullWidth_, kHpBarHeight_ });
 
-	InitArm();
-
 	// エフェクト
 	hitEffect_ = std::make_unique<ParticleEmitter>();
 	hitEffect_->Initialize("hitEffect", "debug/ringPlane.obj");
@@ -90,6 +88,8 @@ void Player::Init()
 	gameOverEffect_ = std::make_unique<PlayerGameOverEffect>(this);
 	gameClearEffect_ = std::make_unique<PlayerGameClearEffect>(this);
 	attack_ = std::make_unique<PlayerAttack>(this, arms_);
+	attack_->Init();   // ゲージの GlobalVariables 登録
+	InitArm();         // attack_ 生成後に呼ぶ（SetPlayerAttack のため）
 	dodge_ = std::make_unique<PlayerDodge>(this, stageManager_);
 
 	isAlive_ = true;
@@ -307,6 +307,7 @@ void Player::ImGui()
 	hitEffect_->imgui();
 	damageEffect_->imgui();
 	trailEffect_->imgui();
+	attack_->ImGui();
 }
 
 // =============================================================
@@ -346,12 +347,8 @@ void Player::OnCollision(Collider* other)
 		if (dodge_->IsDodging() || hitReaction_->IsHitReacting()) { return; }
 
 		if (enemy->IsAttacking()) {
-			uint32_t dmg = 100;
-			if (HP_ > dmg) { HP_ -= dmg; }
-			else { HP_ = 0; gameState_ = GameState::kGameOver; }
-
 			Vector3 hitPos = (GetCenterPosition() + enemy->GetCenterPosition()) * 0.5f;
-			TakeDamage(hitPos);
+			ApplyDamage(100, hitPos);
 
 			Vector3 knockback = (GetCenterPosition() - enemy->GetCenterPosition()).Normalize();
 			move_->SetVelocity(move_->GetVelocity() + knockback * 0.5f);
@@ -359,12 +356,8 @@ void Player::OnCollision(Collider* other)
 		else {
 			if (hitReaction_->IsContactCooldownActive()) { return; }
 
-			uint32_t dmg = 10;
-			if (HP_ > dmg) { HP_ -= dmg; }
-			else { HP_ = 0; gameState_ = GameState::kGameOver; }
-
 			Vector3 hitPos = (GetCenterPosition() + enemy->GetCenterPosition()) * 0.5f;
-			TakeDamage(hitPos);
+			ApplyDamage(10, hitPos);
 		}
 
 		Vector3 playerPos = BaseObject::GetWorldPosition();
@@ -389,6 +382,7 @@ void Player::InitArm()
 	arms_[kRArm]->SetIsRightArm(true);
 	arms_[kRArm]->SetTranslation(kRightArmTranslation_);
 	arms_[kRArm]->SetScale(kArmScale_);
+	arms_[kRArm]->SetPlayerAttack(attack_.get());  // ゲージ通知の接続
 
 	arms_[kLArm] = std::make_unique<PlayerArm>();
 	arms_[kLArm]->Init("player/Arm/playerArm.gltf");
@@ -398,4 +392,5 @@ void Player::InitArm()
 	arms_[kLArm]->SetIsRightArm(false);
 	arms_[kLArm]->SetTranslation(kLeftArmTranslation_);
 	arms_[kLArm]->SetScale(kArmScale_);
+	arms_[kLArm]->SetPlayerAttack(attack_.get());  // ゲージ通知の接続
 }

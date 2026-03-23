@@ -1,6 +1,7 @@
 #pragma once
 #include "Vector3.h"
 #include <memory>
+#include <unordered_map>
 
 class Player;
 class Enemy;
@@ -53,16 +54,32 @@ public:
 public:
 	// Getter
 	AttackType GetCurrentAttackType() const { return currentAttackType_; }
-	EnemyAttackMelee* GetMeleeAttack() const { return meleeAttack_.get(); }
+	EnemyAttackMelee* GetMeleeAttack()  const { return meleeAttack_.get(); }
 	EnemyAttackRanged* GetRangedAttack() const { return rangedAttack_.get(); }
 	bool IsAttacking() const { return currentAttackType_ != AttackType::kNone; }
 
 private:
+
+	// =============================================================
+	//  AttackType ごとの更新・完了チェック関数
+	// =============================================================
+	using UpdateFunc = bool (EnemyAttackManager::*)(Enemy*, Player*);
+	using CompleteFunc = bool (EnemyAttackManager::*)() const;
+
+	bool UpdateMelee(Enemy* enemy, Player* player);
+	bool UpdateRanged(Enemy* enemy, Player* player);
+
+	bool IsCompleteMelee() const;
+	bool IsCompleteRanged() const;
+
+	static const std::unordered_map<AttackType, UpdateFunc>   kUpdateTable_;
+	static const std::unordered_map<AttackType, CompleteFunc> kCompleteTable_;
+
 	// 攻撃タイプ
 	AttackType currentAttackType_ = AttackType::kNone;
 
 	// 各攻撃クラス
-	std::unique_ptr<EnemyAttackMelee> meleeAttack_;
+	std::unique_ptr<EnemyAttackMelee>  meleeAttack_;
 	std::unique_ptr<EnemyAttackRanged> rangedAttack_;
 
 	// 攻撃準備タイマー

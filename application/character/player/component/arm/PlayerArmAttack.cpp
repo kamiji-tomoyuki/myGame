@@ -80,8 +80,7 @@ void PlayerArmAttack::StartAttack(AttackType attackType, bool isRightArm, const 
 }
 
 // =============================================================
-//  更新（毎フレーム）
-//  戻り値: 攻撃終了なら true
+//  更新
 // =============================================================
 bool PlayerArmAttack::Update()
 {
