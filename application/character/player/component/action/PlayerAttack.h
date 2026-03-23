@@ -8,7 +8,6 @@ class PlayerArm;
 
 /// <summary>
 /// プレイヤーの攻撃ロジックを管理するクラス
-/// UpdateAttack・Can/IsXXX の一切を負担する
 /// </summary>
 class PlayerAttack
 {

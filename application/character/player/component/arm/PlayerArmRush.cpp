@@ -184,7 +184,6 @@ void PlayerArmRush::UpdateRapidPunch()
 		rushPhaseTimer_ = 0;
 
 		// WindUp開始時点の体のY回転を記録
-		// （フィニッシャー中の補正の基準になる）
 		bodyRotYAtWindUpStart_ = currentBodyRotY_;
 	}
 }

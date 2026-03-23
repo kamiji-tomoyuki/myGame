@@ -346,12 +346,8 @@ void Player::OnCollision(Collider* other)
 		if (dodge_->IsDodging() || hitReaction_->IsHitReacting()) { return; }
 
 		if (enemy->IsAttacking()) {
-			uint32_t dmg = 100;
-			if (HP_ > dmg) { HP_ -= dmg; }
-			else { HP_ = 0; gameState_ = GameState::kGameOver; }
-
 			Vector3 hitPos = (GetCenterPosition() + enemy->GetCenterPosition()) * 0.5f;
-			TakeDamage(hitPos);
+			ApplyDamage(100, hitPos);
 
 			Vector3 knockback = (GetCenterPosition() - enemy->GetCenterPosition()).Normalize();
 			move_->SetVelocity(move_->GetVelocity() + knockback * 0.5f);
@@ -359,12 +355,8 @@ void Player::OnCollision(Collider* other)
 		else {
 			if (hitReaction_->IsContactCooldownActive()) { return; }
 
-			uint32_t dmg = 10;
-			if (HP_ > dmg) { HP_ -= dmg; }
-			else { HP_ = 0; gameState_ = GameState::kGameOver; }
-
 			Vector3 hitPos = (GetCenterPosition() + enemy->GetCenterPosition()) * 0.5f;
-			TakeDamage(hitPos);
+			ApplyDamage(10, hitPos);
 		}
 
 		Vector3 playerPos = BaseObject::GetWorldPosition();

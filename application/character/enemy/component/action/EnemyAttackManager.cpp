@@ -4,6 +4,21 @@
 #include "EnemyAttackRanged.h"
 #include "Player.h"
 
+// =============================================================
+//  関数ポインタテーブルの定義
+// =============================================================
+const std::unordered_map<EnemyAttackManager::AttackType, EnemyAttackManager::UpdateFunc>
+EnemyAttackManager::kUpdateTable_ = {
+	{ AttackType::kMelee,  &EnemyAttackManager::UpdateMelee  },
+	{ AttackType::kRanged, &EnemyAttackManager::UpdateRanged },
+};
+
+const std::unordered_map<EnemyAttackManager::AttackType, EnemyAttackManager::CompleteFunc>
+EnemyAttackManager::kCompleteTable_ = {
+	{ AttackType::kMelee,  &EnemyAttackManager::IsCompleteMelee  },
+	{ AttackType::kRanged, &EnemyAttackManager::IsCompleteRanged },
+};
+
 EnemyAttackManager::EnemyAttackManager()
 {
 	meleeAttack_ = std::make_unique<EnemyAttackMelee>();
@@ -20,58 +35,87 @@ void EnemyAttackManager::Initialize()
 	attackPreparationTimer_ = 0;
 }
 
+// =============================================================
+//  更新
+// =============================================================
 void EnemyAttackManager::Update(Enemy* enemy, Player* player)
 {
-	if (enemy == nullptr || player == nullptr) return;
+	if (enemy == nullptr || player == nullptr) { return; }
 
-	// 攻撃中でない場合は準備タイマーを更新
 	if (currentAttackType_ == AttackType::kNone) {
 		attackPreparationTimer_++;
-
-		// 準備時間が完了したら攻撃を選択
 		if (attackPreparationTimer_ >= kAttackPreparationTime_) {
 			SelectAndStartAttack(enemy, player);
 		}
 		return;
 	}
 
-	// 各攻撃の更新処理
-	switch (currentAttackType_) {
-	case AttackType::kMelee:
-		meleeAttack_->Update(enemy, player);
-
-		// 攻撃完了チェック
-		if (meleeAttack_->IsComplete()) {
+	// テーブルから現在の AttackType に対応する更新関数を引き
+	// 完了（true）が返ったら攻撃をリセットする
+	auto it = kUpdateTable_.find(currentAttackType_);
+	if (it != kUpdateTable_.end()) {
+		bool finished = (this->*(it->second))(enemy, player);
+		if (finished) {
 			ResetAttack();
 		}
-		break;
-
-	case AttackType::kRanged:
-		rangedAttack_->Update(enemy, player);
-
-		// 攻撃完了チェック
-		if (rangedAttack_->IsComplete()) {
-			ResetAttack();
-		}
-		break;
 	}
 }
 
+// =============================================================
+//  AttackType 別の更新関数
+// =============================================================
+bool EnemyAttackManager::UpdateMelee(Enemy* enemy, Player* player)
+{
+	meleeAttack_->Update(enemy, player);
+	return meleeAttack_->IsComplete();
+}
+
+bool EnemyAttackManager::UpdateRanged(Enemy* enemy, Player* player)
+{
+	rangedAttack_->Update(enemy, player);
+	return rangedAttack_->IsComplete();
+}
+
+// =============================================================
+//  AttackType 別の完了チェック関数
+// =============================================================
+bool EnemyAttackManager::IsCompleteMelee() const
+{
+	return meleeAttack_->IsComplete();
+}
+
+bool EnemyAttackManager::IsCompleteRanged() const
+{
+	return rangedAttack_->IsComplete();
+}
+
+// =============================================================
+//  IsAttackComplete
+// =============================================================
+bool EnemyAttackManager::IsAttackComplete() const
+{
+	auto it = kCompleteTable_.find(currentAttackType_);
+	if (it != kCompleteTable_.end()) {
+		return (this->*(it->second))();
+	}
+	return true; // kNone
+}
+
+// =============================================================
+//  SelectAndStartAttack
+// =============================================================
 void EnemyAttackManager::SelectAndStartAttack(Enemy* enemy, Player* player)
 {
-	if (enemy == nullptr || player == nullptr) return;
+	if (enemy == nullptr || player == nullptr) { return; }
 
-	// プレイヤーとの距離を計算
-	float distanceToPlayer = (player->GetCenterPosition() - enemy->GetCenterPosition()).Length();
+	float distanceToPlayer =
+		(player->GetCenterPosition() - enemy->GetCenterPosition()).Length();
 
-	// 距離に応じて攻撃タイプを選択
 	if (distanceToPlayer <= kMeleeAttackRange_) {
-		// 近距離なら突進攻撃
 		currentAttackType_ = AttackType::kMelee;
 		meleeAttack_->Start(enemy, player);
 	}
 	else {
-		// 遠距離なら遠距離攻撃
 		currentAttackType_ = AttackType::kRanged;
 		rangedAttack_->Start(enemy, player);
 	}
@@ -79,28 +123,20 @@ void EnemyAttackManager::SelectAndStartAttack(Enemy* enemy, Player* player)
 	attackPreparationTimer_ = 0;
 }
 
-bool EnemyAttackManager::IsAttackComplete() const
-{
-	switch (currentAttackType_) {
-	case AttackType::kMelee:
-		return meleeAttack_->IsComplete();
-	case AttackType::kRanged:
-		return rangedAttack_->IsComplete();
-	case AttackType::kNone:
-		return true;
-	}
-	return true;
-}
-
+// =============================================================
+//  ResetAttack
+// =============================================================
 void EnemyAttackManager::ResetAttack()
 {
 	currentAttackType_ = AttackType::kNone;
 	attackPreparationTimer_ = 0;
 }
 
+// =============================================================
+//  InterruptByRush
+// =============================================================
 void EnemyAttackManager::InterruptByRush()
 {
-	// 現在の攻撃を中断
 	if (currentAttackType_ == AttackType::kMelee) {
 		meleeAttack_->Interrupt();
 	}

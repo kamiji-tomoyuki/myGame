@@ -4,6 +4,15 @@
 #include "Player.h"
 #include <Enemy.h>
 
+// =============================================================
+//  関数ポインタテーブルの定義
+// =============================================================
+const std::unordered_map<PlayerArm::Behavior, PlayerArm::BehaviorFunc>
+PlayerArm::kBehaviorTable_ = {
+	{ Behavior::kAttack, &PlayerArm::UpdateAttackBehavior },
+	{ Behavior::kRush,   &PlayerArm::UpdateRushBehavior   },
+};
+
 PlayerArm::PlayerArm()
 {
 	serialNumber_ = nextSerialNumber_;
@@ -39,45 +48,53 @@ void PlayerArm::Update()
 {
 	BaseObject::Update();
 
-	switch (behavior_) {
-	case Behavior::kAttack:
-	{
-		bool finished = attack_->Update();
-		// 攻撃終了 → Normal に戻す
+	// テーブルから現在の Behavior に対応する更新関数を引き
+	// 終了（true）が返ったら kNormal へ戻す
+	auto it = kBehaviorTable_.find(behavior_);
+	if (it != kBehaviorTable_.end()) {
+		bool finished = (this->*(it->second))();
 		if (finished) {
 			behavior_ = Behavior::kNormal;
 		}
-		// 攻撃中の腕位置を反映
-		transform_.translation_ = attack_->GetCurrentTranslation();
-		break;
-	}
-	case Behavior::kRush:
-	{
-		float bodyRotY = 0.0f;
-		if (transform_.parent_ != nullptr) {
-			bodyRotY = transform_.parent_->rotation_.y;
-		}
-
-		bool finished = rush_->Update(bodyRotY);
-		// ラッシュ終了 → Normal に戻す＆攻撃タイプをリセット
-		if (finished) {
-			behavior_ = Behavior::kNormal;
-			attack_->SetComboCount(0);
-			attack_->SetComboTimer(0);
-			attack_->SetLastAttackType(AttackType::kNone);
-		}
-		// ラッシュ中の腕位置を反映
-		transform_.translation_ = rush_->GetCurrentTranslation();
-		break;
-	}
-	default:
-		break;
 	}
 
 	attack_->UpdateComboTimer();
 
 	obj3d_->UpdateAnimation(true);
 	Collider::UpdateWorldTransform();
+}
+
+// =============================================================
+//  Behavior 更新関数 — 攻撃
+// =============================================================
+bool PlayerArm::UpdateAttackBehavior()
+{
+	bool finished = attack_->Update();
+	transform_.translation_ = attack_->GetCurrentTranslation();
+	return finished;
+}
+
+// =============================================================
+//  Behavior 更新関数 — ラッシュ
+// =============================================================
+bool PlayerArm::UpdateRushBehavior()
+{
+	float bodyRotY = 0.0f;
+	if (transform_.parent_ != nullptr) {
+		bodyRotY = transform_.parent_->rotation_.y;
+	}
+
+	bool finished = rush_->Update(bodyRotY);
+	transform_.translation_ = rush_->GetCurrentTranslation();
+
+	if (finished) {
+		// ラッシュ終了時にコンボ状態をリセット
+		attack_->SetComboCount(0);
+		attack_->SetComboTimer(0);
+		attack_->SetLastAttackType(AttackType::kNone);
+	}
+
+	return finished;
 }
 
 // =============================================================

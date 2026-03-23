@@ -6,6 +6,7 @@
 #include "PlayerArmRush.h"
 #include <CollisionTypeIdDef.h>
 #include <memory>
+#include <unordered_map>
 
 class Player;
 
@@ -64,7 +65,7 @@ public:
 	/// <summary>
 	/// 当たり判定
 	/// </summary>
-	void OnCollisionEnter([[maybe_unused]] Collider* other) override; // [FIX] 追加：衝突初回フレームの処理
+	void OnCollisionEnter([[maybe_unused]] Collider* other) override;
 	void OnCollision([[maybe_unused]] Collider* other) override;
 
 public:
@@ -119,8 +120,19 @@ public:
 
 private:
 
-	// [FIX] 追加：OnCollision / OnCollisionEnter の共通ヒット処理
 	void HandleHit(Collider* other);
+
+	// =============================================================
+	//  Behavior ごとの更新関数
+	// =============================================================
+	bool UpdateAttackBehavior();
+	bool UpdateRushBehavior();
+
+	// =============================================================
+	//  関数ポインタテーブル（switch の代替）
+	// =============================================================
+	using BehaviorFunc = bool (PlayerArm::*)();
+	static const std::unordered_map<Behavior, BehaviorFunc> kBehaviorTable_;
 
 	// モデル
 	std::unique_ptr<Object3d> obj3d_;
