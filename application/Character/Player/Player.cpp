@@ -59,8 +59,6 @@ void Player::Init()
 	hpBar_->SetColor(hpColor_);
 	hpBar_->SetSize({ kHpBarFullWidth_, kHpBarHeight_ });
 
-	InitArm();
-
 	// エフェクト
 	hitEffect_ = std::make_unique<ParticleEmitter>();
 	hitEffect_->Initialize("hitEffect", "debug/ringPlane.obj");
@@ -90,6 +88,8 @@ void Player::Init()
 	gameOverEffect_ = std::make_unique<PlayerGameOverEffect>(this);
 	gameClearEffect_ = std::make_unique<PlayerGameClearEffect>(this);
 	attack_ = std::make_unique<PlayerAttack>(this, arms_);
+	attack_->Init();   // ゲージの GlobalVariables 登録
+	InitArm();         // attack_ 生成後に呼ぶ（SetPlayerAttack のため）
 	dodge_ = std::make_unique<PlayerDodge>(this, stageManager_);
 
 	isAlive_ = true;
@@ -307,6 +307,7 @@ void Player::ImGui()
 	hitEffect_->imgui();
 	damageEffect_->imgui();
 	trailEffect_->imgui();
+	attack_->ImGui();
 }
 
 // =============================================================
@@ -381,6 +382,7 @@ void Player::InitArm()
 	arms_[kRArm]->SetIsRightArm(true);
 	arms_[kRArm]->SetTranslation(kRightArmTranslation_);
 	arms_[kRArm]->SetScale(kArmScale_);
+	arms_[kRArm]->SetPlayerAttack(attack_.get());  // ゲージ通知の接続
 
 	arms_[kLArm] = std::make_unique<PlayerArm>();
 	arms_[kLArm]->Init("player/Arm/playerArm.gltf");
@@ -390,4 +392,5 @@ void Player::InitArm()
 	arms_[kLArm]->SetIsRightArm(false);
 	arms_[kLArm]->SetTranslation(kLeftArmTranslation_);
 	arms_[kLArm]->SetScale(kArmScale_);
+	arms_[kLArm]->SetPlayerAttack(attack_.get());  // ゲージ通知の接続
 }
