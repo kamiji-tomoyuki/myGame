@@ -2,6 +2,7 @@
 #include "Player.h"
 #include "Input.h"
 #include <Arm/PlayerArm.h>
+#include <Enemy.h>
 
 const std::string PlayerAttack::kGroupName_ = "PlayerAttack";
 
@@ -25,6 +26,7 @@ PlayerAttack::PlayerAttack(Player* player,
 void PlayerAttack::Init()
 {
     ultGauge_.Init();
+    ultimate_.Init();
 }
 
 // =============================================================
@@ -36,11 +38,20 @@ void PlayerAttack::OnHit(PlayerUltGauge::HitType type)
 }
 
 // =============================================================
+//  UpdateUltimate — Player::Update() から呼ぶ
+// =============================================================
+void PlayerAttack::UpdateUltimate(Player* player, Enemy* enemy)
+{
+    ultimate_.Update(player, enemy);
+}
+
+// =============================================================
 //  ImGui
 // =============================================================
 void PlayerAttack::ImGui()
 {
     ultGauge_.ImGui();
+    ultimate_.ImGui();
 }
 
 // =============================================================
@@ -52,6 +63,18 @@ void PlayerAttack::Update()
 
     // ゲージ更新
     ultGauge_.Update();
+
+    // --- 必殺技発動入力 ---
+    if (Input::GetInstance()->TriggerKey(DIK_R)) {
+        if (ultGauge_.IsReady() && !ultimate_.IsActive()) {
+            ultGauge_.ConsumeGauge();
+            // ★ player_->GetEnemy() が Player.h に宣言されたことで解決
+            ultimate_.Start(player_, player_->GetEnemy());
+        }
+    }
+
+    // 必殺技モーション中は通常攻撃入力をすべてブロック
+    if (ultimate_.IsActive()) { return; }
 
     const auto& a = *arms_;
 

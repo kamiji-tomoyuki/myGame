@@ -140,6 +140,9 @@ void Player::Update()
 		}
 	}
 
+	// 必殺技モーション更新（状態に関わらず毎フレーム）
+	if (attack_) { attack_->UpdateUltimate(this, enemy_); }
+
 	// HPバー更新（状態に関わらず毎フレーム更新）
 	float hpRatio = static_cast<float>(HP_) / static_cast<float>(kMaxHP_);
 	hpBar_->SetSize({ kHpBarFullWidth_ * hpRatio, kHpBarHeight_ });
@@ -158,6 +161,9 @@ void Player::Update()
 // =============================================================
 void Player::MoveInternal()
 {
+	// 必殺技モーション中は移動処理をスキップ（PlayerUltimate が座標を直接制御する）
+	if (IsUltimateActive()) { return; }
+
 	Vector3 currentPos = BaseObject::GetWorldPosition();
 	float   currentRotY = BaseObject::GetTransform().rotation_.y;
 	Vector3 currentRot = BaseObject::GetTransform().rotation_;
@@ -183,7 +189,7 @@ void Player::MoveInternal()
 // =============================================================
 void Player::TakeDamage(const Vector3& hitPosition)
 {
-	if (hitReaction_->IsHitReacting() || dodge_->IsDodging()) { return; }
+	if (hitReaction_->IsHitReacting() || dodge_->IsDodging() || IsUltimateActive()) { return; }  // ★ 必殺技中は被弾なし
 	hitReaction_->Start(BaseObject::GetWorldPosition(), hitPosition);
 }
 
@@ -192,7 +198,7 @@ void Player::TakeDamage(const Vector3& hitPosition)
 // =============================================================
 void Player::ApplyDamage(uint32_t damage, const Vector3& hitPosition)
 {
-	if (dodge_->IsDodging() || hitReaction_->IsHitReacting()) { return; }
+	if (dodge_->IsDodging() || hitReaction_->IsHitReacting() || IsUltimateActive()) { return; }  // ★ 必殺技中は無敵
 
 	if (HP_ > damage) {
 		HP_ -= damage;
@@ -256,6 +262,7 @@ bool Player::CanRush()            const { return attack_->CanRush(); }
 bool Player::IsRightPunchActive() const { return attack_->IsRightPunchActive(); }
 bool Player::IsLeftPunchActive()  const { return attack_->IsLeftPunchActive(); }
 bool Player::IsRushActive()       const { return attack_->IsRushActive(); }
+bool Player::IsUltimateActive()   const { return attack_ && attack_->IsUltimateActive(); }  // ★ 追加
 
 // =============================================================
 //  velocity getter/setter（PlayerMove に委譲）
@@ -307,7 +314,7 @@ void Player::ImGui()
 	hitEffect_->imgui();
 	damageEffect_->imgui();
 	trailEffect_->imgui();
-	attack_->ImGui();
+	if (attack_) { attack_->ImGui(); }  // ゲージの ImGui
 }
 
 // =============================================================

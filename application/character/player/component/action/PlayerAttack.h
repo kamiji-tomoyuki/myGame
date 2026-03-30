@@ -2,10 +2,12 @@
 #include <array>
 #include <memory>
 #include "GlobalVariables.h"
-#include "PlayerUltGauge.h"   // ★ 追加
+#include "PlayerUltGauge.h"
+#include "PlayerUltimate.h"
 
 class Player;
 class PlayerArm;
+class Enemy;
 
 /// <summary>
 /// プレイヤーの攻撃ロジックを管理するクラス
@@ -15,7 +17,7 @@ class PlayerAttack
 public:
     PlayerAttack(Player* player, const std::array<std::unique_ptr<PlayerArm>, 2>& arms);
 
-    void Init();   // ★ 追加（ゲージ初期化）
+    void Init();
     void Update();
 
     bool CanRightPunch() const;
@@ -26,14 +28,21 @@ public:
     bool IsLeftPunchActive()  const;
     bool IsRushActive()       const;
 
-    // ★ 追加 — ゲージへのアクセス
+    // ゲージへのアクセス
     PlayerUltGauge* GetUltGauge() { return &ultGauge_; }
     bool IsUltReady() const { return ultGauge_.IsReady(); }
 
-    // ★ 追加 — ImGui（Player::ImGui() から呼ぶ）
+    // 必殺技アクティブ判定（Player から状態確認に使う）
+    bool IsUltimateActive() const { return ultimate_.IsActive(); }
+    PlayerUltimate::Phase GetUltimatePhase() const { return ultimate_.GetPhase(); }
+
+    // ImGui（Player::ImGui() から呼ぶ）
     void ImGui();
 
-    // ★ 追加 — PlayerArm から命中通知を受け取る
+    // Update を呼ぶ際に Enemy を渡せるようにする
+    void UpdateUltimate(Player* player, Enemy* enemy);
+
+    // PlayerArm から命中通知を受け取る
     void OnHit(PlayerUltGauge::HitType type);
 
 private:
@@ -55,6 +64,8 @@ private:
     GlobalVariables* variables_ = nullptr;
     static const std::string kGroupName_;
 
-    // ★ 追加 — 必殺技ゲージ
-    PlayerUltGauge ultGauge_;
+    // 必殺技ゲージ
+    PlayerUltGauge  ultGauge_;
+    // 必殺技モーション
+    PlayerUltimate  ultimate_;
 };

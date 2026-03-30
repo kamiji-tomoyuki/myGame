@@ -94,12 +94,16 @@ public:
 	bool IsRightPunchActive() const;
 	bool IsLeftPunchActive()  const;
 	bool IsRushActive()       const;
+	bool IsUltimateActive()   const;  // ★ 追加
+
+	Enemy* GetEnemy()         const { return enemy_; }  // ★ 追加
 
 	void ApplyDamage(uint32_t damage, const Vector3& hitPosition);
 
 	// =============================================================
 	// セッター
 	// =============================================================
+	FollowCamera* GetFollowCamera() const { return followCamera_; }
 	void SetFollowCamera(FollowCamera* followCamera) { followCamera_ = followCamera; }
 	void SetViewProjection(const ViewProjection* vp) { vp_ = vp; }
 	static void SetSerialNumber(int num) { nextSerialNumber_ = num; }

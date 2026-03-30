@@ -461,6 +461,9 @@
     <ClCompile Include="application\character\player\component\action\PlayerUltGauge.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
+    <ClCompile Include="application\character\player\component\action\PlayerUltimate.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -765,6 +768,7 @@
     <ClInclude Include="application\character\enemy\component\action\EnemyAttackMelee.h" />
     <ClInclude Include="application\character\enemy\component\action\EnemyAttackRanged.h" />
     <ClInclude Include="application\character\player\component\action\PlayerUltGauge.h" />
+    <ClInclude Include="application\character\player\component\action\PlayerUltimate.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\particle\Particle.PS.hlsl">
