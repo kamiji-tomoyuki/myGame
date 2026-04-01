@@ -152,7 +152,7 @@ void PlayerUltimate::RestoreArmPose(Player* player)
     const auto& arms = player->GetArms();
     for (int i = 0; i < 2; ++i) {
         if (arms[i]) {
-            arms[i]->SetRotation(savedArmPos_[i]);      // rotation は変更していないので不要だが念のため
+            arms[i]->SetRotation(savedArmRot_[i]);
             arms[i]->SetTranslation(savedArmPos_[i]);
         }
     }

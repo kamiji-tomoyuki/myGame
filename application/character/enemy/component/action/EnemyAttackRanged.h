@@ -29,6 +29,7 @@ public:
 		bool isWarningActive = false;
 		bool isSpikeActive = false;
 		float spikeHeight = 0.0f;			// トゲの高さ
+		bool hasHitPlayer = false;			// このトゲで既にダメージを与えたか
 
 		std::unique_ptr<Object3d> warningCircle;	// 赤い円形ジオグリフ
 		std::unique_ptr<Object3d> spike;			// トゲモデル

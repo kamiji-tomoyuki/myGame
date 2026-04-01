@@ -85,6 +85,7 @@ public:
 	bool      GetIsEnd()           const { return startEffect_ && startEffect_->IsEnd(); }
 	bool      IsDodging()          const { return dodge_ && dodge_->IsDodging(); }
 	bool      IsHitReacting()      const { return hitReaction_ && hitReaction_->IsHitReacting(); }
+	bool      IsRangedInvincible() const { return hitReaction_ && hitReaction_->IsRangedCooldownActive(); }
 	GameState GetGameState()       const { return gameState_; }
 	const std::array<std::unique_ptr<PlayerArm>, kModelNum>& GetArms() const { return arms_; }
 
@@ -99,6 +100,7 @@ public:
 	Enemy* GetEnemy()         const { return enemy_; }  // ★ 追加
 
 	void ApplyDamage(uint32_t damage, const Vector3& hitPosition);
+	void StartRangedCooldown() { if (hitReaction_) { hitReaction_->StartRangedCooldown(); } }
 
 	// =============================================================
 	// セッター

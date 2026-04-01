@@ -262,8 +262,9 @@ void EnemyAttackRanged::CheckCollision(Player* player)
 
 	Vector3 playerPos = player->GetCenterPosition();
 
-	for (const auto& attack : attackInstances_) {
+	for (auto& attack : attackInstances_) {
 		if (!attack.isSpikeActive) continue;
+		if (attack.hasHitPlayer) continue;          // このトゲでは既に当たり判定済み
 
 		if (attack.spikeHeight < kSpikeMaxHeight_ * 0.5f) continue;
 
@@ -276,6 +277,7 @@ void EnemyAttackRanged::CheckCollision(Player* player)
 			playerPos.y <= attack.position.y + kSpikeMaxHeight_) {
 			if (!player->IsDodging()) {
 				player->ApplyDamage(static_cast<uint32_t>(kRangedDamage_), attack.position);
+				attack.hasHitPlayer = true;         // このトゲからのダメージは1回だけ
 			}
 		}
 	}
