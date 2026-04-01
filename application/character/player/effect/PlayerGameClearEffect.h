@@ -30,15 +30,18 @@ private:
 	bool initialized_ = false;
 
 	// --- 定数 ---
+	/// 円周率
+	static inline const float kPi_ = 3.14159265f;
+
 	/// ジャンプ1サイクルのフレーム数
-	static constexpr float kJumpCycle_ = 40.0f;
+	static inline const float kJumpCycle_ = 40.0f;
 
 	/// ジャンプの高さ
-	static constexpr float kJumpHeight_ = 2.0f;
+	static inline const float kJumpHeight_ = 2.0f;
 
 	/// 毎フレームの回転加算量（rad）
-	static constexpr float kRotateSpeed_ = 0.05f;
+	static inline const float kRotateSpeed_ = 0.05f;
 
 	/// タイマーのオーバーフロー防止リセット閾値
-	static constexpr float kTimerResetThreshold_ = kJumpCycle_ * 1000.0f;
+	static inline const float kTimerResetThreshold_ = kJumpCycle_ * 1000.0f;
 };

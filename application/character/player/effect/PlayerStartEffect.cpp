@@ -16,13 +16,11 @@ void PlayerStartEffect::Update()
 	player_->UpdateArms();
 
 	if (easeT_ < 1.0f) {
-		easeT_ += (1.0f / 60.0f) / kDuration_;
+		easeT_ += kFrameDeltaTime_ / kDuration_;
 		if (easeT_ > 1.0f) {
 			easeT_ = 1.0f;
 		}
-		player_->SetScale(Lerp(Vector3{ 0.0f, 0.0f, 0.0f },
-			Vector3{ 1.0f, 1.0f, 1.0f },
-			easeT_));
+		player_->SetScale(Lerp(kScaleStart_, kScaleEnd_, easeT_));
 	}
 	else {
 		isEnd_ = true;

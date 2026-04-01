@@ -11,8 +11,8 @@ void FollowCamera::Initialize()
 
 	destinationAngle = Quaternion::IdentityQuaternion();
 
-	vp_.translation_ = { 0.0f, 2.0f, -10.0f };
-	targetPos_ = { 0.0f, 0.0f,  0.0f };
+	vp_.translation_ = kInitialTranslation;
+	targetPos_ = { 0.0f, 0.0f, 0.0f };
 }
 
 void FollowCamera::Update()
@@ -37,7 +37,7 @@ void FollowCamera::Update()
 		destinationAngle,
 		Quaternion::MakeRotateAxisAngleQuaternion({ 0, 0, -1 }, destinationAngleX_) *
 		Quaternion::MakeRotateAxisAngleQuaternion({ 0, -1, 0 }, resolvedAngleY),
-		0.1f);
+		kRotationSlerpSpeed);
 	vp_.rotation_ = destinationAngle.ToEulerAngles();
 
 	if (target_) {
@@ -54,7 +54,7 @@ void FollowCamera::Update()
 		}
 		else {
 			// 通常の追従
-			targetPos_ = Lerp(targetPos_, target_->translation_, 0.1f);
+			targetPos_ = Lerp(targetPos_, target_->translation_, kPositionLerpSpeed);
 			Vector3 offset = MakeOffset();
 			vp_.translation_ = targetPos_ + offset;
 		}
@@ -153,13 +153,11 @@ void FollowCamera::UpdateGamePad()
 
 void FollowCamera::UpdateKeyboard()
 {
-	const float speed = 0.03f;
-
 	if (Input::GetInstance()->PushKey(DIK_LEFT)) {
-		move += Vector3(0.0f, -1.0f, 0.0f);
+		move += Vector3(0.0f, -kKeyboardRotateSpeed, 0.0f);
 	}
 	if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
-		move += Vector3(0.0f, 1.0f, 0.0f);
+		move += Vector3(0.0f, kKeyboardRotateSpeed, 0.0f);
 	}
 }
 

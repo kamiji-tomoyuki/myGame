@@ -17,7 +17,7 @@ void EnemyEffect::UpdateStartEffect(Enemy* enemy)
 		fallTimer_++;
 
 		// 落下中の回転演出
-		float rotationSpeed = 0.1f;
+		float rotationSpeed = kFallRotationSpeed_;
 		Vector3 rot = enemy->GetObjRotation();
 		rot.y += rotationSpeed * (1.0f - (fallTimer_ / kFallDuration_));
 		enemy->SetObjRotation(rot);

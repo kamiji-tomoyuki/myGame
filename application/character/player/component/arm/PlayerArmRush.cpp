@@ -128,9 +128,9 @@ void PlayerArmRush::UpdateRapidPunch()
 		rushAttackTimer_ = 0;
 		rushCount_++;
 
-		float sideOffset = (rushCount_ % 2 == 0) ? 0.5f : -0.5f;
-		if (isRightArm_) { sideOffset += 0.3f; }
-		else { sideOffset -= 0.3f; }
+		float sideOffset = (rushCount_ % 2 == 0) ? kRapidPunchSideBase_ : -kRapidPunchSideBase_;
+		if (isRightArm_) { sideOffset += kRapidPunchArmSideOffset_; }
+		else { sideOffset -= kRapidPunchArmSideOffset_; }
 
 		Vector3 attackOffset = { sideOffset, 0.0f, kRushDistance_ };
 
@@ -157,8 +157,8 @@ void PlayerArmRush::UpdateRapidPunch()
 		if (rushProgress >= 1.0f) { rushProgress = 1.0f; }
 
 		float easedProgress = 1.0f - (1.0f - rushProgress) * (1.0f - rushProgress);
-		if (rushProgress > 0.6f) {
-			easedProgress = 1.0f - (rushProgress - 0.6f) * 2.5f;
+		if (rushProgress > kRapidPunchEasingTurnPoint_) {
+			easedProgress = 1.0f - (rushProgress - kRapidPunchEasingTurnPoint_) * kRapidPunchReturnSpeed_;
 		}
 
 		currentTranslation_ = {
@@ -243,13 +243,13 @@ void PlayerArmRush::UpdateFinisher()
 
 	if (isRightArm_) {
 		float armEased;
-		if (t <= 0.5f) {
-			float t2 = t / 0.5f;
+		if (t <= kFinisherHalfPoint_) {
+			float t2 = t / kFinisherHalfPoint_;
 			armEased = t2 * t2;
 		}
 		else {
-			float t2 = (t - 0.5f) / 0.5f;
-			armEased = 1.0f - t2 * 0.25f;
+			float t2 = (t - kFinisherHalfPoint_) / kFinisherHalfPoint_;
+			armEased = 1.0f - t2 * kFinisherRetractFactor_;
 		}
 
 		Vector3 windUpEndLocal = {
@@ -279,7 +279,7 @@ void PlayerArmRush::UpdateFinisher()
 			windUpEndLocal.z + (localTarget.z - windUpEndLocal.z) * armEased
 		};
 
-		if (t >= 0.3f && t <= 0.7f && !hasFinisherHit_) {
+		if (t >= kFinisherHitStartProgress_ && t <= kFinisherHitEndProgress_ && !hasFinisherHit_) {
 			isFinisherHitFrame_ = true;
 		}
 	}
@@ -319,7 +319,7 @@ void PlayerArmRush::UpdateFinisher()
 
 void PlayerArmRush::UpdateRecover()
 {
-	if (rushPhaseTimer_ >= 2) {
+	if (rushPhaseTimer_ >= kRecoverHitFrameClearDelay_) {
 		isFinisherHitFrame_ = false;
 	}
 
@@ -349,9 +349,9 @@ void PlayerArmRush::UpdateRecover()
 			originalPosition_.z + localTargetOffset.z
 		};
 		finisherEndPos = {
-			windUpEndLocal.x + (localTarget.x - windUpEndLocal.x) * 0.75f,
-			windUpEndLocal.y + (localTarget.y - windUpEndLocal.y) * 0.75f,
-			windUpEndLocal.z + (localTarget.z - windUpEndLocal.z) * 0.75f
+			windUpEndLocal.x + (localTarget.x - windUpEndLocal.x) * kRecoverStartRatio_,
+			windUpEndLocal.y + (localTarget.y - windUpEndLocal.y) * kRecoverStartRatio_,
+			windUpEndLocal.z + (localTarget.z - windUpEndLocal.z) * kRecoverStartRatio_
 		};
 	}
 	else {

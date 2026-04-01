@@ -91,8 +91,8 @@ bool PlayerArmAttack::Update()
 	if (attackProgress_ >= 1.0f) { attackProgress_ = 1.0f; }
 
 	float easedProgress = 1.0f - (1.0f - attackProgress_) * (1.0f - attackProgress_);
-	if (attackProgress_ > 0.5f) {
-		easedProgress = 1.0f - (attackProgress_ - 0.5f) * 2.0f;
+	if (attackProgress_ > kEasingTurnPoint_) {
+		easedProgress = 1.0f - (attackProgress_ - kEasingTurnPoint_) * 2.0f;
 	}
 
 	currentTranslation_ = {
@@ -115,9 +115,6 @@ bool PlayerArmAttack::Update()
 	return false;
 }
 
-// =============================================================
-//  コンボウィンドウ更新
-// =============================================================
 // =============================================================
 //  UpdateComboTimer
 // =============================================================

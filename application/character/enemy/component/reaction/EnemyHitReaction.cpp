@@ -34,10 +34,10 @@ void EnemyHitReaction::OnRushHit(bool isFinalHit, Enemy* enemy)
 	if (!enemy->GetIsAlive()) { return; }
 
 	if (isFinalHit) {
-		isRushStunned_        = true;
-		rushStunTimer_        = kRushStunDuration_ * 3;
+		isRushStunned_ = true;
+		rushStunTimer_ = kRushStunDuration_ * kFinalHitStunMultiplier_;
 		rushFinalHitReceived_ = false;
-		isBeingRushed_        = false;
+		isBeingRushed_ = false;
 
 		if (EnemyAttackManager* mgr = enemy->GetAttackManager()) {
 			mgr->InterruptByRush();
@@ -51,24 +51,24 @@ void EnemyHitReaction::OnRushHit(bool isFinalHit, Enemy* enemy)
 
 void EnemyHitReaction::StartKnockback(Enemy* enemy, Player* player)
 {
-	isBeingRushed_              = true;
-	rushKnockbackTimer_         = 0;
-	knockbackSpeed_             = initialKnockbackSpeed_;
-	knockbackVerticalVelocity_  = knockbackInitialVerticalVelocity_;
-	knockbackGroundY_           = enemy->GetCenterPosition().y;
+	isBeingRushed_ = true;
+	rushKnockbackTimer_ = 0;
+	knockbackSpeed_ = initialKnockbackSpeed_;
+	knockbackVerticalVelocity_ = knockbackInitialVerticalVelocity_;
+	knockbackGroundY_ = enemy->GetCenterPosition().y;
 
 	if (EnemyAttackManager* mgr = enemy->GetAttackManager()) {
 		mgr->InterruptByRush();
 	}
 
 	Vector3 originalRot = enemy->GetOriginalRotation();
-	Vector3 currentRot  = enemy->GetWorldRotation();
+	Vector3 currentRot = enemy->GetWorldRotation();
 	enemy->SetObjRotation(Vector3(originalRot.x, currentRot.y, originalRot.z));
 
 	if (player != nullptr) {
 		Vector3 direction = enemy->GetCenterPosition() - player->GetCenterPosition();
 		direction.y = 0.0f;
-		knockbackDirection_ = (direction.Length() > 0.001f)
+		knockbackDirection_ = (direction.Length() > kKnockbackDirectionMinLength_)
 			? direction.Normalize()
 			: Vector3(0.0f, 0.0f, 1.0f);
 	}
@@ -104,17 +104,17 @@ void EnemyHitReaction::UpdateKnockback(Enemy* enemy)
 	enemy->SetWorldPosition(newPos);
 
 	// 回転演出
-	Vector3 currentRot  = enemy->GetWorldRotation();
+	Vector3 currentRot = enemy->GetWorldRotation();
 	Vector3 originalRot = enemy->GetOriginalRotation();
-	float   tiltAmount  = 0.0f;
+	float   tiltAmount = 0.0f;
 
-	bool isAirborne = (newY > knockbackGroundY_ + 0.01f);
+	bool isAirborne = (newY > knockbackGroundY_ + kAirborneThreshold_);
 	if (isAirborne) {
 		tiltAmount = -knockbackVerticalVelocity_ * (maxTiltAngle_ / knockbackInitialVerticalVelocity_);
 	}
 	else {
 		float decayFactor = 1.0f - static_cast<float>(rushKnockbackTimer_) / static_cast<float>(kMaxRushKnockbackDuration_);
-		tiltAmount = sin(static_cast<float>(rushKnockbackTimer_) * 0.4f) * maxTiltAngle_ * decayFactor * 0.5f;
+		tiltAmount = sin(static_cast<float>(rushKnockbackTimer_) * kGroundTiltFrequency_) * maxTiltAngle_ * decayFactor * kGroundTiltDampingScale_;
 	}
 
 	Vector3 objRot = currentRot;
@@ -124,9 +124,9 @@ void EnemyHitReaction::UpdateKnockback(Enemy* enemy)
 
 void EnemyHitReaction::EndKnockback(Enemy* enemy)
 {
-	isBeingRushed_             = false;
-	rushKnockbackTimer_        = 0;
-	knockbackSpeed_            = initialKnockbackSpeed_;
+	isBeingRushed_ = false;
+	rushKnockbackTimer_ = 0;
+	knockbackSpeed_ = initialKnockbackSpeed_;
 	knockbackVerticalVelocity_ = 0.0f;
 
 	Vector3 pos = enemy->GetCenterPosition();
@@ -135,7 +135,7 @@ void EnemyHitReaction::EndKnockback(Enemy* enemy)
 		enemy->SetWorldPosition(pos);
 	}
 
-	Vector3 currentRot  = enemy->GetWorldRotation();
+	Vector3 currentRot = enemy->GetWorldRotation();
 	Vector3 originalRot = enemy->GetOriginalRotation();
 	enemy->SetObjRotation(Vector3(originalRot.x, currentRot.y, originalRot.z));
 }

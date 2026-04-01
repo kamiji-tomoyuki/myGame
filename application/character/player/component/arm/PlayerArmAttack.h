@@ -108,6 +108,10 @@ private:
 	float    kRightPunchOffsetX_ = -0.3f; // 右パンチ時のX軸オフセット
 	float    kLeftPunchOffsetX_ = 0.3f;   // 左パンチ時のX軸オフセット
 
+	// --- 定数 ---
+	/// イージングの折り返し進捗（これ以降は戻り動作）
+	static inline const float kEasingTurnPoint_ = 0.5f;
+
 	GlobalVariables* variables_ = nullptr;
 	static const std::string kGroupName_;
 };

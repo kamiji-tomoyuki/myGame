@@ -96,15 +96,42 @@ private:
 
 private:
 
+	// -----------------------------------------------------------------------
+	// カメラ定数
+	// -----------------------------------------------------------------------
+
+	/// @brief 初期カメラ位置（X, Y, Z）
+	static inline const Vector3 kInitialTranslation = { 0.0f,  2.0f, -10.0f };
+
+	/// @brief カメラオフセット（プレイヤーからの相対位置）
+	static inline const Vector3 kDefaultOffset = { 0.0f,  2.0f, -10.0f };
+
+	/// @brief カメラ仰角（X軸回転の初期値、ラジアン）
+	static inline const float   kDefaultPitchAngle = -2.9f;
+
+	/// @brief 回転クォータニオンの補間速度（Slerp の t 値）
+	static inline const float   kRotationSlerpSpeed = 0.1f;
+
+	/// @brief 通常追従時のターゲット位置補間速度（Lerp の t 値）
+	static inline const float   kPositionLerpSpeed = 0.1f;
+
+	/// @brief キーボードによるカメラ回転速度（ラジアン/フレーム）
+	static inline const float   kKeyboardRotateSpeed = 0.03f;
+
+	/// @brief 追従開始演出のデフォルト所要フレーム数
+	static inline const float   kDefaultStartMoveDuration = 120.0f;
+
+	// -----------------------------------------------------------------------
+
 	// ビュープロジェクション
 	ViewProjection vp_;
 
 	// --- 追従対象 ---
 	const WorldTransform* target_ = nullptr;
 	Vector3 targetPos_{};
-	Vector3 offset_ = { 0.0f, 2.0f, -10.0f };
+	Vector3 offset_ = kDefaultOffset;
 
-	float destinationAngleX_ = -2.9f;
+	float destinationAngleX_ = kDefaultPitchAngle;
 	float destinationAngleY_ = 0.0f;
 
 	Quaternion destinationAngle{};
@@ -121,7 +148,7 @@ private:
 
 	bool  isStartMove_ = false;
 	float startMoveTime_ = 0.0f;
-	float startMoveDuration_ = 120.0f;
+	float startMoveDuration_ = kDefaultStartMoveDuration;
 	Vector3 startPos_;
 	Vector3 targetStartPos_;
 

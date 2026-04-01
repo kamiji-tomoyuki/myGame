@@ -131,5 +131,25 @@ private:
 	static inline int nextSerialNumber_ = 0;
 
 	Player* player_ = nullptr;
-	PlayerAttack* playerAttack_ = nullptr; 
+	PlayerAttack* playerAttack_ = nullptr;
+
+	// --- 定数 ---
+	/// 初期攻撃ダメージ
+	static inline const uint32_t kInitAttackDamage_ = 50;
+	/// 初期ラッシュ攻撃ダメージ
+	static inline const uint32_t kInitRushAttackDamage_ = 20;
+	/// 初期フィニッシャー攻撃ダメージ
+	static inline const uint32_t kInitFinisherAttackDamage_ = 150;
+	/// コライダー半径
+	static inline const float    kColliderRadius_ = 0.8f;
+	/// 連続パンチのヒット判定を受け付けるタイマーの最小値
+	static inline const uint32_t kRushHitTimerMin_ = 2;
+	/// 連続パンチのヒット判定を受け付けるタイマーの最大値
+	static inline const uint32_t kRushHitTimerMax_ = 6;
+	/// 連続パンチの同一敵へのヒット間隔（フレーム）
+	static inline const int      kRushHitInterval_ = 3;
+	/// 通常攻撃のヒット判定を受け付ける進捗の最小値
+	static inline const float    kAttackHitProgressMin_ = 0.4f;
+	/// 通常攻撃のヒット判定を受け付ける進捗の最大値
+	static inline const float    kAttackHitProgressMax_ = 0.6f;
 };
