@@ -1,5 +1,6 @@
 #pragma once
 #include "Vector3.h"
+#include <numbers>
 
 class Enemy;
 class Player;
@@ -37,5 +38,5 @@ private:
     const float kRotationMinDistance_ = 0.0001f; // 回転計算を行う最小プレイヤー距離
     const float kRotationSmoothingFactor_ = 0.1f;    // 回転スムージング係数
     const float kRecoverRotationLerp_ = 0.05f;   // 回転復帰のlerp係数
-    const float kPI_ = 3.14159265359f;
+    const float kPI_ = std::numbers::pi_v<float>;
 };

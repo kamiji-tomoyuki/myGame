@@ -11,6 +11,8 @@
 #include "PlayerStateGameOver.h"
 #include "PlayerStateGameClear.h"
 
+#include <numbers>
+
 const std::string Player::kGroupName_ = "Player";
 
 Player::Player()
@@ -231,23 +233,26 @@ void Player::ApplyDamage(uint32_t damage, const Vector3& hitPosition)
 void Player::UpdateLockOn()
 {
 	if (enemy_ == nullptr) { return; }
-
 	Vector3 playerPos = GetCenterPosition();
 	Vector3 enemyPos = enemy_->GetCenterPosition();
 	Vector3 dir = (enemyPos - playerPos).Normalize();
+	const float PI = std::numbers::pi_v<float>;
+
+	auto NormalizedDiff = [&](float target, float current) -> float {
+		float diff = target - current;
+		while (diff > PI) { diff -= 2.0f * PI; }
+		while (diff < -PI) { diff += 2.0f * PI; }
+		return diff;
+		};
 
 	float targetRotY = std::atan2(dir.x, dir.z);
-	float currentRotY = GetCenterRotation().y;
+	float targetRotX = -std::atan2(dir.y, std::sqrt(dir.x * dir.x + dir.z * dir.z));
 
-	float diff = targetRotY - currentRotY;
-	const float PI = 3.14159265359f;
-	while (diff > PI) { diff -= 2.0f * PI; }
-	while (diff < -PI) { diff += 2.0f * PI; }
-
-	float newRotY = currentRotY + diff * 0.2f;
 	Vector3 rot = GetCenterRotation();
-	BaseObject::SetRotation({ rot.x, newRotY, rot.z });
+	float newRotX = rot.x + NormalizedDiff(targetRotX, rot.x) * 0.2f;
+	float newRotY = rot.y + NormalizedDiff(targetRotY, rot.y) * 0.2f;
 
+	BaseObject::SetRotation({ newRotX, newRotY, rot.z });
 	if (followCamera_) { followCamera_->SetStableAngleY(targetRotY); }
 }
 
