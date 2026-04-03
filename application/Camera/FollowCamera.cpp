@@ -12,7 +12,7 @@ void FollowCamera::Initialize()
 	destinationAngle = Quaternion::IdentityQuaternion();
 
 	vp_.translation_ = kInitialTranslation;
-	targetPos_ = { 0.0f, 0.0f, 0.0f };
+	targetPos_ = kZeroVector_;
 }
 
 void FollowCamera::Update()
@@ -35,15 +35,15 @@ void FollowCamera::Update()
 
 	destinationAngle = Quaternion::Sleap(
 		destinationAngle,
-		Quaternion::MakeRotateAxisAngleQuaternion({ 0, 0, -1 }, destinationAngleX_) *
-		Quaternion::MakeRotateAxisAngleQuaternion({ 0, -1, 0 }, resolvedAngleY),
+		Quaternion::MakeRotateAxisAngleQuaternion(kAxisZ_, destinationAngleX_) *
+		Quaternion::MakeRotateAxisAngleQuaternion(kAxisY_, resolvedAngleY),
 		kRotationSlerpSpeed);
 	vp_.rotation_ = destinationAngle.ToEulerAngles();
 
 	if (target_) {
 		if (isStartMove_) {
 			startMoveTime_++;
-			float t = min(startMoveTime_ / startMoveDuration_, 1.0f);
+			float t = min(startMoveTime_ / startMoveDuration_, kLerpMax_);
 
 			vp_.translation_ = EaseOutSine(startPos_, targetStartPos_, t, 1.0f);
 
@@ -93,7 +93,7 @@ void FollowCamera::Reset()
 		vp_.translation_ = targetPos_ + offset;
 	}
 	else {
-		targetPos_ = { 0.0f, 0.0f, 0.0f };
+		targetPos_ = kZeroVector_;
 		vp_.rotation_ = { destinationAngleX_, destinationAngleY_, 0.0f };
 		destinationAngle = Quaternion::FromEulerAngles(vp_.rotation_);
 		stableAngleY_ = destinationAngleY_;
@@ -131,8 +131,8 @@ void FollowCamera::SetCameraFixed(bool isFixed)
 			destinationAngleY_ = target_->rotation_.y;
 			stableAngleY_ = destinationAngleY_;
 			destinationAngle =
-				Quaternion::MakeRotateAxisAngleQuaternion({ 0, 0, -1 }, destinationAngleX_) *
-				Quaternion::MakeRotateAxisAngleQuaternion({ 0, -1, 0 }, destinationAngleY_);
+				Quaternion::MakeRotateAxisAngleQuaternion(kAxisZ_, destinationAngleX_) *
+				Quaternion::MakeRotateAxisAngleQuaternion(kAxisY_, destinationAngleY_);
 			vp_.rotation_ = destinationAngle.ToEulerAngles();
 
 			Vector3 offset = MakeOffset();
@@ -164,10 +164,10 @@ void FollowCamera::UpdateKeyboard()
 Vector3 FollowCamera::MakeOffset()
 {
 	if (!target_) {
-		return Vector3(0.0f, 0.0f, 0.0f);
+		return kZeroVector_;
 	}
 
-	Matrix4x4 rotateMatrix = MakeAffineMatrix({ 1, 1, 1 }, vp_.rotation_, {});
+	Matrix4x4 rotateMatrix = MakeAffineMatrix(kUnitScale_, vp_.rotation_, {});
 	Vector3 offset = TransformNormal(offset_, rotateMatrix);
 	return offset;
 }

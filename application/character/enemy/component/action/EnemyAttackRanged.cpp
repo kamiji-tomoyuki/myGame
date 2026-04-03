@@ -122,11 +122,8 @@ void EnemyAttackRanged::UpdateAttacking(Enemy* enemy, Player* player)
 	enemy->SetVelocity(Vector3(0.0f, 0.0f, 0.0f));
 
 	// 攻撃フェーズ中のシェイク効果
-	static constexpr float kShakeAmount = 0.04f;
-	static constexpr float kShakeSpeed = 0.7f;
-
-	float shakeOffsetX = sin(attackTimer_ * kShakeSpeed) * kShakeAmount;
-	float shakeOffsetZ = cos(attackTimer_ * kShakeSpeed * 1.3f) * kShakeAmount;
+	float shakeOffsetX = sin(attackTimer_ * kShakeSpeed_) * kShakeAmount_;
+	float shakeOffsetZ = cos(attackTimer_ * kShakeSpeed_ * kShakeSpeedZScale_) * kShakeAmount_;
 
 	Vector3 basePosition = enemy->GetCenterPosition();
 	Vector3 shakenPosition = basePosition;
@@ -146,14 +143,14 @@ void EnemyAttackRanged::UpdateAttacking(Enemy* enemy, Player* player)
 
 		// プレイヤーの足元に出現
 		newAttack.position = currentPlayerPos;
-		newAttack.position.y = 0.1f; // 地面の高さ
+		newAttack.position.y = kSpikeGroundOffsetY_; // 地面の高さ
 		newAttack.isWarningActive = true;
 
 		// 警告円の初期化(個別に新しいオブジェクトを作成)
 		newAttack.warningCircle = std::make_unique<Object3d>();
 		newAttack.warningCircle->Initialize("debug/ground.obj");
 		newAttack.warningCircle->SetSize({ kWarningCircleRadius_, 1.0f, kWarningCircleRadius_ });
-		newAttack.warningCircle->SetRotation({ 1.57f, 0.0f, 0.0f }); // X軸90度回転で地面に
+		newAttack.warningCircle->SetRotation({ kWarningCircleRotationX_, 0.0f, 0.0f }); // X軸90度回転で地面に
 
 		// トゲモデルの初期化(個別に新しいオブジェクトを作成)
 		newAttack.spike = std::make_unique<Object3d>();
@@ -266,7 +263,7 @@ void EnemyAttackRanged::CheckCollision(Player* player)
 		if (!attack.isSpikeActive) continue;
 		if (attack.hasHitPlayer) continue;          // このトゲでは既に当たり判定済み
 
-		if (attack.spikeHeight < kSpikeMaxHeight_ * 0.5f) continue;
+		if (attack.spikeHeight < kSpikeMaxHeight_ * kSpikeHitHeightRatio_) continue;
 
 		float distanceXZ = std::sqrt(
 			std::pow(playerPos.x - attack.position.x, 2.0f) +
@@ -312,7 +309,7 @@ void EnemyAttackRanged::UpdateViewProjection(const ViewProjection& vp)
 			WorldTransform spikeTransform;
 			spikeTransform.Initialize();
 			spikeTransform.translation_ = attack.position;
-			spikeTransform.translation_.y += attack.spikeHeight * 0.5f;
+			spikeTransform.translation_.y += attack.spikeHeight * kSpikeCenterOffsetScale_;
 			spikeTransform.scale_ = attack.spike->GetSize();
 			spikeTransform.UpdateMatrix();
 			attack.spike->Update(spikeTransform, vp);
@@ -341,7 +338,7 @@ void EnemyAttackRanged::Draw(const ViewProjection& viewProjection)
 			WorldTransform spikeTransform;
 			spikeTransform.Initialize();
 			spikeTransform.translation_ = attack.position;
-			spikeTransform.translation_.y += attack.spikeHeight * 0.5f;
+			spikeTransform.translation_.y += attack.spikeHeight * kSpikeCenterOffsetScale_;
 			spikeTransform.scale_ = attack.spike->GetSize();
 			spikeTransform.UpdateMatrix();
 

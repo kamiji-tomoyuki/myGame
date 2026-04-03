@@ -14,5 +14,7 @@ public:
 
 private:
 	float timer_ = 0.0f;
-	static constexpr float kWaitTime_ = 1.2f * 60.0f;
+	const float kWaitTime_ = 1.2f * 60.0f;
+	const float kRotationSpeed_ = 0.5f;   // 縮小中のY軸回転速度
+	const float kShrinkAmount_ = 0.02f;  // 1フレームあたりの縮小量
 };

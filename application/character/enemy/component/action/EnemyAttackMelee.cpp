@@ -214,7 +214,7 @@ void EnemyAttackMelee::UpdateTrailEffect(Enemy* enemy)
 	if (distanceMoved >= trailEmitDistance_) {
 		// 移動している場合のみパーティクルを発生
 		Vector3 velocity = enemy->GetVelocity();
-		if (velocity.Length() > 0.01f) {
+		if (velocity.Length() > kTrailVelocityMinLength_) {
 			trailEffect_->SetPosition(footPosition);
 			trailEffect_->SetActive(false);
 		}

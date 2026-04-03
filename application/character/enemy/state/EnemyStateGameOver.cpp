@@ -5,14 +5,14 @@
 void EnemyStateGameOver::Enter(Enemy* enemy)
 {
 	timer_ = 0.0f;
-	enemy->SetScale(Vector3(1.5f, 1.5f, 1.5f));
+	enemy->SetScale(kEnterScale_);
 }
 
 IEnemyState* EnemyStateGameOver::Update(Enemy* enemy)
 {
 	// 現在のジャンプフェーズ (0.0 ~ 1.0)
 	float jumpPhase = fmod(timer_, kJumpCycle_) / kJumpCycle_;
-	float jumpOffset = sin(jumpPhase * 3.14159265f) * kJumpHeight_;
+	float jumpOffset = sin(jumpPhase * kJumpPI_) * kJumpHeight_;
 
 	Vector3 currentPos = kJumpEndPos_;
 	currentPos.y += jumpOffset;
@@ -20,11 +20,11 @@ IEnemyState* EnemyStateGameOver::Update(Enemy* enemy)
 
 	// Y軸回転アニメーション
 	Vector3 rot = enemy->GetObjRotation();
-	rot.y += 0.05f;
+	rot.y += kRotationSpeed_;
 	enemy->SetObjRotation(rot);
 
 	timer_++;
-	if (timer_ >= kJumpCycle_ * 1000.0f) {
+	if (timer_ >= kJumpCycle_ * kTimerResetCycles_) {
 		timer_ = 0.0f;
 	}
 

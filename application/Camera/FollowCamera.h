@@ -121,6 +121,19 @@ private:
 	/// @brief 追従開始演出のデフォルト所要フレーム数
 	static inline const float   kDefaultStartMoveDuration = 120.0f;
 
+	/// @brief クォータニオン計算用の軸ベクトル
+	static inline const Vector3 kAxisZ_ = { 0.0f,  0.0f, -1.0f };
+	static inline const Vector3 kAxisY_ = { 0.0f, -1.0f,  0.0f };
+
+	/// @brief アフィン行列計算用のスケール（単位）
+	static inline const Vector3 kUnitScale_ = { 1.0f, 1.0f, 1.0f };
+
+	/// @brief 補間の上限値
+	static inline const float   kLerpMax_ = 1.0f;
+
+	/// @brief ゼロベクトル
+	static inline const Vector3 kZeroVector_ = { 0.0f, 0.0f, 0.0f };
+
 	// -----------------------------------------------------------------------
 
 	// ビュープロジェクション

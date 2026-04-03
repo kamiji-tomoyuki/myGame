@@ -4,7 +4,7 @@ void Ground::Init()
 {
 	BaseObject::Init();
 	BaseObject::SetScale({ scale_, scale_, scale_ });
-	BaseObject::SetWorldPositionY(-2.5f);
+	BaseObject::SetWorldPositionY(kGroundOffsetY_);
 
 	// --- モデルの初期化 ---
 	obj3d_ = std::make_unique<Object3d>();

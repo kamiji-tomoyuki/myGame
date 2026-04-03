@@ -35,9 +35,9 @@ void EnemyMove::Approach(Enemy* enemy, Player* player)
             targetDirection.z * approachSpeed_
         };
 
-        velocity_.x = velocity_.x * 0.8f + approachVelocity.x * 0.2f;
+        velocity_.x = velocity_.x * kVelocitySmoothingKeep_ + approachVelocity.x * kVelocitySmoothingNew_;
         velocity_.y = 0.0f;
-        velocity_.z = velocity_.z * 0.8f + approachVelocity.z * 0.2f;
+        velocity_.z = velocity_.z * kVelocitySmoothingKeep_ + approachVelocity.z * kVelocitySmoothingNew_;
 
         float speedXZ = std::sqrtf(velocity_.x * velocity_.x + velocity_.z * velocity_.z);
         if (speedXZ > maxSpeed_) {
@@ -52,17 +52,16 @@ void EnemyMove::Approach(Enemy* enemy, Player* player)
     }
 
     // プレイヤーの方向を向く（XZ平面内のみ）
-    if (distanceToPlayer > 0.0001f) {
+    if (distanceToPlayer > kRotationMinDistance_) {
         Vector3 toPlayer = player->GetCenterPosition() - enemy->GetCenterPosition();
         float targetRotY = std::atan2(toPlayer.x, toPlayer.z);
 
         Vector3 currentRot = enemy->GetCenterRotation();
         float angleDiff = targetRotY - currentRot.y;
-        const float PI = 3.14159265359f;
-        while (angleDiff > PI) { angleDiff -= 2.0f * PI; }
-        while (angleDiff < -PI) { angleDiff += 2.0f * PI; }
+        while (angleDiff > kPI_) { angleDiff -= 2.0f * kPI_; }
+        while (angleDiff < -kPI_) { angleDiff += 2.0f * kPI_; }
 
-        float newRotY = currentRot.y + angleDiff * 0.1f;
+        float newRotY = currentRot.y + angleDiff * kRotationSmoothingFactor_;
         enemy->SetRotation(Vector3(currentRot.x, newRotY, currentRot.z));
         enemy->SetObjRotation(enemy->GetWorldRotation());
     }
@@ -74,7 +73,7 @@ void EnemyMove::RecoverRotation(Enemy* enemy)
     Vector3 baseRot = enemy->GetWorldRotation();
     Vector3 originalRot = enemy->GetOriginalRotation();
 
-    const float lerpFactor = 0.05f;
+    const float lerpFactor = kRecoverRotationLerp_;
     Vector3 newRot = {
         currentRot.x + (originalRot.x - currentRot.x) * lerpFactor,
         baseRot.y,
