@@ -17,14 +17,13 @@ using namespace Microsoft::WRL;
 /// <summary>
 /// ライン描画クラス
 /// </summary>
-class DrawLine3D 
+class DrawLine3D
 {
 #pragma region シングルトンインスタンス
 private:
-	static DrawLine3D* instance;
+	static std::unique_ptr<DrawLine3D> instance;
 
 	DrawLine3D() = default;
-	~DrawLine3D() = default;
 	DrawLine3D(DrawLine3D&) = delete;
 	DrawLine3D& operator = (DrawLine3D&) = delete;
 
@@ -33,10 +32,11 @@ public:
 	static DrawLine3D* GetInstance();
 	// 終了
 	void Finalize();
+	~DrawLine3D() = default;
 #pragma endregion シングルトンインスタンス
 
 public: // メンバ関数
-	
+
 	/// <summary>
 	/// 初期化
 	/// </summary>

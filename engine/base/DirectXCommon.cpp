@@ -21,20 +21,18 @@ using namespace Logger;
 
 using namespace StringUtility;
 
-DirectXCommon* DirectXCommon::instance = nullptr;
+std::unique_ptr<DirectXCommon> DirectXCommon::instance = nullptr;
 
 DirectXCommon* DirectXCommon::GetInstance()
 {
 	if (instance == nullptr) {
-		instance = new DirectXCommon();
+		instance = std::unique_ptr<DirectXCommon>(new DirectXCommon());
 	}
-	return instance;
+	return instance.get();
 }
 
 void DirectXCommon::Finalize()
 {
-	delete instance;
-	instance = nullptr;
 }
 
 void DirectXCommon::Initialize(WinApp* winApp) {

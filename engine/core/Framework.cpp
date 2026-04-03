@@ -43,10 +43,10 @@ void Framework::Initialize() {
 #ifdef _DEBUG
     ImGuiManager::GetInstance()->Initialize(winApp);
 #endif // _DEBUG
-       /// -----------------------
+    /// -----------------------
 
-    ///--------SRVManager--------
-    // SRVマネージャの初期化
+ ///--------SRVManager--------
+ // SRVマネージャの初期化
     srvManager = SrvManager::GetInstance();
     srvManager->Initialize();
     ///--------------------------
@@ -163,7 +163,6 @@ void Framework::Finalize() {
     particleCommon->Finalize();
     skyboxManager_->Finalize();
     dxCommon->Finalize();
-    delete sceneFactory_;
 }
 
 void Framework::Update() {
@@ -205,7 +204,7 @@ void Framework::DisplayFPS() {
 #ifdef _DEBUG
     if (ImGui::CollapsingHeader("FPS")) {
 
-        ImGuiIO &io = ImGui::GetIO();
+        ImGuiIO& io = ImGui::GetIO();
         // FPSを取得
         float fps = Frame::GetFPS();
         float deltaTime = Frame::DeltaTime() * 1000.0f; // ミリ秒単位に変換
@@ -214,9 +213,11 @@ void Framework::DisplayFPS() {
         ImVec4 color;
         if (fps >= 59.0f) {
             color = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // 60FPS付近なら緑色
-        } else if (fps >= 30.0f) {
+        }
+        else if (fps >= 30.0f) {
             color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // 30-59FPSなら黄色
-        } else {
+        }
+        else {
             color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // 30FPS未満なら赤色
         }
 

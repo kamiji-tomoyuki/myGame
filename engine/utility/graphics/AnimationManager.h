@@ -11,10 +11,9 @@
 class AnimationManager
 {
 private:
-	static AnimationManager* instance;
+	static std::unique_ptr<AnimationManager> instance;
 
 	AnimationManager() = default;
-	~AnimationManager() = default;
 	AnimationManager(AnimationManager&) = default;
 	AnimationManager& operator=(AnimationManager&) = default;
 public:
@@ -28,6 +27,7 @@ public:
 	/// 終了
 	/// </summary>
 	void Finalize();
+	~AnimationManager() = default;
 
 	/// <summary>
 	/// シングルトンインスタンスの取得
@@ -51,4 +51,3 @@ public:
 	// モデルデータ
 	std::map<std::string, std::unique_ptr<ModelAnimation>> animations;
 };
-

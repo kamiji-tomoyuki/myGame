@@ -22,7 +22,7 @@
 /// 基盤構造クラス
 /// </summary>
 class Framework {
-  public: // メンバ関数
+public: // メンバ関数
     virtual ~Framework() = default;
 
     /// <summary>
@@ -63,32 +63,31 @@ class Framework {
     /// <returns></returns>
     virtual bool IsEndRequest() { return endRequest_; }
 
-  private:
+private:
     /// <summary>
     ///  FPS表示
     /// </summary>
     void DisplayFPS();
 
-  protected:
-    Input *input = nullptr;
-    Audio *audio = nullptr;
-    DirectXCommon *dxCommon = nullptr;
-    WinApp *winApp = nullptr;
-    DrawLine3D *line3d_ = nullptr;
+protected:
+    Input* input = nullptr;
+    Audio* audio = nullptr;
+    DirectXCommon* dxCommon = nullptr;
+    WinApp* winApp = nullptr;
+    DrawLine3D* line3d_ = nullptr;
 
-    // シーンファクトリー
-    AbstractSceneFactory *sceneFactory_ = nullptr;
+    std::unique_ptr<AbstractSceneFactory> sceneFactory_;
 
-    SceneManager *sceneManager_ = nullptr;
-    SrvManager *srvManager = nullptr;
-    TextureManager *textureManager_ = nullptr;
-    ModelManager *modelManager_ = nullptr;
-    AnimationManager *animationManager_ = nullptr;
-    SkyboxManager *skyboxManager_ = nullptr;
+    SceneManager* sceneManager_ = nullptr;
+    SrvManager* srvManager = nullptr;
+    TextureManager* textureManager_ = nullptr;
+    ModelManager* modelManager_ = nullptr;
+    AnimationManager* animationManager_ = nullptr;
+    SkyboxManager* skyboxManager_ = nullptr;
 
-    SpriteCommon *spriteCommon = nullptr;
-    Object3dCommon *object3dCommon = nullptr;
-    ParticleCommon *particleCommon = nullptr;
+    SpriteCommon* spriteCommon = nullptr;
+    Object3dCommon* object3dCommon = nullptr;
+    ParticleCommon* particleCommon = nullptr;
 
     std::unique_ptr<CollisionManager> collisionManager_;
     std::unique_ptr<OffScreen> offscreen_;

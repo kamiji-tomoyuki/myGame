@@ -1,13 +1,13 @@
 #include "DrawLine3D.h"
 #include "DirectXCommon.h"
 
-DrawLine3D* DrawLine3D::instance = nullptr;
+std::unique_ptr<DrawLine3D> DrawLine3D::instance = nullptr;
 
 DrawLine3D* DrawLine3D::GetInstance() {
 	if (instance == nullptr) {
-		instance = new DrawLine3D();
+		instance = std::unique_ptr<DrawLine3D>(new DrawLine3D());
 	}
-	return instance;
+	return instance.get();
 }
 
 std::unique_ptr<DrawLine3D::LineData> DrawLine3D::CreateMesh(UINT vertexCount, UINT indexCount) {
@@ -50,8 +50,7 @@ void DrawLine3D::Initialize() {
 }
 
 void DrawLine3D::Finalize() {
-	delete instance;
-	instance = nullptr;
+	instance.reset();
 }
 
 void DrawLine3D::SetPoints(const Vector3& p1, const Vector3& p2, const Vector4& color) {
@@ -76,7 +75,7 @@ void DrawLine3D::Draw(const ViewProjection& viewProjection) {
 	dxCommon->GetCommandList()->SetGraphicsRootSignature(rootSignature.Get());
 	dxCommon->GetCommandList()->SetPipelineState(graphicsPipelineState.Get());
 	dxCommon->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
-	
+
 	D3D12_VERTEX_BUFFER_VIEW vbView = line_->vbView;
 	dxCommon->GetCommandList()->IASetVertexBuffers(0, 1, &vbView);
 	dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(0, cBufferResource_->GetGPUVirtualAddress());

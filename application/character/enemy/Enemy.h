@@ -64,7 +64,7 @@ public:
 	void TakeDamage(uint32_t damage);
 
 	/// <summary>状態を切り替える</summary>
-	void ChangeState(IEnemyState* next);
+	void ChangeState(std::unique_ptr<IEnemyState> next);
 
 public:
 

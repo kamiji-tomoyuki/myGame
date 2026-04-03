@@ -6,7 +6,7 @@ void EnemyStateGameClear::Enter(Enemy* enemy)
 	timer_ = 0.0f;
 }
 
-IEnemyState* EnemyStateGameClear::Update(Enemy* enemy)
+std::unique_ptr<IEnemyState> EnemyStateGameClear::Update(Enemy* enemy)
 {
 	timer_++;
 

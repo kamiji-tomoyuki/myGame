@@ -5,22 +5,23 @@
 #include "EnemyMove.h"
 #include "EnemyHitReaction.h"
 #include "EnemyAttackManager.h"
+#include <memory>
 
 void EnemyStatePlaying::Enter(Enemy* enemy)
 {
 	// 特に初期化なし
 }
 
-IEnemyState* EnemyStatePlaying::Update(Enemy* enemy)
+std::unique_ptr<IEnemyState> EnemyStatePlaying::Update(Enemy* enemy)
 {
 	// ゲームオーバー遷移チェック
 	if (enemy->GetGameState() == Enemy::GameState::kGameOver) {
-		return new EnemyStateGameOver();
+		return std::make_unique<EnemyStateGameOver>();
 	}
 
 	// ゲームクリア遷移チェック
 	if (enemy->GetGameState() == Enemy::GameState::kGameClear) {
-		return new EnemyStateGameClear();
+		return std::make_unique<EnemyStateGameClear>();
 	}
 
 	EnemyHitReaction* hitReaction = enemy->GetHitReaction();
