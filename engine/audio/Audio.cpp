@@ -2,7 +2,7 @@
 #include <cassert>
 #include <fstream>
 
-Audio* Audio::instance = nullptr;
+std::unique_ptr<Audio> Audio::instance = nullptr;
 
 void Audio::Initialize(const std::string& directoryPath)
 {
@@ -18,9 +18,9 @@ void Audio::Initialize(const std::string& directoryPath)
 Audio* Audio::GetInstance()
 {
 	if (instance == nullptr) {
-		instance = new Audio;
+		instance = std::unique_ptr<Audio>(new Audio());
 	}
-	return instance;
+	return instance.get();
 }
 
 uint32_t Audio::LoadWave(const std::string& filename) {
@@ -203,6 +203,5 @@ void Audio::Finalize()
 	}
 
 	voices_.clear();
-	delete instance;
-	instance = nullptr;
+	instance.reset();
 }

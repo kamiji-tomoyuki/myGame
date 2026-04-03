@@ -83,18 +83,18 @@ void Enemy::Init()
 	hpBar_->SetSize({ kHpBarFullWidth_, kHpBarHeight_ });
 
 	// --- State Pattern：初期状態を Playing に設定 ---
-	ChangeState(new EnemyStatePlaying());
+	ChangeState(std::make_unique<EnemyStatePlaying>());
 }
 
 // =============================================================
 //  State の切り替え（Enter / Exit を確実に呼ぶ）
 // =============================================================
-void Enemy::ChangeState(IEnemyState* next)
+void Enemy::ChangeState(std::unique_ptr<IEnemyState> next)
 {
 	if (currentState_) {
 		currentState_->Exit(this);
 	}
-	currentState_.reset(next);
+	currentState_ = std::move(next);
 	if (currentState_) {
 		currentState_->Enter(this);
 	}
@@ -111,9 +111,9 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 
 	// 現在の状態を更新し、次状態が返ってきたら遷移する
 	if (currentState_) {
-		IEnemyState* next = currentState_->Update(this);
+		std::unique_ptr<IEnemyState> next = currentState_->Update(this);
 		if (next) {
-			ChangeState(next);
+			ChangeState(std::move(next));
 		}
 	}
 

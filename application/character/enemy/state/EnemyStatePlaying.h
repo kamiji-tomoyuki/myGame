@@ -1,5 +1,6 @@
 #pragma once
 #include "IEnemyState.h"
+#include <memory>
 
 /// <summary>
 /// ゲームプレイ中の状態
@@ -9,6 +10,6 @@ class EnemyStatePlaying : public IEnemyState
 {
 public:
 	void Enter(Enemy* enemy) override;
-	IEnemyState* Update(Enemy* enemy) override;
+	std::unique_ptr<IEnemyState> Update(Enemy* enemy) override;
 	void Exit(Enemy* enemy) override;
 };

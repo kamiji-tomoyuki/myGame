@@ -1,18 +1,17 @@
 #include "AnimationManager.h"
-AnimationManager* AnimationManager::instance = nullptr;
+std::unique_ptr<AnimationManager> AnimationManager::instance = nullptr;
 
 AnimationManager* AnimationManager::GetInstance()
 {
 	if (instance == nullptr) {
-		instance = new AnimationManager;
+		instance = std::unique_ptr<AnimationManager>(new AnimationManager());
 	}
-	return instance;
+	return instance.get();
 }
 
 void AnimationManager::Finalize()
 {
-	delete instance;
-	instance = nullptr;
+	instance.reset();
 }
 
 void AnimationManager::Initialize()
@@ -32,7 +31,7 @@ ModelAnimation* AnimationManager::FindAnimation(const std::string& filePath)
 	return nullptr;
 }
 
-void AnimationManager::LoadAnimation(const std::string& filePath,ModelData modelData)
+void AnimationManager::LoadAnimation(const std::string& filePath, ModelData modelData)
 {
 	// 読み込み済みモデルを探索
 	if (animations.contains(filePath)) {

@@ -1,6 +1,7 @@
 #pragma once
 #include "IEnemyState.h"
 #include "Vector3.h"
+#include <memory>
 
 /// <summary>
 /// ゲームクリア状態
@@ -10,7 +11,7 @@ class EnemyStateGameClear : public IEnemyState
 {
 public:
 	void Enter(Enemy* enemy) override;
-	IEnemyState* Update(Enemy* enemy) override;
+	std::unique_ptr<IEnemyState> Update(Enemy* enemy) override;
 
 private:
 	float timer_ = 0.0f;

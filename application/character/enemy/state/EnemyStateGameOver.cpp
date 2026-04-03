@@ -8,7 +8,7 @@ void EnemyStateGameOver::Enter(Enemy* enemy)
 	enemy->SetScale(kEnterScale_);
 }
 
-IEnemyState* EnemyStateGameOver::Update(Enemy* enemy)
+std::unique_ptr<IEnemyState> EnemyStateGameOver::Update(Enemy* enemy)
 {
 	// 現在のジャンプフェーズ (0.0 ~ 1.0)
 	float jumpPhase = fmod(timer_, kJumpCycle_) / kJumpCycle_;

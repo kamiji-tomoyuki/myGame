@@ -78,10 +78,9 @@ private:
 
 #pragma region シングルトンインスタンス
 private:
-	static Audio* instance;
+	static std::unique_ptr<Audio> instance;
 
 	Audio() = default;
-	~Audio() = default;
 	Audio(Audio&) = delete;
 	Audio& operator = (Audio&) = delete;
 
@@ -90,6 +89,7 @@ public:
 	static Audio* GetInstance();
 	// 終了
 	void Finalize();
+	~Audio() = default;
 #pragma endregion シングルトンインスタンス
 
 public:

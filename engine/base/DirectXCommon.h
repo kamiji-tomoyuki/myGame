@@ -16,26 +16,27 @@
 /// </summary>
 class DirectXCommon {
 #pragma region シングルトンインスタンス
-  private:
-    static DirectXCommon *instance;
+private:
+    static std::unique_ptr<DirectXCommon> instance;
 
     DirectXCommon() = default;
-    ~DirectXCommon() = default;
-    DirectXCommon(DirectXCommon &) = delete;
-    DirectXCommon &operator=(DirectXCommon &) = delete;
+    DirectXCommon(DirectXCommon&) = delete;
+    DirectXCommon& operator=(DirectXCommon&) = delete;
 
-  public:
+public:
+    ~DirectXCommon() = default; // unique_ptrからアクセスできるようpublicに
+
     // シングルトンインスタンスの取得
-    static DirectXCommon *GetInstance();
+    static DirectXCommon* GetInstance();
     // 終了
     void Finalize();
 #pragma endregion シングルトンインスタンス
 
-  public:
+public:
     /// <summary>
     /// 初期化
     /// </summary>
-    void Initialize(WinApp *winApp);
+    void Initialize(WinApp* winApp);
 
     /// <summary>
     /// オフスクリーンのSRV作成
@@ -67,74 +68,61 @@ class DirectXCommon {
     /// </summary>
     void PostDraw();
 
-    IDxcBlob *CompileShader(
+    IDxcBlob* CompileShader(
         // CompilerするShaderファイルへのパス
-        const std::wstring &filePath,
+        const std::wstring& filePath,
         // Compilerに使用するProfile
-        const wchar_t *profile);
+        const wchar_t* profile);
 
     // Resourceの作成
     Microsoft::WRL::ComPtr<ID3D12Resource> CreateBufferResource(size_t sizeInBytes);
 
     // DirectX12のTextureResourceを作る
-    Microsoft::WRL::ComPtr<ID3D12Resource> CreateTextureResource(const DirectX::TexMetadata &metadata);
+    Microsoft::WRL::ComPtr<ID3D12Resource> CreateTextureResource(const DirectX::TexMetadata& metadata);
 
     Microsoft::WRL::ComPtr<ID3D12Resource> CreateRenderTextureResource(uint32_t width, uint32_t height, DXGI_FORMAT format, D3D12_CLEAR_VALUE color);
 
-    [[nodiscard]] Microsoft::WRL::ComPtr<ID3D12Resource> UploadTextureData(Microsoft::WRL::ComPtr<ID3D12Resource> texture, const DirectX::ScratchImage &mipImages);
+    [[nodiscard]] Microsoft::WRL::ComPtr<ID3D12Resource> UploadTextureData(Microsoft::WRL::ComPtr<ID3D12Resource> texture, const DirectX::ScratchImage& mipImages);
 
 #pragma region getter
     /// <summary>
     /// RTVの指定番号のCPUデスクリプタハンドルを取得する
     /// </summary>
-    /// <param name="index"></param>
-    /// <returns></returns>
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCPUDescriptorHandle(uint32_t index);
 
     /// <summary>
     /// RTVの指定番号のGPUデスクリプタハンドルを取得する
     /// </summary>
-    /// <param name="index"></param>
-    /// <returns></returns>
     D3D12_GPU_DESCRIPTOR_HANDLE GetRTVGPUDescriptorHandle(uint32_t index);
 
     /// <summary>
     /// DSVの指定番号のCPUデスクリプタハンドルを取得する
     /// </summary>
-    /// <param name="index"></param>
-    /// <returns></returns>
     D3D12_CPU_DESCRIPTOR_HANDLE GetDSVCPUDescriptorHandle(uint32_t index);
 
     /// <summary>
     /// DSVの指定番号のGPUデスクリプタハンドルを取得する
     /// </summary>
-    /// <param name="index"></param>
-    /// <returns></returns>
     D3D12_GPU_DESCRIPTOR_HANDLE GetDSVGPUDescriptorHandle(uint32_t index);
 
     /// <summary>
     /// コマンドリストの取得
     /// </summary>
-    /// <returns></returns>
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> GetCommandList() { return commandList; }
 
     /// <summary>
     /// デバイスの取得
     /// </summary>
-    /// <returns></returns>
     Microsoft::WRL::ComPtr<ID3D12Device> GetDevice() { return device; }
 
     /// <summary>
     /// DescriptorHeapの作成
     /// </summary>
-    /// <param name="heapType"></param>
-    /// <param name="numDescriptors"></param>
-    /// <param name="shaderVisible"></param>
-    /// <returns></returns>
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
-    ID3D12Resource *GetOffScreenResource() { return offScreenResource.Get(); }
-    IDxcUtils *GetDxcUtils() { return dxcUtils; }
-    IDxcCompiler3 *GetDxcCompiler() { return dxcCompiler; }
+
+    ID3D12Resource* GetOffScreenResource() { return offScreenResource.Get(); }
+    IDxcUtils* GetDxcUtils() { return dxcUtils; }
+    IDxcCompiler3* GetDxcCompiler() { return dxcCompiler; }
 
     // バックバッファの数を取得
     size_t GetBackBufferCount() const { return backBuffers.size(); }
@@ -148,7 +136,7 @@ class DirectXCommon {
     uint32_t GetDepthSrvIndex() { return depthSrvIndex; }
 #pragma endregion
 
-  private: // メンバ関数
+private: // メンバ関数
     /// <summary>
     /// デバイスの初期化
     /// </summary>
@@ -220,43 +208,28 @@ class DirectXCommon {
     std::chrono::steady_clock::time_point reference_;
 
     /// <summary>
-    ///  DepthStencilTextureの作成
+    /// DepthStencilTextureの作成
     /// </summary>
-    /// <param name="device"></param>
-    /// <param name="width"></param>
-    /// <param name="height"></param>
-    /// <returns></returns>
     Microsoft::WRL::ComPtr<ID3D12Resource> CreateDepthStencilTextureResource(Microsoft::WRL::ComPtr<ID3D12Device> device, int32_t width, int32_t height);
 
     /// <summary>
     /// 指定番号のCPUデスクリプタハンドルを取得する
     /// </summary>
-    /// <param name="descriptorHeap"></param>
-    /// <param name="descriptorSize"></param>
-    /// <param name="index"></param>
-    /// <returns></returns>
-    static D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index); // CPU
+    static D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index);
 
     /// <summary>
     /// 指定番号のGPUデスクリプタハンドルを取得する
     /// </summary>
-    /// <param name="descriptorHeap"></param>
-    /// <param name="descriptorSize"></param>
-    /// <param name="index"></param>
-    /// <returns></returns>
-    static D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index); // GPU
+    static D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap, uint32_t descriptorSize, uint32_t index);
 
     /// <summary>
     /// バリアを貼る
     /// </summary>
-    /// <param name="pResource"></param>
-    /// <param name="Before"></param>
-    /// <param name="After"></param>
-    void BarrierTransition(ID3D12Resource *pResource, D3D12_RESOURCE_STATES Before, D3D12_RESOURCE_STATES After);
+    void BarrierTransition(ID3D12Resource* pResource, D3D12_RESOURCE_STATES Before, D3D12_RESOURCE_STATES After);
 
-  private:
+private:
     // WindowsAPI
-    WinApp *winApp_ = nullptr;
+    WinApp* winApp_ = nullptr;
     // DirectX12デバイス
     Microsoft::WRL::ComPtr<ID3D12Device> device;
     // DXGIファクトリ
@@ -279,13 +252,13 @@ class DirectXCommon {
 
     Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilResource;
 
-  private:
+private:
     uint32_t descriptorSizeRTV;
     uint32_t descriptorSizeDSV;
 
     // DXCコンパイラ関連
-    IDxcUtils *dxcUtils;
-    IDxcCompiler3 *dxcCompiler;
+    IDxcUtils* dxcUtils;
+    IDxcCompiler3* dxcCompiler;
 
     // RTVを2つ作るのでディスクリプタを2つ用意
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[3];
@@ -303,17 +276,17 @@ class DirectXCommon {
     // TransitionBarrierの設定
     D3D12_RESOURCE_BARRIER barrier{};
     // 現時点ではincludeはしないが、includeに対応するための設定を行っておく
-    IDxcIncludeHandler *includeHandler;
-    const Vector4 kRenderTargetClearValue{1.0f, 0.0f, 0.0f, 1.0f};
+    IDxcIncludeHandler* includeHandler;
+    const Vector4 kRenderTargetClearValue{ 1.0f, 0.0f, 0.0f, 1.0f };
 
     uint32_t offScreenSrvIndex = 0;
-    D3D12_CPU_DESCRIPTOR_HANDLE offScreenSrvHandleCPU; // SRV作成時に必要なCPUハンドル
-    D3D12_GPU_DESCRIPTOR_HANDLE offScreenSrvHandleGPU; // 描画コマンドに必要なGPUハンドル
+    D3D12_CPU_DESCRIPTOR_HANDLE offScreenSrvHandleCPU;
+    D3D12_GPU_DESCRIPTOR_HANDLE offScreenSrvHandleGPU;
 
     uint32_t depthSrvIndex = 0;
-    D3D12_CPU_DESCRIPTOR_HANDLE depthSrvHandleCPU; // SRV作成時に必要なCPUハンドル
-    D3D12_GPU_DESCRIPTOR_HANDLE depthSrvHandleGPU; // 描画コマンドに必要なGPUハンドル
+    D3D12_CPU_DESCRIPTOR_HANDLE depthSrvHandleCPU;
+    D3D12_GPU_DESCRIPTOR_HANDLE depthSrvHandleGPU;
     std::chrono::steady_clock::time_point reference;
     const double targetFPS = 60.0;
-    const std::chrono::microseconds frameTime{static_cast<uint64_t>(1000000.0 / targetFPS)};
+    const std::chrono::microseconds frameTime{ static_cast<uint64_t>(1000000.0 / targetFPS) };
 };
