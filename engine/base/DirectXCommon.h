@@ -17,15 +17,14 @@
 class DirectXCommon {
 #pragma region シングルトンインスタンス
 private:
-    static std::unique_ptr<DirectXCommon> instance;
+    static DirectXCommon* instance;
 
     DirectXCommon() = default;
+    ~DirectXCommon() = default;
     DirectXCommon(DirectXCommon&) = delete;
     DirectXCommon& operator=(DirectXCommon&) = delete;
 
 public:
-    ~DirectXCommon() = default; // unique_ptrからアクセスできるようpublicに
-
     // シングルトンインスタンスの取得
     static DirectXCommon* GetInstance();
     // 終了
