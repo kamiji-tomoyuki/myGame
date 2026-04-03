@@ -125,6 +125,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\character\player\component\action\PlayerMove.cpp" />
     <ClCompile Include="application\character\player\component\action\PlayerRushPosture.cpp" />
     <ClCompile Include="application\character\player\component\action\PlayerUltGauge.cpp" />
+    <ClCompile Include="application\character\player\component\action\PlayerUltimate.cpp" />
     <ClCompile Include="application\character\player\component\arm\PlayerArmAttack.cpp" />
     <ClCompile Include="application\character\player\component\arm\PlayerArmRush.cpp" />
     <ClCompile Include="application\character\player\behavior\PlayerBehaviorDodge.cpp" />
@@ -257,6 +258,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\character\player\component\action\PlayerMove.h" />
     <ClInclude Include="application\character\player\component\action\PlayerRushPosture.h" />
     <ClInclude Include="application\character\player\component\action\PlayerUltGauge.h" />
+    <ClInclude Include="application\character\player\component\action\PlayerUltimate.h" />
     <ClInclude Include="application\character\player\component\arm\PlayerArm.h" />
     <ClInclude Include="application\character\player\component\arm\PlayerArmAttack.h" />
     <ClInclude Include="application\character\player\component\arm\PlayerArmRush.h" />

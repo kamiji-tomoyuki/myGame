@@ -125,12 +125,19 @@ void Player::UpdateStartEffect()
 }
 
 // =============================================================
-//  メイン Update — switch 文の代わりに currentState_ へ委譲
+//  メイン Update
+//  ★ 必殺技更新を State::Update より先に行うことで、
+//    同フレーム内で IsUltimateActive() が正しく参照される
 // =============================================================
 void Player::Update()
 {
 	BaseObject::Update();
 	ApplyVariables();
+
+	// ★ 必殺技モーション更新を先に行う
+	//    → 同フレームで State（PlayerStatePlaying）が IsUltimateActive() を
+	//      正しく読めるようになる
+	if (attack_) { attack_->UpdateUltimate(this, enemy_); }
 
 	// 現在の状態を更新し、次状態が返ってきたら遷移する
 	if (currentState_) {
@@ -140,12 +147,18 @@ void Player::Update()
 		}
 	}
 
-	// HPバー更新（状態に関わらず毎フレーム更新）
+	// HPバー更新
 	float hpRatio = static_cast<float>(HP_) / static_cast<float>(kMaxHP_);
 	hpBar_->SetSize({ kHpBarFullWidth_ * hpRatio, kHpBarHeight_ });
 
 	trailEffect_->UpdateOnce(*vp_);
 	Collider::UpdateWorldTransform();
+
+	// 各クールダウン更新
+	if (hitReaction_) {
+		hitReaction_->UpdateContactCooldown();
+		hitReaction_->UpdateRangedCooldown();
+	}
 
 #ifdef _DEBUG
 	hitEffect_->Update(*vp_);
@@ -158,6 +171,13 @@ void Player::Update()
 // =============================================================
 void Player::MoveInternal()
 {
+	// 必殺技モーション中は移動処理をスキップ（PlayerUltimate が座標を直接制御する）
+	if (IsUltimateActive()) { return; }
+
+	// ※ IsHitReacting() 中でも移動入力は受け付ける
+	//   シェイク演出は Draw() 側のオフセットのみで表現するため、
+	//   ここで移動をロックする必要はない
+
 	Vector3 currentPos = BaseObject::GetWorldPosition();
 	float   currentRotY = BaseObject::GetTransform().rotation_.y;
 	Vector3 currentRot = BaseObject::GetTransform().rotation_;
@@ -183,7 +203,7 @@ void Player::MoveInternal()
 // =============================================================
 void Player::TakeDamage(const Vector3& hitPosition)
 {
-	if (hitReaction_->IsHitReacting() || dodge_->IsDodging()) { return; }
+	if (hitReaction_->IsHitReacting() || dodge_->IsDodging() || IsUltimateActive()) { return; }
 	hitReaction_->Start(BaseObject::GetWorldPosition(), hitPosition);
 }
 
@@ -192,14 +212,13 @@ void Player::TakeDamage(const Vector3& hitPosition)
 // =============================================================
 void Player::ApplyDamage(uint32_t damage, const Vector3& hitPosition)
 {
-	if (dodge_->IsDodging() || hitReaction_->IsHitReacting()) { return; }
+	if (dodge_->IsDodging() || hitReaction_->IsHitReacting() || IsUltimateActive()) { return; }
 
 	if (HP_ > damage) {
 		HP_ -= damage;
 	}
 	else {
 		HP_ = 0;
-		// gameState_ を更新するだけ — 次フレームの State::Update() で ChangeState が走る
 		gameState_ = GameState::kGameOver;
 	}
 
@@ -256,6 +275,7 @@ bool Player::CanRush()            const { return attack_->CanRush(); }
 bool Player::IsRightPunchActive() const { return attack_->IsRightPunchActive(); }
 bool Player::IsLeftPunchActive()  const { return attack_->IsLeftPunchActive(); }
 bool Player::IsRushActive()       const { return attack_->IsRushActive(); }
+bool Player::IsUltimateActive()   const { return attack_ && attack_->IsUltimateActive(); }
 
 // =============================================================
 //  velocity getter/setter（PlayerMove に委譲）
@@ -307,7 +327,7 @@ void Player::ImGui()
 	hitEffect_->imgui();
 	damageEffect_->imgui();
 	trailEffect_->imgui();
-	attack_->ImGui();
+	if (attack_) { attack_->ImGui(); }
 }
 
 // =============================================================
@@ -320,17 +340,19 @@ void Player::ApplyVariables()
 	kLeftArmTranslation_ = variables_->GetVector3Value(kGroupName_, "Left Arm Translation");
 	kArmScale_ = variables_->GetVector3Value(kGroupName_, "Arm Scale");
 
-	// 最大HPを反映（HPが満タンのときは追従、それ以外は上限だけ更新）
 	kMaxHP_ = kMaxHP_Adjustable_;
 
-	// 腕の位置・スケールをリアルタイム反映
-	if (arms_[kRArm]) {
-		arms_[kRArm]->SetTranslation(kRightArmTranslation_);
-		arms_[kRArm]->SetScale(kArmScale_);
-	}
-	if (arms_[kLArm]) {
-		arms_[kLArm]->SetTranslation(kLeftArmTranslation_);
-		arms_[kLArm]->SetScale(kArmScale_);
+	// ★ 必殺技モーション中は腕位置を上書きしない
+	//    （PlayerUltimate が毎フレーム腕の translation を直接制御するため）
+	if (!IsUltimateActive()) {
+		if (arms_[kRArm]) {
+			arms_[kRArm]->SetTranslation(kRightArmTranslation_);
+			arms_[kRArm]->SetScale(kArmScale_);
+		}
+		if (arms_[kLArm]) {
+			arms_[kLArm]->SetTranslation(kLeftArmTranslation_);
+			arms_[kLArm]->SetScale(kArmScale_);
+		}
 	}
 }
 
@@ -382,7 +404,7 @@ void Player::InitArm()
 	arms_[kRArm]->SetIsRightArm(true);
 	arms_[kRArm]->SetTranslation(kRightArmTranslation_);
 	arms_[kRArm]->SetScale(kArmScale_);
-	arms_[kRArm]->SetPlayerAttack(attack_.get());  // ゲージ通知の接続
+	arms_[kRArm]->SetPlayerAttack(attack_.get());
 
 	arms_[kLArm] = std::make_unique<PlayerArm>();
 	arms_[kLArm]->Init("player/Arm/playerArm.gltf");
@@ -392,5 +414,5 @@ void Player::InitArm()
 	arms_[kLArm]->SetIsRightArm(false);
 	arms_[kLArm]->SetTranslation(kLeftArmTranslation_);
 	arms_[kLArm]->SetScale(kArmScale_);
-	arms_[kLArm]->SetPlayerAttack(attack_.get());  // ゲージ通知の接続
+	arms_[kLArm]->SetPlayerAttack(attack_.get());
 }

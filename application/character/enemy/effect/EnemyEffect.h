@@ -23,10 +23,11 @@ public:
 	bool IsFallComplete() const { return isFallComplete_; }
 
 private:
-	float   fallTimer_    = 0.0f;
+	float   fallTimer_ = 0.0f;
 	bool    isFallComplete_ = false;
 
-	static constexpr float  kFallDuration_ = 60.0f;
+	const float kFallDuration_ = 60.0f;
+	const float kFallRotationSpeed_ = 0.1f;   // 落下中の回転速度
 	const Vector3 fallStartPos_ = { 0.0f, 10.0f, 15.0f };
-	const Vector3 fallEndPos_   = { 0.0f,  0.0f, 15.0f };
+	const Vector3 fallEndPos_ = { 0.0f,  0.0f, 15.0f };
 };

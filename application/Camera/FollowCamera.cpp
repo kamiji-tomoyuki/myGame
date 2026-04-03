@@ -11,8 +11,8 @@ void FollowCamera::Initialize()
 
 	destinationAngle = Quaternion::IdentityQuaternion();
 
-	vp_.translation_ = { 0.0f, 2.0f, -10.0f };
-	targetPos_ = { 0.0f, 0.0f,  0.0f };
+	vp_.translation_ = kInitialTranslation;
+	targetPos_ = kZeroVector_;
 }
 
 void FollowCamera::Update()
@@ -35,15 +35,15 @@ void FollowCamera::Update()
 
 	destinationAngle = Quaternion::Sleap(
 		destinationAngle,
-		Quaternion::MakeRotateAxisAngleQuaternion({ 0, 0, -1 }, destinationAngleX_) *
-		Quaternion::MakeRotateAxisAngleQuaternion({ 0, -1, 0 }, resolvedAngleY),
-		0.1f);
+		Quaternion::MakeRotateAxisAngleQuaternion(kAxisZ_, destinationAngleX_) *
+		Quaternion::MakeRotateAxisAngleQuaternion(kAxisY_, resolvedAngleY),
+		kRotationSlerpSpeed);
 	vp_.rotation_ = destinationAngle.ToEulerAngles();
 
 	if (target_) {
 		if (isStartMove_) {
 			startMoveTime_++;
-			float t = min(startMoveTime_ / startMoveDuration_, 1.0f);
+			float t = min(startMoveTime_ / startMoveDuration_, kLerpMax_);
 
 			vp_.translation_ = EaseOutSine(startPos_, targetStartPos_, t, 1.0f);
 
@@ -54,7 +54,7 @@ void FollowCamera::Update()
 		}
 		else {
 			// 通常の追従
-			targetPos_ = Lerp(targetPos_, target_->translation_, 0.1f);
+			targetPos_ = Lerp(targetPos_, target_->translation_, kPositionLerpSpeed);
 			Vector3 offset = MakeOffset();
 			vp_.translation_ = targetPos_ + offset;
 		}
@@ -93,7 +93,7 @@ void FollowCamera::Reset()
 		vp_.translation_ = targetPos_ + offset;
 	}
 	else {
-		targetPos_ = { 0.0f, 0.0f, 0.0f };
+		targetPos_ = kZeroVector_;
 		vp_.rotation_ = { destinationAngleX_, destinationAngleY_, 0.0f };
 		destinationAngle = Quaternion::FromEulerAngles(vp_.rotation_);
 		stableAngleY_ = destinationAngleY_;
@@ -131,8 +131,8 @@ void FollowCamera::SetCameraFixed(bool isFixed)
 			destinationAngleY_ = target_->rotation_.y;
 			stableAngleY_ = destinationAngleY_;
 			destinationAngle =
-				Quaternion::MakeRotateAxisAngleQuaternion({ 0, 0, -1 }, destinationAngleX_) *
-				Quaternion::MakeRotateAxisAngleQuaternion({ 0, -1, 0 }, destinationAngleY_);
+				Quaternion::MakeRotateAxisAngleQuaternion(kAxisZ_, destinationAngleX_) *
+				Quaternion::MakeRotateAxisAngleQuaternion(kAxisY_, destinationAngleY_);
 			vp_.rotation_ = destinationAngle.ToEulerAngles();
 
 			Vector3 offset = MakeOffset();
@@ -153,23 +153,21 @@ void FollowCamera::UpdateGamePad()
 
 void FollowCamera::UpdateKeyboard()
 {
-	const float speed = 0.03f;
-
 	if (Input::GetInstance()->PushKey(DIK_LEFT)) {
-		move += Vector3(0.0f, -1.0f, 0.0f);
+		move += Vector3(0.0f, -kKeyboardRotateSpeed, 0.0f);
 	}
 	if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
-		move += Vector3(0.0f, 1.0f, 0.0f);
+		move += Vector3(0.0f, kKeyboardRotateSpeed, 0.0f);
 	}
 }
 
 Vector3 FollowCamera::MakeOffset()
 {
 	if (!target_) {
-		return Vector3(0.0f, 0.0f, 0.0f);
+		return kZeroVector_;
 	}
 
-	Matrix4x4 rotateMatrix = MakeAffineMatrix({ 1, 1, 1 }, vp_.rotation_, {});
+	Matrix4x4 rotateMatrix = MakeAffineMatrix(kUnitScale_, vp_.rotation_, {});
 	Vector3 offset = TransformNormal(offset_, rotateMatrix);
 	return offset;
 }

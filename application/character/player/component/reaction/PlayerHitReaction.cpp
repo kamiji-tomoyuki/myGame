@@ -9,6 +9,7 @@ void PlayerHitReaction::Init()
 	hitShakeOffset_ = {};
 	originalPosition_ = {};
 	contactDamageCooldown_ = 0;
+	rangedDamageCooldown_ = 0;
 }
 
 // =============================================================
@@ -67,5 +68,15 @@ void PlayerHitReaction::UpdateContactCooldown()
 {
 	if (contactDamageCooldown_ > 0) {
 		contactDamageCooldown_--;
+	}
+}
+
+// =============================================================
+//  遠距離攻撃被弾クールダウン更新
+// =============================================================
+void PlayerHitReaction::UpdateRangedCooldown()
+{
+	if (rangedDamageCooldown_ > 0) {
+		rangedDamageCooldown_--;
 	}
 }

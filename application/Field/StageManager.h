@@ -79,4 +79,7 @@ private:
     // ステージ設定
     Vector3 stageCenter_;   // ステージの中心座標
     float stageRadius_;     // ステージの半径
+
+    const Vector3 kDefaultStageCenter_ = { 0.0f, 0.0f, 0.0f };  // ステージ中心の初期値
+    const float   kDefaultStageRadius_ = 40.0f;                  // ステージ半径の初期値
 };

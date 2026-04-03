@@ -66,6 +66,7 @@ void EnemyAttackMelee::Start(Enemy* enemy, Player* player)
 	Vector3 currentPos = enemy->GetCenterPosition();
 	chargeDirection_ = (targetPos - currentPos).Normalize();
 	chargeStartPos_ = currentPos;
+	groundY_ = currentPos.y;  // 突進中のY座標を地面に固定するため記録
 
 	// プレイヤーの方向を向く
 	float targetRotationY = std::atan2(chargeDirection_.x, chargeDirection_.z);
@@ -124,7 +125,10 @@ void EnemyAttackMelee::UpdateCharging(Enemy* enemy, Player* player)
 	chargingTimer_++;
 
 	Vector3 chargeVelocity = chargeDirection_ * kChargeSpeed_;
-	enemy->SetWorldPosition(enemy->GetCenterPosition() + chargeVelocity);
+	chargeVelocity.y = 0.0f;  // 突進はXZ平面のみ
+	Vector3 newPos = enemy->GetCenterPosition() + chargeVelocity;
+	newPos.y = groundY_;       // 地面Y座標に固定
+	enemy->SetWorldPosition(newPos);
 
 	UpdateTrailEffect(enemy);
 	CheckCollision(player);
@@ -210,7 +214,7 @@ void EnemyAttackMelee::UpdateTrailEffect(Enemy* enemy)
 	if (distanceMoved >= trailEmitDistance_) {
 		// 移動している場合のみパーティクルを発生
 		Vector3 velocity = enemy->GetVelocity();
-		if (velocity.Length() > 0.01f) {
+		if (velocity.Length() > kTrailVelocityMinLength_) {
 			trailEffect_->SetPosition(footPosition);
 			trailEffect_->SetActive(false);
 		}

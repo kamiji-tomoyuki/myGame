@@ -38,25 +38,31 @@ public:
 
 private:
 	// スタン
-	bool  isRushStunned_  = false;
-	int   rushStunTimer_  = 0;
-	static constexpr int kRushStunDuration_ = 18;
+	bool  isRushStunned_ = false;
+	int   rushStunTimer_ = 0;
+	const int kRushStunDuration_ = 18;
+	const int kFinalHitStunMultiplier_ = 3;     // ファイナルヒット時のスタン時間倍率
 
 	// ノックバック
-	bool     isBeingRushed_         = false;
-	bool     rushFinalHitReceived_  = false;
-	bool     wasRushActive_         = false;
-	uint32_t rushKnockbackTimer_    = 0;
+	bool     isBeingRushed_ = false;
+	bool     rushFinalHitReceived_ = false;
+	bool     wasRushActive_ = false;
+	uint32_t rushKnockbackTimer_ = 0;
 
-	Vector3 knockbackDirection_          = { 0.0f, 0.0f, 1.0f };
-	float   knockbackSpeed_              = 0.02f;
-	float   knockbackVerticalVelocity_   = 0.0f;
-	float   knockbackGroundY_            = 0.0f;
+	Vector3 knockbackDirection_ = { 0.0f, 0.0f, 1.0f };
+	float   knockbackSpeed_ = 0.02f;
+	float   knockbackVerticalVelocity_ = 0.0f;
+	float   knockbackGroundY_ = 0.0f;
 
-	static constexpr float initialKnockbackSpeed_          = 0.35f;
-	static constexpr float knockbackDecay_                 = 0.88f;
-	static constexpr float maxTiltAngle_                   = 0.5f;
-	static constexpr float knockbackInitialVerticalVelocity_ = 0.22f;
-	static constexpr float knockbackGravity_               = 0.012f;
-	static constexpr uint32_t kMaxRushKnockbackDuration_  = 150;
+	const float    initialKnockbackSpeed_ = 0.35f;
+	const float    knockbackDecay_ = 0.88f;
+	const float    maxTiltAngle_ = 0.5f;
+	const float    knockbackInitialVerticalVelocity_ = 0.22f;
+	const float    knockbackGravity_ = 0.012f;
+	const uint32_t kMaxRushKnockbackDuration_ = 150;
+
+	const float    kKnockbackDirectionMinLength_ = 0.001f;  // ノックバック方向の有効最小長さ
+	const float    kAirborneThreshold_ = 0.01f;   // 空中判定の高さ閾値
+	const float    kGroundTiltFrequency_ = 0.4f;    // 着地後揺れのサイン周波数
+	const float    kGroundTiltDampingScale_ = 0.5f;    // 着地後揺れの減衰係数
 };

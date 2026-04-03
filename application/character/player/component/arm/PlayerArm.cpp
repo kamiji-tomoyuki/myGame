@@ -31,13 +31,13 @@ void PlayerArm::Init(std::string filePath)
     attack_ = std::make_unique<PlayerArmAttack>();
     rush_ = std::make_unique<PlayerArmRush>();
 
-    attack_->SetAttackDamage(50);
-    rush_->SetRushAttackDamage(20);
-    rush_->SetFinisherAttackDamage(150);
+    attack_->SetAttackDamage(kInitAttackDamage_);
+    rush_->SetRushAttackDamage(kInitRushAttackDamage_);
+    rush_->SetFinisherAttackDamage(kInitFinisherAttackDamage_);
 
     originalPosition_ = transform_.translation_;
 
-    Collider::SetRadius(0.8f);
+    Collider::SetRadius(kColliderRadius_);
     Collider::SetCollisionEnabled(true);
 }
 
@@ -190,9 +190,9 @@ void PlayerArm::HandleHit(Collider* other)
         else if (rush_->GetIsRush() &&
             rush_->GetRushPhase() == RushPhase::kRapidPunch && rush_->IsRushAttackActive()) {
             uint32_t rushAttackTimer = rush_->GetRushAttackTimer();
-            if (rushAttackTimer >= 2 && rushAttackTimer <= 6) {
+            if (rushAttackTimer >= kRushHitTimerMin_ && rushAttackTimer <= kRushHitTimerMax_) {
                 int currentFrame = static_cast<int>(rush_->GetRushTimer());
-                if (currentFrame - rush_->GetLastRushHitFrame() >= 3) {
+                if (currentFrame - rush_->GetLastRushHitFrame() >= kRushHitInterval_) {
                     enemy->TakeDamage(rush_->GetRushAttackDamage());
                     enemy->OnRushHit(false);
                     rush_->SetLastRushHitFrame(currentFrame);
@@ -209,7 +209,7 @@ void PlayerArm::HandleHit(Collider* other)
         // -------------------------------------------------------
         else if (attack_->GetIsAttack()) {
             float progress = attack_->GetAttackProgress();
-            if (progress >= 0.4f && progress <= 0.6f && !attack_->GetHasHitThisAttack()) {
+            if (progress >= kAttackHitProgressMin_ && progress <= kAttackHitProgressMax_ && !attack_->GetHasHitThisAttack()) {
                 enemy->TakeDamage(attack_->GetAttackDamage());
                 attack_->SetHasHitThisAttack(true);
 

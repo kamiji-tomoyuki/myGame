@@ -23,7 +23,7 @@ void PlayerGameClearEffect::Update()
 	float jumpPhase = fmod(timer_, kJumpCycle_) / kJumpCycle_;
 
 	// sin波による滑らかなジャンプオフセット
-	float jumpOffset = sinf(jumpPhase * 3.14159265f) * kJumpHeight_;
+	float jumpOffset = sinf(jumpPhase * kPi_) * kJumpHeight_;
 
 	// 位置を設定
 	Vector3 pos = clearStartPos_;

@@ -17,7 +17,7 @@ IEnemyState* EnemyStateGameClear::Update(Enemy* enemy)
 
 	// 待機後、回転しながら縮小
 	Vector3 rot = enemy->GetObjRotation();
-	rot.y += 0.5f;
+	rot.y += kRotationSpeed_;
 	enemy->SetObjRotation(rot);
 	enemy->SetRotation(rot);
 
@@ -25,9 +25,9 @@ IEnemyState* EnemyStateGameClear::Update(Enemy* enemy)
 	Vector3 scale = enemy->GetWorldSize();
 	if (scale.x >= 0.0f) {
 		enemy->SetScale(Vector3(
-			scale.x - 0.02f,
-			scale.y - 0.02f,
-			scale.z - 0.02f));
+			scale.x - kShrinkAmount_,
+			scale.y - kShrinkAmount_,
+			scale.z - kShrinkAmount_));
 	}
 	else {
 		enemy->SetIsAlive(false);

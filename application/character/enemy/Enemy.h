@@ -157,4 +157,18 @@ private:
 	uint32_t kMaxHP_Adjustable_ = 1000; // 最大HP（調整用）
 
 	void ApplyVariables();
+
+	// --- 初期化パラメータ ---
+	const Vector3 kInitialWorldPosition_ = { 0.0f, 2.0f, 15.0f };
+	const float   kColliderSize_ = 1.0f;
+	const Vector3 kModelInitialRotation_ = { 0.0f, 1.57f * 2.0f, 0.0f };
+
+	// --- HPバー UI座標 ---
+	const float kHpBarPosX_ = 1240.0f;
+	const float kHpBarPosY_ = 150.0f;
+	const Vector3 kHpBarBgColor_ = { 0.2f, 0.2f, 0.2f };
+
+	// --- 衝突処理パラメータ ---
+	const float kAttackOverlapMultiplier_ = 2.0f;   // 攻撃中の重なり倍率
+	const float kCollisionVelocityDamping_ = 0.1f;   // 衝突時の速度減衰係数
 };

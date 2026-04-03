@@ -9,8 +9,8 @@ StageManager* StageManager::GetInstance()
 void StageManager::Initialize()
 {
     // デフォルト設定
-    stageCenter_ = { 0.0f, 0.0f, 0.0f };  // ステージの中心座標
-    stageRadius_ = 40.0f;                  // ステージの半径
+    stageCenter_ = kDefaultStageCenter_;
+    stageRadius_ = kDefaultStageRadius_;
 }
 
 bool StageManager::IsWithinStageBounds(const Vector3& position) const

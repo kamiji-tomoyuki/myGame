@@ -29,6 +29,6 @@ private:
 	// --- モデル ---
 	std::unique_ptr<Object3d> obj3d_;
 	float scale_ = 1000.0f;
+	const float kGroundOffsetY_ = -2.5f;  // 地面のY座標オフセット
 
 };
-

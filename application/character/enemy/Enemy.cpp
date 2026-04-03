@@ -27,7 +27,7 @@ Enemy::Enemy()
 void Enemy::Init()
 {
 	BaseObject::Init();
-	BaseObject::SetWorldPosition(Vector3{ 0.0f, 2.0f, 15.0f });
+	BaseObject::SetWorldPosition(kInitialWorldPosition_);
 
 	// =============================================================
 	// GlobalVariables の初期化
@@ -39,7 +39,7 @@ void Enemy::Init()
 	variables_->AddItem(kGroupName_, "Max HP", static_cast<int32_t>(kMaxHP_Adjustable_));
 	ApplyVariables();
 
-	float size = 1.0f;
+	float size = kColliderSize_;
 
 	Collider::SetTypeID(static_cast<uint32_t>(CollisionTypeIdDef::kEnemy));
 	Collider::SetRadius(size);
@@ -48,7 +48,7 @@ void Enemy::Init()
 	obj3d_ = std::make_unique<Object3d>();
 	obj3d_->Initialize("Enemy/enemyBody.obj");
 	obj3d_->SetSize({ size, size, size });
-	obj3d_->SetRotation({ 0.0f, 1.57f * 2.0f, 0.0f });
+	obj3d_->SetRotation(kModelInitialRotation_);
 	BaseObject::SetRotation(obj3d_->GetRotation());
 	BaseObject::SetScale(obj3d_->GetSize());
 
@@ -68,16 +68,16 @@ void Enemy::Init()
 	// --- HPバー ---
 	hpBarBg_ = std::make_unique<Sprite>();
 	hpBarBg_->Initialize("white1x1.png", {
-		1240.0f + kHpBarBgPadding_,
-		150.0f - kHpBarBgPadding_ });
+		kHpBarPosX_ + kHpBarBgPadding_,
+		kHpBarPosY_ - kHpBarBgPadding_ });
 	hpBarBg_->SetAnchorPoint({ 1.0f, 0.0f });
-	hpBarBg_->SetColor({ 0.2f, 0.2f, 0.2f });
+	hpBarBg_->SetColor({ kHpBarBgColor_.x, kHpBarBgColor_.y, kHpBarBgColor_.z });
 	hpBarBg_->SetSize({
 		kHpBarFullWidth_ + kHpBarBgPadding_ * 2.0f,
 		kHpBarHeight_ + kHpBarBgPadding_ * 2.0f });
 
 	hpBar_ = std::make_unique<Sprite>();
-	hpBar_->Initialize("white1x1.png", { 1240.0f, 150.0f });
+	hpBar_->Initialize("white1x1.png", { kHpBarPosX_, kHpBarPosY_ });
 	hpBar_->SetAnchorPoint({ 1.0f, 0.0f });
 	hpBar_->SetColor({ 1.0f, 0.0f, 0.0f });
 	hpBar_->SetSize({ kHpBarFullWidth_, kHpBarHeight_ });
@@ -206,7 +206,7 @@ void Enemy::HandleCollisionWithPlayer(Player* player)
 		float overlap = totalRadius - distance;
 
 		if (attackManager_ && attackManager_->IsAttacking()) {
-			overlap *= 2.0f;
+			overlap *= kAttackOverlapMultiplier_;
 		}
 
 		Vector3 pushVector = direction * overlap;
@@ -222,7 +222,7 @@ void Enemy::HandleCollisionWithPlayer(Player* player)
 
 		if (!attackManager_ || !attackManager_->IsAttacking()) {
 			if (move_) {
-				move_->SetVelocity(move_->GetVelocity() * 0.1f);
+				move_->SetVelocity(move_->GetVelocity() * kCollisionVelocityDamping_);
 			}
 		}
 

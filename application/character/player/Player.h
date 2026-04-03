@@ -85,6 +85,7 @@ public:
 	bool      GetIsEnd()           const { return startEffect_ && startEffect_->IsEnd(); }
 	bool      IsDodging()          const { return dodge_ && dodge_->IsDodging(); }
 	bool      IsHitReacting()      const { return hitReaction_ && hitReaction_->IsHitReacting(); }
+	bool      IsRangedInvincible() const { return hitReaction_ && hitReaction_->IsRangedCooldownActive(); }
 	GameState GetGameState()       const { return gameState_; }
 	const std::array<std::unique_ptr<PlayerArm>, kModelNum>& GetArms() const { return arms_; }
 
@@ -94,12 +95,17 @@ public:
 	bool IsRightPunchActive() const;
 	bool IsLeftPunchActive()  const;
 	bool IsRushActive()       const;
+	bool IsUltimateActive()   const;  // ★ 追加
+
+	Enemy* GetEnemy()         const { return enemy_; }  // ★ 追加
 
 	void ApplyDamage(uint32_t damage, const Vector3& hitPosition);
+	void StartRangedCooldown() { if (hitReaction_) { hitReaction_->StartRangedCooldown(); } }
 
 	// =============================================================
 	// セッター
 	// =============================================================
+	FollowCamera* GetFollowCamera() const { return followCamera_; }
 	void SetFollowCamera(FollowCamera* followCamera) { followCamera_ = followCamera; }
 	void SetViewProjection(const ViewProjection* vp) { vp_ = vp; }
 	static void SetSerialNumber(int num) { nextSerialNumber_ = num; }

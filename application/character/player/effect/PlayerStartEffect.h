@@ -1,5 +1,5 @@
 #pragma once
-#include "Vector3.h"  // プロジェクト側の Vector3 ヘッダー
+#include "Vector3.h"
 
 class Player;
 
@@ -30,7 +30,17 @@ private:
 
 	/// 演出完了フラグ
 	bool isEnd_ = false;
-
+	
+	// --- 定数 ---
 	/// ゼロ→一へのLerp所要時間（秒）
-	static constexpr float kDuration_ = 1.5f;
+	static inline const float   kDuration_ = 1.5f;
+
+	/// 1フレームの経過時間（秒）。60fps 固定前提
+	static inline const float   kFrameDeltaTime_ = 1.0f / 60.0f;
+
+	/// スケール補間の開始値（ゼロスケール）
+	static inline const Vector3 kScaleStart_ = { 0.0f, 0.0f, 0.0f };
+
+	/// スケール補間の終了値（等倍）
+	static inline const Vector3 kScaleEnd_ = { 1.0f, 1.0f, 1.0f };
 };

@@ -129,6 +129,28 @@ private:
 	float kLArmWindUpZ_ = -0.6f;
 	float kLArmFinisherZ_ = -1.0f;
 
+	// --- 定数 ---
+	/// 連続パンチの左右振り幅の基準値
+	static inline const float kRapidPunchSideBase_ = 0.5f;
+	/// 右腕・左腕それぞれの追加オフセット量
+	static inline const float kRapidPunchArmSideOffset_ = 0.3f;
+	/// 連続パンチイージングの折り返し進捗（これ以降は戻り動作）
+	static inline const float kRapidPunchEasingTurnPoint_ = 0.6f;
+	/// 連続パンチ戻り動作の速度係数
+	static inline const float kRapidPunchReturnSpeed_ = 2.5f;
+	/// フィニッシャーの前半終了進捗（振り出し → 最大伸ばし）
+	static inline const float kFinisherHalfPoint_ = 0.5f;
+	/// フィニッシャーの戻り量係数（最大伸ばしからわずかに引く割合）
+	static inline const float kFinisherRetractFactor_ = 0.25f;
+	/// フィニッシャーヒット判定の開始進捗
+	static inline const float kFinisherHitStartProgress_ = 0.3f;
+	/// フィニッシャーヒット判定の終了進捗
+	static inline const float kFinisherHitEndProgress_ = 0.7f;
+	/// リカバリー終了位置の補間割合（フィニッシャー伸ばし終端の何割の位置から戻るか）
+	static inline const float kRecoverStartRatio_ = 0.75f;
+	/// リカバリー開始から何フレーム後にヒット判定フレームを解除するか
+	static inline const uint32_t kRecoverHitFrameClearDelay_ = 2;
+
 	GlobalVariables* variables_ = nullptr;
 	static const std::string kGroupName_;
 };

@@ -33,9 +33,15 @@ IPlayerState* PlayerStatePlaying::Update(Player* player)
 		}
 	}
 
-	// アニメーション・腕・姿勢は Playing 中は常に更新
+	// アニメーション・腕は常に更新
 	player->obj3d_->UpdateAnimation(true);
 	player->UpdateArms();
+
+	// 必殺技モーション中はボディ回転の上書きをすべてスキップ
+	//    （PlayerUltimate::FaceTarget が毎フレーム向きを制御するため）
+	if (player->IsUltimateActive()) {
+		return nullptr;
+	}
 
 	// ラッシュ姿勢（ボディのひねり）
 	{
