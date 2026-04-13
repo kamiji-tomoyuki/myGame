@@ -109,11 +109,15 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 	vp_ = &vp;
 	ApplyVariables();
 
-	// 現在の状態を更新し、次状態が返ってきたら遷移する
-	if (currentState_) {
-		std::unique_ptr<IEnemyState> next = currentState_->Update(this);
-		if (next) {
-			ChangeState(std::move(next));
+	// デバッグ一時停止中は状態・移動・攻撃の更新をスキップ
+	if (!isPaused_)
+	{
+		// 現在の状態を更新し、次状態が返ってきたら遷移する
+		if (currentState_) {
+			std::unique_ptr<IEnemyState> next = currentState_->Update(this);
+			if (next) {
+				ChangeState(std::move(next));
+			}
 		}
 	}
 
@@ -266,7 +270,68 @@ void Enemy::DrawSprite(const ViewProjection& viewProjection)
 
 void Enemy::ImGui()
 {
-	// ImGui処理
+#ifdef _DEBUG
+	ImGui::Begin("Enemy Debug");
+
+	// ===== 一時停止 / 再開 ボタン =====
+	if (isPaused_) {
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.8f, 0.3f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.1f, 0.5f, 0.1f, 1.0f));
+		if (ImGui::Button("Resume  (F5)", ImVec2(160, 40))) {
+			isPaused_ = false;
+		}
+	}
+	else {
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.2f, 0.2f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.9f, 0.3f, 0.3f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+		if (ImGui::Button("Pause   (F5)", ImVec2(160, 40))) {
+			isPaused_ = true;
+		}
+	}
+	ImGui::PopStyleColor(3);
+
+	// キーボードショートカット（F5 で切り替え）
+	if (ImGui::IsKeyPressed(ImGuiKey_F5)) {
+		isPaused_ = !isPaused_;
+	}
+
+	ImGui::SameLine();
+	ImGui::TextColored(
+		isPaused_ ? ImVec4(1.0f, 0.4f, 0.4f, 1.0f) : ImVec4(0.4f, 1.0f, 0.4f, 1.0f),
+		isPaused_ ? "[ PAUSED ]" : "[ RUNNING ]"
+	);
+
+	ImGui::Separator();
+
+	// ===== ステータス表示 =====
+	ImGui::Text("HP        : %u / %u", HP_, kMaxHP_);
+	ImGui::Text("IsAlive   : %s", isAlive_ ? "true" : "false");
+	ImGui::Text("IsAttacking: %s", IsAttacking() ? "true" : "false");
+
+	if (move_) {
+		Vector3 vel = move_->GetVelocity();
+		ImGui::Text("Velocity  : (%.2f, %.2f, %.2f)", vel.x, vel.y, vel.z);
+	}
+
+	Vector3 pos = GetCenterPosition();
+	ImGui::Text("Position  : (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
+
+	ImGui::Separator();
+
+	// ===== 個別停止オプション（一時停止中のみ有効）=====
+	ImGui::BeginDisabled(!isPaused_);
+	ImGui::Text("-- Pause Options (enabled while paused) --");
+
+	static bool freezeAttack = true;
+	static bool freezeMove = true;
+	ImGui::Checkbox("Freeze Attack", &freezeAttack);
+	ImGui::Checkbox("Freeze Move", &freezeMove);
+	ImGui::EndDisabled();
+
+	ImGui::End();
+#endif // _DEBUG
 }
 
 // =============================================================

@@ -76,6 +76,7 @@ public:
 	uint32_t         GetHP()              const { return HP_; }
 	bool             GetIsAlive()         const { return isAlive_; }
 	GameState        GetGameState()       const { return gameState_; }
+	bool             GetIsPaused()        const { return isPaused_; }
 	Vector3          GetVelocity()        const { return move_ ? move_->GetVelocity() : Vector3{}; }
 	bool             IsAttacking()        const;
 	bool             IsRushActive()       const { return false; } // 敵はラッシュを行わない
@@ -129,6 +130,9 @@ private:
 	// --- ステータス ---
 	bool      isAlive_ = true;
 	GameState gameState_ = GameState::kPlaying;
+
+	// --- デバッグ用一時停止 ---
+	bool isPaused_ = false;
 
 	uint32_t kMaxHP_ = 1000;
 	uint32_t HP_ = kMaxHP_;

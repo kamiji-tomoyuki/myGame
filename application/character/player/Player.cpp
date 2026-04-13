@@ -69,7 +69,7 @@ void Player::Init()
 	damageEffect_->Initialize("playerDamage", "debug/ringPlane.obj");
 
 	trailEffect_ = std::make_unique<ParticleEmitter>();
-	trailEffect_->Initialize("playerTrail", "debug/plane.obj");
+	trailEffect_->Initialize("playerTrail", "debug/ringPlane.obj");
 
 	// =============================================================
 	// サブシステムの生成・初期化
@@ -321,7 +321,7 @@ void Player::DrawParticle(const ViewProjection& viewProjection)
 {
 	hitEffect_->Draw(Ring);
 	damageEffect_->Draw(Ring);
-	trailEffect_->Draw(Normal);
+	trailEffect_->Draw(Ring);
 }
 
 // =============================================================
