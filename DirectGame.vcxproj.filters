@@ -111,9 +111,6 @@
     <Filter Include="ソースファイル\リソース ファイル\OffScreen">
       <UniqueIdentifier>{9ad29c48-6718-4748-b2ff-1126d4c8443b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソースファイル\application\Field\Skybox">
-      <UniqueIdentifier>{5ab14482-16d8-4365-80da-a2c6e513e621}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ソースファイル\application\Scene">
       <UniqueIdentifier>{95837f6f-3d18-4d1a-8bca-710414435010}</UniqueIdentifier>
     </Filter>
@@ -137,6 +134,48 @@
     </Filter>
     <Filter Include="ソースファイル\myEngine\math">
       <UniqueIdentifier>{7783f3b2-c072-4758-bb23-a04fd9a50fcc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソースファイル\application\Character\Enemy\component">
+      <UniqueIdentifier>{ed9a85d6-e586-4b84-9dfa-f9623eaa38cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソースファイル\application\Character\Enemy\effect">
+      <UniqueIdentifier>{9de669cf-4d11-41e6-9d61-615d2499c7af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソースファイル\application\Character\Enemy\state">
+      <UniqueIdentifier>{e2949226-84f4-4952-be0e-d259c23b31bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソースファイル\application\Character\Enemy\component\action">
+      <UniqueIdentifier>{74067be4-e5be-4a01-a719-57b47ca7884c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソースファイル\application\Character\Enemy\component\reaction">
+      <UniqueIdentifier>{a8630756-2af0-466c-b4ed-e06cf2d49fb4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソースファイル\application\Character\Player\behavior">
+      <UniqueIdentifier>{e6a5b7ce-30d8-4859-a3d0-04c4ff9628bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソースファイル\application\Character\Player\component">
+      <UniqueIdentifier>{e1b413ee-f09b-4fb4-984e-7010e55a1934}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソースファイル\application\Character\Player\effect">
+      <UniqueIdentifier>{150c09db-ad81-42da-9bc8-3870186d456b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソースファイル\application\Character\Player\state">
+      <UniqueIdentifier>{aced05ef-d2aa-4685-beea-b4c1474ee7fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソースファイル\application\Character\Player\component\action">
+      <UniqueIdentifier>{43ffff72-30f0-412e-ab6b-f36ac2e4303e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソースファイル\application\Character\Player\component\arm">
+      <UniqueIdentifier>{4398c6a3-c4b5-4616-a18a-d0f5dff2fc01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソースファイル\application\Character\Player\component\reaction">
+      <UniqueIdentifier>{3f6b2333-90f5-4230-9dd4-a84f8f6137c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソースファイル\myEngine\3d\Skybox">
+      <UniqueIdentifier>{5ab14482-16d8-4365-80da-a2c6e513e621}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソースファイル\myEngine\utility\scene\transOption">
+      <UniqueIdentifier>{9e9060bc-9834-40de-ab7d-887dc90bc402}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -248,7 +287,7 @@
     <ClCompile Include="engine\math\Quaternion.cpp">
       <Filter>ソースファイル\myEngine\math</Filter>
     </ClCompile>
-    <ClCompile Include="engine\3d\transform\ObjColor.cpp">
+    <ClCompile Include="engine\3d\model\ObjColor.cpp">
       <Filter>ソースファイル\myEngine\3d\transform</Filter>
     </ClCompile>
     <ClCompile Include="engine\3d\transform\WorldTransform.cpp">
@@ -339,16 +378,16 @@
       <Filter>ソースファイル\application\Camera</Filter>
     </ClCompile>
     <ClCompile Include="engine\3d\skybox\Skybox.cpp">
-      <Filter>ソースファイル\application\Field\Skybox</Filter>
+      <Filter>ソースファイル\myEngine\3d\Skybox</Filter>
     </ClCompile>
     <ClCompile Include="engine\3d\skybox\SkyboxGeometry.cpp">
-      <Filter>ソースファイル\application\Field\Skybox</Filter>
+      <Filter>ソースファイル\myEngine\3d\Skybox</Filter>
     </ClCompile>
     <ClCompile Include="engine\3d\skybox\SkyboxManager.cpp">
-      <Filter>ソースファイル\application\Field\Skybox</Filter>
+      <Filter>ソースファイル\myEngine\3d\Skybox</Filter>
     </ClCompile>
     <ClCompile Include="engine\3d\skybox\SkyboxTransform.cpp">
-      <Filter>ソースファイル\application\Field\Skybox</Filter>
+      <Filter>ソースファイル\myEngine\3d\Skybox</Filter>
     </ClCompile>
     <ClCompile Include="application\field\ground\Ground.cpp">
       <Filter>ソースファイル\application\Field\Ground</Filter>
@@ -356,113 +395,113 @@
     <ClCompile Include="application\scene\gameClearScene\GameClearScene.cpp">
       <Filter>ソースファイル\application\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="application\character\TitleCharacter.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\scene\gameOverScene\GameOverScene.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\enemy\Enemy.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\Player.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\field\StageManager.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\other\temp\TempObj.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\scene\gameScene\Pause\Pause.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\utility\scene\transOption\GridTransition.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\effect\PlayerStartEffect.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\effect\PlayerGameOverEffect.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\effect\PlayerGameClearEffect.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\component\action\PlayerAttack.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\component\action\PlayerDodge.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\component\arm\PlayerArmAttack.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\component\arm\PlayerArmRush.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\component\action\PlayerMove.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\component\reaction\PlayerHitReaction.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\component\action\PlayerRushPosture.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\behavior\PlayerBehaviorDodge.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\behavior\PlayerBehaviorHitReact.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\behavior\PlayerBehaviorRoot.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\state\PlayerStateGameClear.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\state\PlayerStateGameOver.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\state\PlayerStatePlaying.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\enemy\effect\EnemyEffect.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
     <ClCompile Include="application\character\enemy\state\EnemyStateGameClear.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\enemy\state\EnemyStateGameOver.cpp">
-      <Filter>ソースファイル</Filter>
+      <Filter>ソースファイル\application\Character\Enemy\state</Filter>
     </ClCompile>
     <ClCompile Include="application\character\enemy\state\EnemyStatePlaying.cpp">
-      <Filter>ソースファイル</Filter>
+      <Filter>ソースファイル\application\Character\Enemy\state</Filter>
     </ClCompile>
-    <ClCompile Include="application\character\enemy\component\action\EnemyMove.cpp">
-      <Filter>ソースファイル</Filter>
+    <ClCompile Include="application\character\enemy\state\EnemyStateGameOver.cpp">
+      <Filter>ソースファイル\application\Character\Enemy\state</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\enemy\effect\EnemyEffect.cpp">
+      <Filter>ソースファイル\application\Character\Enemy\effect</Filter>
     </ClCompile>
     <ClCompile Include="application\character\enemy\component\reaction\EnemyHitReaction.cpp">
-      <Filter>ソースファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="application\character\player\component\arm\PlayerArm.cpp">
-      <Filter>ソースファイル</Filter>
+      <Filter>ソースファイル\application\Character\Enemy\component\reaction</Filter>
     </ClCompile>
     <ClCompile Include="application\character\enemy\component\action\EnemyAttackManager.cpp">
-      <Filter>ソースファイル</Filter>
+      <Filter>ソースファイル\application\Character\Enemy\component\action</Filter>
     </ClCompile>
     <ClCompile Include="application\character\enemy\component\action\EnemyAttackMelee.cpp">
-      <Filter>ソースファイル</Filter>
+      <Filter>ソースファイル\application\Character\Enemy\component\action</Filter>
     </ClCompile>
     <ClCompile Include="application\character\enemy\component\action\EnemyAttackRanged.cpp">
-      <Filter>ソースファイル</Filter>
+      <Filter>ソースファイル\application\Character\Enemy\component\action</Filter>
     </ClCompile>
-    <ClCompile Include="application\character\player\component\action\PlayerUltGauge.cpp">
-      <Filter>ソースファイル</Filter>
+    <ClCompile Include="application\character\enemy\component\action\EnemyMove.cpp">
+      <Filter>ソースファイル\application\Character\Enemy\component\action</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\enemy\Enemy.cpp">
+      <Filter>ソースファイル\application\Character\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\Player.cpp">
+      <Filter>ソースファイル\application\Character\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\arm\PlayerArm.cpp">
+      <Filter>ソースファイル\application\Character\Player\component\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\arm\PlayerArmAttack.cpp">
+      <Filter>ソースファイル\application\Character\Player\component\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\arm\PlayerArmRush.cpp">
+      <Filter>ソースファイル\application\Character\Player\component\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\behavior\PlayerBehaviorDodge.cpp">
+      <Filter>ソースファイル\application\Character\Player\behavior</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\behavior\PlayerBehaviorHitReact.cpp">
+      <Filter>ソースファイル\application\Character\Player\behavior</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\behavior\PlayerBehaviorRoot.cpp">
+      <Filter>ソースファイル\application\Character\Player\behavior</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\effect\PlayerGameClearEffect.cpp">
+      <Filter>ソースファイル\application\Character\Player\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\effect\PlayerGameOverEffect.cpp">
+      <Filter>ソースファイル\application\Character\Player\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\action\PlayerAttack.cpp">
+      <Filter>ソースファイル\application\Character\Player\component\action</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\action\PlayerDodge.cpp">
+      <Filter>ソースファイル\application\Character\Player\component\action</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\reaction\PlayerHitReaction.cpp">
+      <Filter>ソースファイル\application\Character\Player\component\reaction</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\action\PlayerMove.cpp">
+      <Filter>ソースファイル\application\Character\Player\component\action</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\effect\PlayerStartEffect.cpp">
+      <Filter>ソースファイル\application\Character\Player\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\state\PlayerStateGameClear.cpp">
+      <Filter>ソースファイル\application\Character\Player\state</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\state\PlayerStateGameOver.cpp">
+      <Filter>ソースファイル\application\Character\Player\state</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\state\PlayerStatePlaying.cpp">
+      <Filter>ソースファイル\application\Character\Player\state</Filter>
     </ClCompile>
     <ClCompile Include="application\character\player\component\action\PlayerUltimate.cpp">
-      <Filter>ソースファイル</Filter>
+      <Filter>ソースファイル\application\Character\Player\component\action</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\action\PlayerUltGauge.cpp">
+      <Filter>ソースファイル\application\Character\Player\component\action</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\component\action\PlayerRushPosture.cpp">
+      <Filter>ソースファイル\application\Character\Player\component\action</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\TitleCharacter.cpp">
+      <Filter>ソースファイル\application\Character</Filter>
+    </ClCompile>
+    <ClCompile Include="application\field\StageManager.cpp">
+      <Filter>ソースファイル\application\Field</Filter>
+    </ClCompile>
+    <ClCompile Include="application\other\temp\TempObj.cpp">
+      <Filter>ソースファイル\application\Other\tempObj</Filter>
+    </ClCompile>
+    <ClCompile Include="application\scene\gameOverScene\GameOverScene.cpp">
+      <Filter>ソースファイル\application\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="application\scene\gameScene\Pause\Pause.cpp">
+      <Filter>ソースファイル\application\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\utility\scene\transOption\GridTransition.cpp">
+      <Filter>ソースファイル\myEngine\utility\scene\transOption</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -550,7 +589,7 @@
     <ClInclude Include="engine\3d\particle\ParticleManager.h">
       <Filter>ソースファイル\myEngine\3d\particle</Filter>
     </ClInclude>
-    <ClInclude Include="engine\3d\transform\ObjColor.h">
+    <ClInclude Include="engine\3d\model\ObjColor.h">
       <Filter>ソースファイル\myEngine\3d\transform</Filter>
     </ClInclude>
     <ClInclude Include="engine\3d\transform\WorldTransform.h">
@@ -701,16 +740,16 @@
       <Filter>ソースファイル\application\Camera</Filter>
     </ClInclude>
     <ClInclude Include="engine\3d\skybox\SkyboxGeometry.h">
-      <Filter>ソースファイル\application\Field\Skybox</Filter>
+      <Filter>ソースファイル\myEngine\3d\Skybox</Filter>
     </ClInclude>
     <ClInclude Include="engine\3d\skybox\Skybox.h">
-      <Filter>ソースファイル\application\Field\Skybox</Filter>
+      <Filter>ソースファイル\myEngine\3d\Skybox</Filter>
     </ClInclude>
     <ClInclude Include="engine\3d\skybox\SkyboxManager.h">
-      <Filter>ソースファイル\application\Field\Skybox</Filter>
+      <Filter>ソースファイル\myEngine\3d\Skybox</Filter>
     </ClInclude>
     <ClInclude Include="engine\3d\skybox\SkyboxTransform.h">
-      <Filter>ソースファイル\application\Field\Skybox</Filter>
+      <Filter>ソースファイル\myEngine\3d\Skybox</Filter>
     </ClInclude>
     <ClInclude Include="application\field\ground\Ground.h">
       <Filter>ソースファイル\application\Field\Ground</Filter>
@@ -721,54 +760,127 @@
     <ClInclude Include="application\scene\gameOverScene\GameOverScene.h">
       <Filter>ソースファイル\application\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="application\Stage\StageManager.h" />
     <ClInclude Include="engine\3d\skybox\SkyboxTransform.h" />
     <ClInclude Include="engine\3d\skybox\SkyboxManager.h" />
     <ClInclude Include="engine\3d\skybox\SkyboxGeometry.h" />
     <ClInclude Include="engine\3d\skybox\Skybox.h" />
-    <ClInclude Include="application\character\TitleCharacter.h" />
-    <ClInclude Include="application\CollisionTypeIdDef.h" />
-    <ClInclude Include="application\Enemy\Enemy.h" />
-    <ClInclude Include="application\Player\Player.h" />
-    <ClInclude Include="application\temp\TempObj.h" />
-    <ClInclude Include="application\character\enemy\Enemy.h" />
-    <ClInclude Include="application\character\player\Player.h" />
-    <ClInclude Include="application\character\player\component\arm\PlayerArm.h" />
-    <ClInclude Include="application\field\StageManager.h" />
-    <ClInclude Include="application\other\CollisionTypeIdDef.h" />
-    <ClInclude Include="application\other\temp\TempObj.h" />
-    <ClInclude Include="application\scene\gameScene\Pause\Pause.h" />
-    <ClInclude Include="engine\utility\scene\transOption\GridTransition.h" />
-    <ClInclude Include="application\character\player\effect\PlayerStartEffect.h" />
-    <ClInclude Include="application\character\player\effect\PlayerGameOverEffect.h" />
-    <ClInclude Include="application\character\player\effect\PlayerGameClearEffect.h" />
-    <ClInclude Include="application\character\player\component\action\PlayerAttack.h" />
-    <ClInclude Include="application\character\player\component\action\PlayerDodge.h" />
-    <ClInclude Include="application\character\player\component\arm\PlayerArmAttack.h" />
-    <ClInclude Include="application\character\player\component\arm\PlayerArmRush.h" />
-    <ClInclude Include="application\character\player\component\action\PlayerMove.h" />
-    <ClInclude Include="application\character\player\component\reaction\PlayerHitReaction.h" />
-    <ClInclude Include="application\character\player\component\action\PlayerRushPosture.h" />
-    <ClInclude Include="application\character\player\behavior\IPlayerBehavior.h" />
-    <ClInclude Include="application\character\player\behavior\PlayerBehaviorDodge.h" />
-    <ClInclude Include="application\character\player\behavior\PlayerBehaviorHitReact.h" />
-    <ClInclude Include="application\character\player\behavior\PlayerBehaviorRoot.h" />
-    <ClInclude Include="application\character\player\state\IPlayerState.h" />
-    <ClInclude Include="application\character\player\state\PlayerStateGameClear.h" />
-    <ClInclude Include="application\character\player\state\PlayerStateGameOver.h" />
-    <ClInclude Include="application\character\player\state\PlayerStatePlaying.h" />
-    <ClInclude Include="application\character\enemy\effect\EnemyEffect.h" />
-    <ClInclude Include="application\character\enemy\state\EnemyStateGameClear.h" />
-    <ClInclude Include="application\character\enemy\state\EnemyStateGameOver.h" />
-    <ClInclude Include="application\character\enemy\state\EnemyStatePlaying.h" />
-    <ClInclude Include="application\character\enemy\state\IEnemyState.h" />
-    <ClInclude Include="application\character\enemy\component\action\EnemyMove.h" />
-    <ClInclude Include="application\character\enemy\component\reaction\EnemyHitReaction.h" />
-    <ClInclude Include="application\character\enemy\component\action\EnemyAttackManager.h" />
-    <ClInclude Include="application\character\enemy\component\action\EnemyAttackMelee.h" />
-    <ClInclude Include="application\character\enemy\component\action\EnemyAttackRanged.h" />
-    <ClInclude Include="application\character\player\component\action\PlayerUltGauge.h" />
-    <ClInclude Include="application\character\player\component\action\PlayerUltimate.h" />
+    <ClInclude Include="application\character\enemy\state\EnemyStateGameClear.h">
+      <Filter>ソースファイル\application\Character\Enemy\state</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\enemy\state\EnemyStateGameOver.h">
+      <Filter>ソースファイル\application\Character\Enemy\state</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\enemy\state\EnemyStatePlaying.h">
+      <Filter>ソースファイル\application\Character\Enemy\state</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\enemy\effect\EnemyEffect.h">
+      <Filter>ソースファイル\application\Character\Enemy\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\enemy\component\reaction\EnemyHitReaction.h">
+      <Filter>ソースファイル\application\Character\Enemy\component\reaction</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\enemy\component\action\EnemyAttackManager.h">
+      <Filter>ソースファイル\application\Character\Enemy\component\action</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\enemy\component\action\EnemyAttackMelee.h">
+      <Filter>ソースファイル\application\Character\Enemy\component\action</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\enemy\component\action\EnemyAttackRanged.h">
+      <Filter>ソースファイル\application\Character\Enemy\component\action</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\enemy\component\action\EnemyMove.h">
+      <Filter>ソースファイル\application\Character\Enemy\component\action</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\enemy\Enemy.h">
+      <Filter>ソースファイル\application\Character\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\Player.h">
+      <Filter>ソースファイル\application\Character\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\state\IPlayerState.h">
+      <Filter>ソースファイル\application\Character\Player\state</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\behavior\IPlayerBehavior.h">
+      <Filter>ソースファイル\application\Character\Player\behavior</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\enemy\state\IEnemyState.h">
+      <Filter>ソースファイル\application\Character\Enemy\state</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\component\arm\PlayerArm.h">
+      <Filter>ソースファイル\application\Character\Player\component\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\component\arm\PlayerArmAttack.h">
+      <Filter>ソースファイル\application\Character\Player\component\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\component\arm\PlayerArmRush.h">
+      <Filter>ソースファイル\application\Character\Player\component\arm</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\behavior\PlayerBehaviorDodge.h">
+      <Filter>ソースファイル\application\Character\Player\behavior</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\behavior\PlayerBehaviorHitReact.h">
+      <Filter>ソースファイル\application\Character\Player\behavior</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\behavior\PlayerBehaviorRoot.h">
+      <Filter>ソースファイル\application\Character\Player\behavior</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\component\action\PlayerAttack.h">
+      <Filter>ソースファイル\application\Character\Player\component\action</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\component\action\PlayerDodge.h">
+      <Filter>ソースファイル\application\Character\Player\component\action</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\component\action\PlayerMove.h">
+      <Filter>ソースファイル\application\Character\Player\component\action</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\component\action\PlayerRushPosture.h">
+      <Filter>ソースファイル\application\Character\Player\component\action</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\component\action\PlayerUltGauge.h">
+      <Filter>ソースファイル\application\Character\Player\component\action</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\component\action\PlayerUltimate.h">
+      <Filter>ソースファイル\application\Character\Player\component\action</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\component\reaction\PlayerHitReaction.h">
+      <Filter>ソースファイル\application\Character\Player\component\reaction</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\effect\PlayerGameClearEffect.h">
+      <Filter>ソースファイル\application\Character\Player\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\effect\PlayerGameOverEffect.h">
+      <Filter>ソースファイル\application\Character\Player\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\effect\PlayerStartEffect.h">
+      <Filter>ソースファイル\application\Character\Player\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\state\PlayerStateGameClear.h">
+      <Filter>ソースファイル\application\Character\Player\state</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\state\PlayerStateGameOver.h">
+      <Filter>ソースファイル\application\Character\Player\state</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\state\PlayerStatePlaying.h">
+      <Filter>ソースファイル\application\Character\Player\state</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\TitleCharacter.h">
+      <Filter>ソースファイル\application\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="application\field\StageManager.h">
+      <Filter>ソースファイル\application\Field</Filter>
+    </ClInclude>
+    <ClInclude Include="application\other\temp\TempObj.h">
+      <Filter>ソースファイル\application\Other\tempObj</Filter>
+    </ClInclude>
+    <ClInclude Include="application\other\CollisionTypeIdDef.h">
+      <Filter>ソースファイル\application\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="application\scene\gameScene\Pause\Pause.h">
+      <Filter>ソースファイル\application\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\utility\scene\transOption\GridTransition.h">
+      <Filter>ソースファイル\myEngine\utility\scene\transOption</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\particle\Particle.PS.hlsl">
