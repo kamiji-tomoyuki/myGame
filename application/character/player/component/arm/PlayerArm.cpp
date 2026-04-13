@@ -2,7 +2,7 @@
 #include "Input.h"
 #include "myMath.h"
 #include "Player.h"
-#include "PlayerAttack.h"   // ★ 追加
+#include "PlayerAttack.h"
 #include <Enemy.h>
 
 // =============================================================
@@ -112,13 +112,15 @@ void PlayerArm::StartAttack(AttackType attackType)
 
 // =============================================================
 //  ラッシュ開始
+//  timerOffset — PlayerArmRush::rushTimer_ の初期値。
+//  左右の腕で kRushInterval/2 フレームずらすことで交互パンチを実現する。
 // =============================================================
-void PlayerArm::StartRush()
+void PlayerArm::StartRush(uint32_t timerOffset)
 {
     if (behavior_ == Behavior::kAttack || behavior_ == Behavior::kRush) { return; }
 
     behavior_ = Behavior::kRush;
-    rush_->StartRush(isRightArm_, transform_.translation_);
+    rush_->StartRush(isRightArm_, transform_.translation_, timerOffset);
 }
 
 bool PlayerArm::CanCombo() const
@@ -178,7 +180,6 @@ void PlayerArm::HandleHit(Collider* other)
                 rush_->SetHasFinisherHit(true);
                 rush_->SetIsFinisherHitFrame(false);
 
-                // ★ ゲージ加算
                 if (playerAttack_) {
                     playerAttack_->OnHit(PlayerUltGauge::HitType::kFinisher);
                 }
@@ -197,7 +198,6 @@ void PlayerArm::HandleHit(Collider* other)
                     enemy->OnRushHit(false);
                     rush_->SetLastRushHitFrame(currentFrame);
 
-                    // ★ ゲージ加算
                     if (playerAttack_) {
                         playerAttack_->OnHit(PlayerUltGauge::HitType::kRush);
                     }
@@ -213,7 +213,6 @@ void PlayerArm::HandleHit(Collider* other)
                 enemy->TakeDamage(attack_->GetAttackDamage());
                 attack_->SetHasHitThisAttack(true);
 
-                // ★ ゲージ加算（右腕 = RightPunch、左腕 = LeftPunch）
                 if (playerAttack_) {
                     PlayerUltGauge::HitType hitType = isRightArm_
                         ? PlayerUltGauge::HitType::kRightPunch

@@ -68,4 +68,18 @@ private:
     PlayerUltGauge  ultGauge_;
     // 必殺技モーション
     PlayerUltimate  ultimate_;
+
+    // -------------------------------------------------------
+    // ラッシュ交互パンチ制御用定数
+    // -------------------------------------------------------
+    /// 右腕のラッシュタイマー初期値（位相 0）
+    static constexpr uint32_t kRightArmTimerOffset_ = 0;
+
+    /// 左腕オフセットを算出するための除数（2 = 半周期ずれ）
+    /// leftOffset = kRushInterval / kAlternateOffsetDivisor_
+    static constexpr uint32_t kAlternateOffsetDivisor_ = 2;
+
+    /// PlayerArmRush の interval が取得できなかった場合のフォールバック値
+    /// PlayerArmRush::kRushInterval_ のデフォルト値（8）と合わせる
+    static constexpr uint32_t kDefaultRushInterval_ = 8;
 };

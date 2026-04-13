@@ -68,7 +68,6 @@ void PlayerAttack::Update()
     if (Input::GetInstance()->TriggerKey(DIK_R)) {
         if (ultGauge_.IsReady() && !ultimate_.IsActive()) {
             ultGauge_.ConsumeGauge();
-            // ★ player_->GetEnemy() が Player.h に宣言されたことで解決
             ultimate_.Start(player_, player_->GetEnemy());
         }
     }
@@ -109,8 +108,17 @@ void PlayerAttack::Update()
 
     // --- ラッシュ優先 ---
     if (!hitReacting && a[kLArm] && a[kLArm]->CanStartRush()) {
-        if (a[kRArm]) { a[kRArm]->StartRush(); }
-        if (a[kLArm]) { a[kLArm]->StartRush(); }
+        // -------------------------------------------------------
+        // 交互パンチを実現するため、左右の腕に半周期分のタイマーオフセットを与える。
+        //   右腕 timerOffset = 0               → interval の 0/2 位相
+        //   左腕 timerOffset = kRushInterval/2 → interval の 1/2 位相（半周期ずれ）
+        // オフセット値は右腕の PlayerArmRush から interval を取得して算出する。
+        // -------------------------------------------------------
+        const uint32_t rushInterval = a[kRArm] ? a[kRArm]->GetRushInterval() : kDefaultRushInterval_;
+        const uint32_t leftArmOffset = rushInterval / kAlternateOffsetDivisor_;
+
+        if (a[kRArm]) { a[kRArm]->StartRush(kRightArmTimerOffset_); }
+        if (a[kLArm]) { a[kLArm]->StartRush(leftArmOffset); }
         return;
     }
 

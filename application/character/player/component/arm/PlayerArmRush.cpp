@@ -57,15 +57,19 @@ void PlayerArmRush::ApplyVariables()
 
 // =============================================================
 //  ラッシュ開始
+//  timerOffset — rushTimer_ の初期値。
+//  左右の腕で異なるオフセットを渡すことで交互パンチを実現する。
+//  例）右腕 = 0、左腕 = kRushInterval_ / 2
 // =============================================================
-void PlayerArmRush::StartRush(bool isRightArm, const Vector3& currentTranslation)
+void PlayerArmRush::StartRush(bool isRightArm, const Vector3& currentTranslation,
+	uint32_t timerOffset)
 {
 	ApplyVariables();
 
 	isRush_ = true;
 	isRightArm_ = isRightArm;
 	rushPhase_ = RushPhase::kRapidPunch;
-	rushTimer_ = 0;
+	rushTimer_ = timerOffset;   // ★ オフセットを初期値として設定
 	rushAttackTimer_ = 0;
 	rushCount_ = 0;
 	rushAttackActive_ = false;

@@ -30,7 +30,12 @@ public:
 	/// </summary>
 	/// <param name="isRightArm">右腕かどうか</param>
 	/// <param name="currentTranslation">現在の腕の位置（ローカル座標）</param>
-	void StartRush(bool isRightArm, const Vector3& currentTranslation);
+	/// <param name="timerOffset">
+	///   rushTimer_ の初期値。交互パンチを実現するため、
+	///   左右の腕に異なるオフセットを渡す（例：右腕=0, 左腕=kRushInterval_/2）。
+	/// </param>
+	void StartRush(bool isRightArm, const Vector3& currentTranslation,
+		uint32_t timerOffset = 0);
 
 	/// <summary>
 	/// 更新（毎フレーム呼ぶ）
@@ -67,6 +72,12 @@ public:
 	void SetLastRushHitFrame(int frame) { lastRushHitFrame_ = frame; }
 	void SetRushAttackDamage(uint32_t d) { rushAttackDamage_ = d; }
 	void SetFinisherAttackDamage(uint32_t d) { finisherAttackDamage_ = d; }
+
+	/// <summary>
+	/// 交互パンチ用：連打フェーズが次のパンチを出せる状態かどうか。
+	/// rushTimer_ が kRushInterval_ の倍数になるタイミングを外部から確認するために使う。
+	/// </summary>
+	uint32_t GetRushInterval() const { return kRushInterval_; }
 
 #pragma endregion
 

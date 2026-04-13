@@ -43,7 +43,17 @@ public:
 	void DrawParticle(const ViewProjection& viewProjection);
 
 	void StartAttack(AttackType attackType);
-	void StartRush();
+
+	/// <summary>
+	/// ラッシュ開始
+	/// </summary>
+	/// <param name="timerOffset">
+	///   連打フェーズのタイマー初期値。
+	///   左右の腕に kRushInterval/2 フレームのズレを与えることで交互パンチを実現する。
+	///   デフォルト=0（右腕）。
+	/// </param>
+	void StartRush(uint32_t timerOffset = 0);
+
 	bool CanCombo()     const;
 	bool CanStartRush() const;
 
@@ -81,6 +91,9 @@ public:
 	float      GetFinisherProgress()   const { return rush_->GetFinisherProgress(); }
 	float      GetRushPhaseProgress()  const { return rush_->GetRushPhaseProgress(); }
 	bool       IsRightArm()            const { return isRightArm_; }
+
+	/// <summary>この腕の PlayerArmRush が持つ連打間隔を返す（交互タイミング計算用）</summary>
+	uint32_t   GetRushInterval()       const { return rush_->GetRushInterval(); }
 
 	void SetID(int id) { serialNumber_ = id; }
 	void SetColliderID(CollisionTypeIdDef id) { Collider::SetTypeID(static_cast<uint32_t>(id)); }
