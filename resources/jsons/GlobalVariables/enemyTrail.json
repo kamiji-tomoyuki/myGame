@@ -21,9 +21,9 @@
             0.10000000149011612
         ],
         "Emit translation": [
-            -0.2901589274406433,
+            23.960330963134766,
             -0.800000011920929,
-            -26.331796646118164
+            -15.678689002990723
         ],
         "Particle EndAcce": [
             0.0,
@@ -31,7 +31,7 @@
             0.0
         ],
         "Particle EndRote": [
-            0.0,
+            1.5707963705062866,
             0.0,
             0.0
         ],
@@ -46,7 +46,7 @@
             0.0
         ],
         "Particle StartRote": [
-            0.0,
+            1.5707963705062866,
             0.0,
             0.0
         ],
@@ -70,20 +70,20 @@
         "alphaMax": 1.0,
         "alphaMin": 1.0,
         "count": 1,
-        "emitFrequency": 3.490000009536743,
+        "emitFrequency": 0.10000000149011612,
         "isAcceMultiply": false,
-        "isAllRamdomScale": false,
-        "isBillBoard": true,
+        "isAllRamdomScale": true,
+        "isBillBoard": false,
         "isRamdomColor": false,
         "isRandomRotate": false,
-        "isRandomScale": false,
+        "isRandomScale": true,
         "isSinMove": false,
         "isVisible": true,
-        "lifeTimeMax": 0.7400000095367432,
-        "lifeTimeMin": 0.7400000095367432,
+        "lifeTimeMax": 1.0700000524520874,
+        "lifeTimeMin": 1.0700000524520874,
         "maxVelocity": [
             0.0,
-            1.5,
+            0.0,
             0.0
         ],
         "minVelocity": [
