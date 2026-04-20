@@ -18,5 +18,5 @@ void Ground::Update()
 
 void Ground::Draw(const ViewProjection& viewProjection)
 {
-	obj3d_->Draw(BaseObject::GetWorldTransform(), viewProjection);
+	//obj3d_->Draw(BaseObject::GetWorldTransform(), viewProjection);
 }

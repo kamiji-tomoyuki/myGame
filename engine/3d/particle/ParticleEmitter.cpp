@@ -5,246 +5,245 @@ ParticleEmitter::ParticleEmitter() {}
 
 void ParticleEmitter::Initialize(const std::string& name, const std::string& fileName)
 {
-	// --- 引数で受け取りメンバ変数に記録 ---
-	name_ = name;
+    // --- 引数で受け取りメンバ変数に記録 ---
+    name_ = name;
 
-	transform_.Initialize();
+    transform_.Initialize();
 
-	manager_ = std::make_unique<ParticleManager>();
-	manager_->Initialize(SrvManager::GetInstance());
-	manager_->CreateParticleGroup(name_, fileName);
+    manager_ = std::make_unique<ParticleManager>();
+    manager_->Initialize(SrvManager::GetInstance());
+    manager_->CreateParticleGroup(name_, fileName);
 
-	// --- 各ステータスにデフォルト値を設定 ---
-	emitFrequency_ = 0.1f;
-	velocityMin_ = { -1.0f, -1.0f, -1.0f };
-	velocityMax_ = { 1.0f, 1.0f, 1.0f };
-	lifeTimeMin_ = { 1.0f };
-	lifeTimeMax_ = { 3.0f };
-	isVisible = true;
-	startAcce_ = { 1.0f,1.0f,1.0f };
-	endAcce_ = { 1.0f,1.0f,1.0f };
-	startScale_ = { 1.0f,1.0f,1.0f };
-	endScale_ = { 1.0f,1.0f,1.0f };
-	rotateVelocityMin = { -0.07f,-0.07f,-0.07f };
-	rotateVelocityMax = { 0.07f,0.07f,0.07f };
-	count_ = 3;
-	alphaMin_ = 1.0f;
-	alphaMax_ = 1.0f;
-	AddItem();
-	isBillBoard = false;
-	isActive_ = true;
-	isAcceMultiply = false;
-	allScaleMin = { 1.0f,1.0f,1.0f };
-	allScaleMax = { 1.0f,1.0f,1.0f };
+    // --- 各ステータスにデフォルト値を設定 ---
+    emitFrequency_ = 0.1f;
+    velocityMin_ = { -1.0f, -1.0f, -1.0f };
+    velocityMax_ = { 1.0f, 1.0f, 1.0f };
+    lifeTimeMin_ = { 1.0f };
+    lifeTimeMax_ = { 3.0f };
+    isVisible = true;
+    startAcce_ = { 1.0f,1.0f,1.0f };
+    endAcce_ = { 1.0f,1.0f,1.0f };
+    startScale_ = { 1.0f,1.0f,1.0f };
+    endScale_ = { 1.0f,1.0f,1.0f };
+    rotateVelocityMin = { -0.07f,-0.07f,-0.07f };
+    rotateVelocityMax = { 0.07f,0.07f,0.07f };
+    count_ = 3;
+    alphaMin_ = 1.0f;
+    alphaMax_ = 1.0f;
+    scaleMin = 0.0f;
+    scaleMax = 1.0f;
+    AddItem();
+    isBillBoard = false;
+    isActive_ = true;
+    isAcceMultiply = false;
+    allScaleMin = { 1.0f,1.0f,1.0f };
+    allScaleMax = { 1.0f,1.0f,1.0f };
 
-	ApplyGlobalVariables();
+    ApplyGlobalVariables();
 }
 
 void ParticleEmitter::Update(const ViewProjection& vp_) {
-	SetValue();
-	elapsedTime_ += deltaTime;
+    elapsedTime_ += deltaTime;
 
-	while (elapsedTime_ >= emitFrequency_) {
-		Emit();
-		elapsedTime_ -= emitFrequency_;
-	}
+    while (elapsedTime_ >= emitFrequency_) {
+        Emit();
+        elapsedTime_ -= emitFrequency_;
+    }
 
-	manager_->Update(vp_);
-	transform_.UpdateMatrix();
+    manager_->Update(vp_);
+    transform_.UpdateMatrix();
 }
 
 void ParticleEmitter::UpdateOnce(const ViewProjection& vp_)
 {
-	SetValue();
-	if (!isActive_) {
-		Emit();
-		isActive_ = true;
-	}
-	manager_->Update(vp_);
-	transform_.UpdateMatrix();
+    if (!isActive_) {
+        Emit();
+        isActive_ = true;
+    }
+    manager_->Update(vp_);
+    transform_.UpdateMatrix();
 }
 
 void ParticleEmitter::Draw(PrimitiveType primitiveType)
 {
-	manager_->SetRandomRotate(isRandomRotate);
-	manager_->SetAcceMultipy(isAcceMultiply);
-	manager_->SetBillBorad(isBillBoard);
-	manager_->SetRandomSize(isRandomScale);
-	manager_->SetAllRandomSize(isAllRamdomScale);
-	manager_->SetSinMove(isSinMove);
-	manager_->Draw(primitiveType);
+    manager_->SetRandomRotate(isRandomRotate);
+    manager_->SetAcceMultipy(isAcceMultiply);
+    manager_->SetBillBorad(isBillBoard);
+    manager_->SetRandomSize(isRandomScale);
+    manager_->SetAllRandomSize(isAllRamdomScale);
+    manager_->SetSinMove(isSinMove);
+    manager_->Draw(primitiveType);
 }
 
 void ParticleEmitter::DrawEmitter()
 {
-	if (!isVisible) return;
+    if (!isVisible) return;
 
-	std::array<Vector3, 8> localVertices = {
-		Vector3{-1.0f, -1.0f, -1.0f}, // 左下前
-		Vector3{ 1.0f, -1.0f, -1.0f}, // 右下前
-		Vector3{-1.0f,  1.0f, -1.0f}, // 左上前
-		Vector3{ 1.0f,  1.0f, -1.0f}, // 右上前
-		Vector3{-1.0f, -1.0f,  1.0f}, // 左下奥
-		Vector3{ 1.0f, -1.0f,  1.0f}, // 右下奥
-		Vector3{-1.0f,  1.0f,  1.0f}, // 左上奥
-		Vector3{ 1.0f,  1.0f,  1.0f}  // 右上奥
-	};
+    std::array<Vector3, 8> localVertices = {
+        Vector3{-1.0f, -1.0f, -1.0f}, // 左下前
+        Vector3{ 1.0f, -1.0f, -1.0f}, // 右下前
+        Vector3{-1.0f,  1.0f, -1.0f}, // 左上前
+        Vector3{ 1.0f,  1.0f, -1.0f}, // 右上前
+        Vector3{-1.0f, -1.0f,  1.0f}, // 左下奥
+        Vector3{ 1.0f, -1.0f,  1.0f}, // 右下奥
+        Vector3{-1.0f,  1.0f,  1.0f}, // 左上奥
+        Vector3{ 1.0f,  1.0f,  1.0f}  // 右上奥
+    };
 
-	std::array<Vector3, 8> worldVertices;
+    std::array<Vector3, 8> worldVertices;
 
-	Matrix4x4 worldMatrix = MakeAffineMatrix(transform_.scale_, transform_.rotation_, transform_.translation_);
+    Matrix4x4 worldMatrix = MakeAffineMatrix(transform_.scale_, transform_.rotation_, transform_.translation_);
 
-	for (size_t i = 0; i < localVertices.size(); i++) {
-		worldVertices[i] = Transformation(localVertices[i], worldMatrix);
-	}
+    for (size_t i = 0; i < localVertices.size(); i++) {
+        worldVertices[i] = Transformation(localVertices[i], worldMatrix);
+    }
 
-	constexpr std::array<std::pair<int, int>, 12> edges = {
-		std::make_pair(0, 1), std::make_pair(1, 3), std::make_pair(3, 2), std::make_pair(2, 0), // 前面
-		std::make_pair(4, 5), std::make_pair(5, 7), std::make_pair(7, 6), std::make_pair(6, 4), // 背面
-		std::make_pair(0, 4), std::make_pair(1, 5), std::make_pair(2, 6), std::make_pair(3, 7)  // 側面
-	};
+    constexpr std::array<std::pair<int, int>, 12> edges = {
+        std::make_pair(0, 1), std::make_pair(1, 3), std::make_pair(3, 2), std::make_pair(2, 0), // 前面
+        std::make_pair(4, 5), std::make_pair(5, 7), std::make_pair(7, 6), std::make_pair(6, 4), // 背面
+        std::make_pair(0, 4), std::make_pair(1, 5), std::make_pair(2, 6), std::make_pair(3, 7)  // 側面
+    };
 
-	for (const auto& edge : edges) {
-		DrawLine3D::GetInstance()->SetPoints(worldVertices[edge.first], worldVertices[edge.second]);
-	}
+    for (const auto& edge : edges) {
+        DrawLine3D::GetInstance()->SetPoints(worldVertices[edge.first], worldVertices[edge.second]);
+    }
 }
 
-
 void ParticleEmitter::Emit() {
-	manager_->Emit(
-		name_,
-		transform_.translation_,
-		count_,
-		transform_.scale_,
-		velocityMin_,
-		velocityMax_,
-		lifeTimeMin_,
-		lifeTimeMax_,
-		startScale_,
-		endScale_,
-		startAcce_,
-		endAcce_,
-		startRote_,
-		endRote_,
-		isRandomColor,
-		alphaMin_,
-		alphaMax_,
-		rotateVelocityMin,
-		rotateVelocityMax,
-		allScaleMax,
-		allScaleMin,
-		scaleMin,
-		scaleMax,
-		transform_.rotation_
-	);
+    manager_->Emit(
+        name_,
+        transform_.translation_,
+        count_,
+        transform_.scale_,
+        velocityMin_,
+        velocityMax_,
+        lifeTimeMin_,
+        lifeTimeMax_,
+        startScale_,
+        endScale_,
+        startAcce_,
+        endAcce_,
+        startRote_,
+        endRote_,
+        isRandomColor,
+        alphaMin_,
+        alphaMax_,
+        rotateVelocityMin,
+        rotateVelocityMax,
+        allScaleMax,
+        allScaleMin,
+        scaleMin,
+        scaleMax,
+        transform_.rotation_
+    );
 }
 
 void ParticleEmitter::ApplyGlobalVariables()
 {
-	emitFrequency_ = globalVariables->GetFloatValue(groupName, "emitFrequency");
-	count_ = globalVariables->GetIntValue(groupName, "count");
-	transform_.translation_ = globalVariables->GetVector3Value(groupName, "Emit translation");
-	transform_.scale_ = globalVariables->GetVector3Value(groupName, "Emit scale");
-	transform_.rotation_ = globalVariables->GetVector3Value(groupName, "Emit rotation");
-	startScale_ = globalVariables->GetVector3Value(groupName, "Particle StartScale");
-	endScale_ = globalVariables->GetVector3Value(groupName, "Particle EndScale");
-	startRote_ = globalVariables->GetVector3Value(groupName, "Particle StartRote");
-	endRote_ = globalVariables->GetVector3Value(groupName, "Particle EndRote");
-	startAcce_ = globalVariables->GetVector3Value(groupName, "Particle StartAcce");
-	endAcce_ = globalVariables->GetVector3Value(groupName, "Particle EndAcce");
-	velocityMin_ = globalVariables->GetVector3Value(groupName, "minVelocity");
-	velocityMax_ = globalVariables->GetVector3Value(groupName, "maxVelocity");
-	lifeTimeMax_ = globalVariables->GetFloatValue(groupName, "lifeTimeMax");
-	lifeTimeMin_ = globalVariables->GetFloatValue(groupName, "lifeTimeMin");
-	isVisible = globalVariables->GetBoolValue(groupName, "isVisible");
-	isBillBoard = globalVariables->GetBoolValue(groupName, "isBillBoard");
-	isRandomColor = globalVariables->GetBoolValue(groupName, "isRamdomColor");
-	alphaMin_ = globalVariables->GetFloatValue(groupName, "alphaMin");
-	alphaMax_ = globalVariables->GetFloatValue(groupName, "alphaMax");
-	isRandomRotate = globalVariables->GetBoolValue(groupName, "isRandomRotate");
-	isAcceMultiply = globalVariables->GetBoolValue(groupName, "isAcceMultiply");
-	rotateVelocityMin = globalVariables->GetVector3Value(groupName, "RotationVelo Min");
-	rotateVelocityMax = globalVariables->GetVector3Value(groupName, "RotationVelo Max");
-	allScaleMax = globalVariables->GetVector3Value(groupName, "AllScale Max");
-	allScaleMin = globalVariables->GetVector3Value(groupName, "AllScale Min");
-	scaleMin = globalVariables->GetFloatValue(groupName, "Scale Min");
-	scaleMax = globalVariables->GetFloatValue(groupName, "Scale Max");
-	isRandomScale = globalVariables->GetBoolValue(groupName, "isRandomScale");
-	isAllRamdomScale = globalVariables->GetBoolValue(groupName, "isAllRamdomScale");
-	isSinMove = globalVariables->GetBoolValue(groupName, "isSinMove");
+    emitFrequency_ = globalVariables->GetFloatValue(groupName, "emitFrequency");
+    count_ = globalVariables->GetIntValue(groupName, "count");
+    transform_.translation_ = globalVariables->GetVector3Value(groupName, "Emit translation");
+    transform_.scale_ = globalVariables->GetVector3Value(groupName, "Emit scale");
+    transform_.rotation_ = globalVariables->GetVector3Value(groupName, "Emit rotation");
+    startScale_ = globalVariables->GetVector3Value(groupName, "Particle StartScale");
+    endScale_ = globalVariables->GetVector3Value(groupName, "Particle EndScale");
+    startRote_ = globalVariables->GetVector3Value(groupName, "Particle StartRote");
+    endRote_ = globalVariables->GetVector3Value(groupName, "Particle EndRote");
+    startAcce_ = globalVariables->GetVector3Value(groupName, "Particle StartAcce");
+    endAcce_ = globalVariables->GetVector3Value(groupName, "Particle EndAcce");
+    velocityMin_ = globalVariables->GetVector3Value(groupName, "minVelocity");
+    velocityMax_ = globalVariables->GetVector3Value(groupName, "maxVelocity");
+    lifeTimeMax_ = globalVariables->GetFloatValue(groupName, "lifeTimeMax");
+    lifeTimeMin_ = globalVariables->GetFloatValue(groupName, "lifeTimeMin");
+    isVisible = globalVariables->GetBoolValue(groupName, "isVisible");
+    isBillBoard = globalVariables->GetBoolValue(groupName, "isBillBoard");
+    isRandomColor = globalVariables->GetBoolValue(groupName, "isRamdomColor");
+    alphaMin_ = globalVariables->GetFloatValue(groupName, "alphaMin");
+    alphaMax_ = globalVariables->GetFloatValue(groupName, "alphaMax");
+    isRandomRotate = globalVariables->GetBoolValue(groupName, "isRandomRotate");
+    isAcceMultiply = globalVariables->GetBoolValue(groupName, "isAcceMultiply");
+    rotateVelocityMin = globalVariables->GetVector3Value(groupName, "RotationVelo Min");
+    rotateVelocityMax = globalVariables->GetVector3Value(groupName, "RotationVelo Max");
+    allScaleMax = globalVariables->GetVector3Value(groupName, "AllScale Max");
+    allScaleMin = globalVariables->GetVector3Value(groupName, "AllScale Min");
+    scaleMin = globalVariables->GetFloatValue(groupName, "Scale Min");
+    scaleMax = globalVariables->GetFloatValue(groupName, "Scale Max");
+    isRandomScale = globalVariables->GetBoolValue(groupName, "isRandomScale");
+    isAllRamdomScale = globalVariables->GetBoolValue(groupName, "isAllRamdomScale");
+    isSinMove = globalVariables->GetBoolValue(groupName, "isSinMove");
 }
 
 void ParticleEmitter::SetValue()
 {
-	globalVariables->SetValue(groupName, "emitFrequency", emitFrequency_);
-	globalVariables->SetValue(groupName, "count", count_);
-	globalVariables->SetValue(groupName, "Emit translation", transform_.translation_);
-	globalVariables->SetValue(groupName, "Emit scale", transform_.scale_);
-	globalVariables->SetValue(groupName, "Emit rotation", transform_.rotation_);
-	globalVariables->SetValue(groupName, "Particle StartScale", startScale_);
-	globalVariables->SetValue(groupName, "Particle StartRote", startRote_);
-	globalVariables->SetValue(groupName, "Particle EndRote", endRote_);
-	globalVariables->SetValue(groupName, "Particle EndScale", endScale_);
-	globalVariables->SetValue(groupName, "Particle StartAcce", startAcce_);
-	globalVariables->SetValue(groupName, "Particle EndAcce", endAcce_);
-	globalVariables->SetValue(groupName, "minVelocity", velocityMin_);
-	globalVariables->SetValue(groupName, "maxVelocity", velocityMax_);
-	globalVariables->SetValue(groupName, "lifeTimeMax", lifeTimeMax_);
-	globalVariables->SetValue(groupName, "lifeTimeMin", lifeTimeMin_);
-	globalVariables->SetValue(groupName, "isVisible", isVisible);
-	globalVariables->SetValue(groupName, "isBillBoard", isBillBoard);
-	globalVariables->SetValue(groupName, "isRamdomColor", isRandomColor);
-	globalVariables->SetValue(groupName, "alphaMin", alphaMin_);
-	globalVariables->SetValue(groupName, "alphaMax", alphaMax_);
-	globalVariables->SetValue(groupName, "isRandomRotate", isRandomRotate);
-	globalVariables->SetValue(groupName, "RotationVelo Min", rotateVelocityMin);
-	globalVariables->SetValue(groupName, "isAcceMultiply", isAcceMultiply);
-	globalVariables->SetValue(groupName, "RotationVelo Max", rotateVelocityMax);
-	globalVariables->SetValue(groupName, "AllScale Max", allScaleMax);
-	globalVariables->SetValue(groupName, "AllScale Min", allScaleMin);
-	globalVariables->SetValue(groupName, "Scale Min", scaleMin);
-	globalVariables->SetValue(groupName, "Scale Max", scaleMax);
-	globalVariables->SetValue(groupName, "isRandomScale", isRandomScale);
-	globalVariables->SetValue(groupName, "isAllRamdomScale", isAllRamdomScale);
-	globalVariables->SetValue(groupName, "isSinMove", isSinMove);
+    globalVariables->SetValue(groupName, "emitFrequency", emitFrequency_);
+    globalVariables->SetValue(groupName, "count", count_);
+    globalVariables->SetValue(groupName, "Emit translation", transform_.translation_);
+    globalVariables->SetValue(groupName, "Emit scale", transform_.scale_);
+    globalVariables->SetValue(groupName, "Emit rotation", transform_.rotation_);
+    globalVariables->SetValue(groupName, "Particle StartScale", startScale_);
+    globalVariables->SetValue(groupName, "Particle StartRote", startRote_);
+    globalVariables->SetValue(groupName, "Particle EndRote", endRote_);
+    globalVariables->SetValue(groupName, "Particle EndScale", endScale_);
+    globalVariables->SetValue(groupName, "Particle StartAcce", startAcce_);
+    globalVariables->SetValue(groupName, "Particle EndAcce", endAcce_);
+    globalVariables->SetValue(groupName, "minVelocity", velocityMin_);
+    globalVariables->SetValue(groupName, "maxVelocity", velocityMax_);
+    globalVariables->SetValue(groupName, "lifeTimeMax", lifeTimeMax_);
+    globalVariables->SetValue(groupName, "lifeTimeMin", lifeTimeMin_);
+    globalVariables->SetValue(groupName, "isVisible", isVisible);
+    globalVariables->SetValue(groupName, "isBillBoard", isBillBoard);
+    globalVariables->SetValue(groupName, "isRamdomColor", isRandomColor);
+    globalVariables->SetValue(groupName, "alphaMin", alphaMin_);
+    globalVariables->SetValue(groupName, "alphaMax", alphaMax_);
+    globalVariables->SetValue(groupName, "isRandomRotate", isRandomRotate);
+    globalVariables->SetValue(groupName, "RotationVelo Min", rotateVelocityMin);
+    globalVariables->SetValue(groupName, "isAcceMultiply", isAcceMultiply);
+    globalVariables->SetValue(groupName, "RotationVelo Max", rotateVelocityMax);
+    globalVariables->SetValue(groupName, "AllScale Max", allScaleMax);
+    globalVariables->SetValue(groupName, "AllScale Min", allScaleMin);
+    globalVariables->SetValue(groupName, "Scale Min", scaleMin);
+    globalVariables->SetValue(groupName, "Scale Max", scaleMax);
+    globalVariables->SetValue(groupName, "isRandomScale", isRandomScale);
+    globalVariables->SetValue(groupName, "isAllRamdomScale", isAllRamdomScale);
+    globalVariables->SetValue(groupName, "isSinMove", isSinMove);
 }
 
 void ParticleEmitter::AddItem()
 {
-	groupName = name_.c_str();
-	globalVariables = GlobalVariables::GetInstance();
-	globalVariables->CreateGroup(groupName);
-	globalVariables->AddItem(groupName, "emitFrequency", emitFrequency_);
-	globalVariables->AddItem(groupName, "count", count_);
-	globalVariables->AddItem(groupName, "Emit translation", transform_.translation_);
-	globalVariables->AddItem(groupName, "Emit scale", transform_.scale_);
-	globalVariables->AddItem(groupName, "Emit rotation", transform_.rotation_);
-	globalVariables->AddItem(groupName, "Particle StartScale", startScale_);
-	globalVariables->AddItem(groupName, "Particle EndScale", endScale_);
-	globalVariables->AddItem(groupName, "Particle StartRote", startRote_);
-	globalVariables->AddItem(groupName, "Particle EndRote", endRote_);
-	globalVariables->AddItem(groupName, "Particle StartAcce", startAcce_);
-	globalVariables->AddItem(groupName, "Particle EndAcce", endAcce_);
-	globalVariables->AddItem(groupName, "minVelocity", velocityMin_);
-	globalVariables->AddItem(groupName, "maxVelocity", velocityMax_);
-	globalVariables->AddItem(groupName, "lifeTimeMax", lifeTimeMax_);
-	globalVariables->AddItem(groupName, "lifeTimeMin", lifeTimeMin_);
-	globalVariables->AddItem(groupName, "isRamdomColor", isRandomColor);
-	globalVariables->AddItem(groupName, "alphaMin", alphaMin_);
-	globalVariables->AddItem(groupName, "alphaMax", alphaMax_);
-	globalVariables->AddItem(groupName, "AllScale Max", allScaleMax);
-	globalVariables->AddItem(groupName, "AllScale Min", allScaleMin);
-	globalVariables->AddItem(groupName, "Scale Min", scaleMin);
-	globalVariables->AddItem(groupName, "Scale Max", scaleMax);
-	globalVariables->AddItem(groupName, "isVisible", isVisible);
-	globalVariables->AddItem(groupName, "isBillBoard", isBillBoard);
-	globalVariables->AddItem(groupName, "isRandomRotate", isRandomRotate);
-	globalVariables->AddItem(groupName, "isAcceMultiply", isAcceMultiply);
-	globalVariables->AddItem(groupName, "RotationVelo Min", rotateVelocityMin);
-	globalVariables->AddItem(groupName, "RotationVelo Max", rotateVelocityMax);
-	globalVariables->AddItem(groupName, "isRandomScale", isRandomScale);
-	globalVariables->AddItem(groupName, "isAllRamdomScale", isAllRamdomScale);
-	globalVariables->AddItem(groupName, "isSinMove", isSinMove);
+    groupName = name_.c_str();
+    globalVariables = GlobalVariables::GetInstance();
+    globalVariables->CreateGroup(groupName);
+    globalVariables->AddItem(groupName, "emitFrequency", emitFrequency_);
+    globalVariables->AddItem(groupName, "count", count_);
+    globalVariables->AddItem(groupName, "Emit translation", transform_.translation_);
+    globalVariables->AddItem(groupName, "Emit scale", transform_.scale_);
+    globalVariables->AddItem(groupName, "Emit rotation", transform_.rotation_);
+    globalVariables->AddItem(groupName, "Particle StartScale", startScale_);
+    globalVariables->AddItem(groupName, "Particle EndScale", endScale_);
+    globalVariables->AddItem(groupName, "Particle StartRote", startRote_);
+    globalVariables->AddItem(groupName, "Particle EndRote", endRote_);
+    globalVariables->AddItem(groupName, "Particle StartAcce", startAcce_);
+    globalVariables->AddItem(groupName, "Particle EndAcce", endAcce_);
+    globalVariables->AddItem(groupName, "minVelocity", velocityMin_);
+    globalVariables->AddItem(groupName, "maxVelocity", velocityMax_);
+    globalVariables->AddItem(groupName, "lifeTimeMax", lifeTimeMax_);
+    globalVariables->AddItem(groupName, "lifeTimeMin", lifeTimeMin_);
+    globalVariables->AddItem(groupName, "isRamdomColor", isRandomColor);
+    globalVariables->AddItem(groupName, "alphaMin", alphaMin_);
+    globalVariables->AddItem(groupName, "alphaMax", alphaMax_);
+    globalVariables->AddItem(groupName, "AllScale Max", allScaleMax);
+    globalVariables->AddItem(groupName, "AllScale Min", allScaleMin);
+    globalVariables->AddItem(groupName, "Scale Min", scaleMin);
+    globalVariables->AddItem(groupName, "Scale Max", scaleMax);
+    globalVariables->AddItem(groupName, "isVisible", isVisible);
+    globalVariables->AddItem(groupName, "isBillBoard", isBillBoard);
+    globalVariables->AddItem(groupName, "isRandomRotate", isRandomRotate);
+    globalVariables->AddItem(groupName, "isAcceMultiply", isAcceMultiply);
+    globalVariables->AddItem(groupName, "RotationVelo Min", rotateVelocityMin);
+    globalVariables->AddItem(groupName, "RotationVelo Max", rotateVelocityMax);
+    globalVariables->AddItem(groupName, "isRandomScale", isRandomScale);
+    globalVariables->AddItem(groupName, "isAllRamdomScale", isAllRamdomScale);
+    globalVariables->AddItem(groupName, "isSinMove", isSinMove);
 }
 
 void ParticleEmitter::imgui() {
@@ -609,7 +608,9 @@ void ParticleEmitter::imgui() {
         ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.5f, 0.3f, 0.3f, 0.8f));
 
         if (ImGui::TreeNodeEx("大きさ", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::BeginChild("ScaleSection", ImVec2(0, 220), true);
+            // [修正2] isAllRamdomScale 有効時は 220、isRandomScale 有効時は 150、通常時は 180 に高さを調整
+            float scaleSectionHeight = isAllRamdomScale ? 220.0f : (isRandomScale ? 150.0f : 180.0f);
+            ImGui::BeginChild("ScaleSection", ImVec2(0, scaleSectionHeight), true);
 
             ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.6f, 1.0f), "大きさの設定:");
 
@@ -631,10 +632,8 @@ void ParticleEmitter::imgui() {
 
             ImGui::Separator();
 
-            // 大きさの設定
             if (isAllRamdomScale) {
-                // ばらばらランダム
-                if (ImGui::BeginTable("AllRandomScaleTable", 4, ImGuiTableFlags_Borders)) {
+                 if (ImGui::BeginTable("AllRandomScaleTable", 4, ImGuiTableFlags_Borders)) {
                     ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 50.0f);
                     ImGui::TableSetupColumn("X", ImGuiTableColumnFlags_WidthStretch);
                     ImGui::TableSetupColumn("Y", ImGuiTableColumnFlags_WidthStretch);
@@ -671,6 +670,99 @@ void ParticleEmitter::imgui() {
                     ImGui::TableNextColumn();
                     ImGui::SetNextItemWidth(-FLT_MIN);
                     ImGui::DragFloat("##EndScaleZ", &endScale_.z, 0.1f, 0.0f);
+
+                    ImGui::EndTable();
+                }
+
+                ImGui::Spacing();
+                ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.6f, 1.0f), "AllScale 範囲:");
+                if (ImGui::BeginTable("AllScaleRangeTable", 4, ImGuiTableFlags_Borders)) {
+                    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 50.0f);
+                    ImGui::TableSetupColumn("X", ImGuiTableColumnFlags_WidthStretch);
+                    ImGui::TableSetupColumn("Y", ImGuiTableColumnFlags_WidthStretch);
+                    ImGui::TableSetupColumn("Z", ImGuiTableColumnFlags_WidthStretch);
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("最大値");
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    ImGui::DragFloat("##AllScaleMaxX", &allScaleMax.x, 0.01f, 0.0f);
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    ImGui::DragFloat("##AllScaleMaxY", &allScaleMax.y, 0.01f, 0.0f);
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    ImGui::DragFloat("##AllScaleMaxZ", &allScaleMax.z, 0.01f, 0.0f);
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("最小値");
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    ImGui::DragFloat("##AllScaleMinX", &allScaleMin.x, 0.01f, 0.0f);
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    ImGui::DragFloat("##AllScaleMinY", &allScaleMin.y, 0.01f, 0.0f);
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    ImGui::DragFloat("##AllScaleMinZ", &allScaleMin.z, 0.01f, 0.0f);
+
+                    ImGui::EndTable();
+                }
+            }
+            else if (isRandomScale) {
+                ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.6f, 1.0f), "均等スケール範囲:");
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.6f);
+                ImGui::SliderFloat("最大値##ScaleMax", &scaleMax, 0.0f, 10.0f, "%.2f");
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                ImGui::DragFloat("##ScaleMaxFine", &scaleMax, 0.01f, 0.0f, 100.0f);
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("均等ランダムスケールの最大値");
+
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.6f);
+                ImGui::SliderFloat("最小値##ScaleMin", &scaleMin, 0.0f, scaleMax, "%.2f");
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                ImGui::DragFloat("##ScaleMinFine", &scaleMin, 0.01f, 0.0f, scaleMax);
+                scaleMin = std::clamp(scaleMin, 0.0f, scaleMax);
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("均等ランダムスケールの最小値");
+            }
+            else {
+                ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.6f, 1.0f), "開始/終了スケール:");
+                if (ImGui::BeginTable("NormalScaleTable", 4, ImGuiTableFlags_Borders)) {
+                    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 50.0f);
+                    ImGui::TableSetupColumn("X", ImGuiTableColumnFlags_WidthStretch);
+                    ImGui::TableSetupColumn("Y", ImGuiTableColumnFlags_WidthStretch);
+                    ImGui::TableSetupColumn("Z", ImGuiTableColumnFlags_WidthStretch);
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("最初");
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    ImGui::DragFloat("##NormalStartScaleX", &startScale_.x, 0.1f, 0.0f);
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    ImGui::DragFloat("##NormalStartScaleY", &startScale_.y, 0.1f, 0.0f);
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    ImGui::DragFloat("##NormalStartScaleZ", &startScale_.z, 0.1f, 0.0f);
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("最後");
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    ImGui::DragFloat("##NormalEndScaleX", &endScale_.x, 0.1f, 0.0f);
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    ImGui::DragFloat("##NormalEndScaleY", &endScale_.y, 0.1f, 0.0f);
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    ImGui::DragFloat("##NormalEndScaleZ", &endScale_.z, 0.1f, 0.0f);
 
                     ImGui::EndTable();
                 }
@@ -957,6 +1049,8 @@ void ParticleEmitter::imgui() {
     // コントロールパネル (下部)
     ImGui::Separator();
     ImGui::Spacing();
+
+    SetValue();
 
     // スタイルを元に戻す
     style = oldStyle;
