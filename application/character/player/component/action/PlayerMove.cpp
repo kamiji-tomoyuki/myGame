@@ -91,14 +91,13 @@ void PlayerMove::UpdateTrailEffect(const Vector3& currentWorldPos)
 	Vector3 footPosition = currentWorldPos;
 	footPosition.y += kFootOffsetY_;
 
-	float distanceMoved = (footPosition - lastTrailPosition_).Length();
-
-	if (distanceMoved >= trailEmitDistance_) {
-		if (velocity_.Length() > 0.01f) {
-			trailEffect_->SetPosition(footPosition);
-			trailEffect_->SetActive(false);
-			isTrailActive_ = true;
-		}
-		lastTrailPosition_ = footPosition;
+	if (velocity_.Length() > 0.01f) {
+		trailEffect_->SetPosition(footPosition);
+		trailEffect_->SetActive(true);
+		isTrailActive_ = true;
+	}
+	else {
+		trailEffect_->SetActive(false);
+		isTrailActive_ = false;
 	}
 }

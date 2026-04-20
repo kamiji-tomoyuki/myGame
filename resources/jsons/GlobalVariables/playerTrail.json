@@ -21,9 +21,9 @@
             0.10000000149011612
         ],
         "Emit translation": [
-            -18.052793502807617,
+            -3.4165284633636475,
             -0.800000011920929,
-            22.63124656677246
+            3.710202217102051
         ],
         "Particle EndAcce": [
             0.0,
@@ -70,7 +70,7 @@
         "alphaMax": 1.0,
         "alphaMin": 1.0,
         "count": 1,
-        "emitFrequency": 0.33000001311302185,
+        "emitFrequency": 0.4399999976158142,
         "isAcceMultiply": false,
         "isAllRamdomScale": false,
         "isBillBoard": false,

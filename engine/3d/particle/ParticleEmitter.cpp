@@ -43,11 +43,13 @@ void ParticleEmitter::Initialize(const std::string& name, const std::string& fil
 }
 
 void ParticleEmitter::Update(const ViewProjection& vp_) {
-    elapsedTime_ += deltaTime;
+    if (isActive_) {
+        elapsedTime_ += deltaTime;
 
-    while (elapsedTime_ >= emitFrequency_) {
-        Emit();
-        elapsedTime_ -= emitFrequency_;
+        while (elapsedTime_ >= emitFrequency_) {
+            Emit();
+            elapsedTime_ -= emitFrequency_;
+        }
     }
 
     manager_->Update(vp_);

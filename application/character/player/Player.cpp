@@ -153,7 +153,7 @@ void Player::Update()
 	float hpRatio = static_cast<float>(HP_) / static_cast<float>(kMaxHP_);
 	hpBar_->SetSize({ kHpBarFullWidth_ * hpRatio, kHpBarHeight_ });
 
-	trailEffect_->UpdateOnce(*vp_);
+	trailEffect_->Update(*vp_);
 	Collider::UpdateWorldTransform();
 
 	// 各クールダウン更新
@@ -164,7 +164,7 @@ void Player::Update()
 
 #ifdef _DEBUG
 	hitEffect_->Update(*vp_);
-	damageEffect_->Update(*vp_);
+	damageEffect_->UpdateOnce(*vp_);
 #endif
 }
 
