@@ -21,9 +21,9 @@
             0.10000000149011612
         ],
         "Emit translation": [
-            23.960330963134766,
+            -3.4165284633636475,
             -0.800000011920929,
-            -15.678689002990723
+            3.710202217102051
         ],
         "Particle EndAcce": [
             0.0,
@@ -36,8 +36,8 @@
             0.0
         ],
         "Particle EndScale": [
-            1.0,
-            1.0,
+            2.0,
+            2.0,
             1.0
         ],
         "Particle StartAcce": [
@@ -65,14 +65,14 @@
             -0.07000000029802322,
             -0.07000000029802322
         ],
-        "Scale Max": 0.0,
-        "Scale Min": 0.0,
+        "Scale Max": 0.6800000071525574,
+        "Scale Min": 0.6800000071525574,
         "alphaMax": 1.0,
         "alphaMin": 1.0,
         "count": 1,
-        "emitFrequency": 0.10000000149011612,
+        "emitFrequency": 0.4399999976158142,
         "isAcceMultiply": false,
-        "isAllRamdomScale": true,
+        "isAllRamdomScale": false,
         "isBillBoard": false,
         "isRamdomColor": false,
         "isRandomRotate": false,

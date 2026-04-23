@@ -39,6 +39,7 @@ void GameScene::Initialize()
 	Enemy::SetSerialNumber(0);
 	enemy_ = std::make_unique<Enemy>();
 	enemy_->Init();
+	enemy_->SetViewProjection(&vp_);
 	enemy_->SetGameState(Enemy::GameState::kPlaying);
 
 	player_->SetEnemy(enemy_.get());
@@ -48,6 +49,7 @@ void GameScene::Initialize()
 	skybox_->Initialize("skybox.dds");
 
 	ground_ = std::make_unique<Ground>();
+	ground_->SetSkybox(skybox_.get());
 	ground_->Init();
 
 	// ===== 各エフェクト・演出の初期化 =====

@@ -3,6 +3,7 @@
 #include "CollisionTypeIdDef.h"
 #include "Player.h"
 #include "PlayerArm.h"
+#include <ParticleEmitter.h>
 
 #include "EnemyAttackManager.h"
 #include "EnemyAttackMelee.h"
@@ -65,6 +66,13 @@ void Enemy::Init()
 	// --- エフェクト ---
 	effect_ = std::make_unique<EnemyEffect>();
 
+	trailEffect_ = std::make_unique<ParticleEmitter>();
+	trailEffect_->Initialize("enemyTrail", "debug/ringPlane.obj");
+
+	// --- コンポーネントへのエフェクト設定 ---
+	move_->SetTrailEmitter(trailEffect_.get());
+	move_->SetLastTrailPosition(BaseObject::GetWorldPosition());
+
 	// --- HPバー ---
 	hpBarBg_ = std::make_unique<Sprite>();
 	hpBarBg_->Initialize("white1x1.png", {
@@ -124,6 +132,8 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 	BaseObject::Update();
 	obj3d_->Update(BaseObject::GetWorldTransform(), vp);
 
+	trailEffect_->Update(vp);
+
 	// HPバー更新
 	float hpRatio = static_cast<float>(HP_) / static_cast<float>(kMaxHP_);
 	float currentWidth = kHpBarFullWidth_ * hpRatio;
@@ -143,6 +153,9 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 void Enemy::UpdateStartEffect()
 {
 	effect_->UpdateStartEffect(this);
+	if (vp_) {
+		trailEffect_->Update(*vp_);
+	}
 }
 
 // =============================================================
@@ -260,6 +273,7 @@ void Enemy::DrawParticle(const ViewProjection& viewProjection)
 			meleeAttack->DrawTrailEffect();
 		}
 	}
+	trailEffect_->Draw(Ring);
 }
 
 void Enemy::DrawSprite(const ViewProjection& viewProjection)
@@ -331,6 +345,7 @@ void Enemy::ImGui()
 	ImGui::EndDisabled();
 
 	ImGui::End();
+	trailEffect_->imgui();
 #endif // _DEBUG
 }
 

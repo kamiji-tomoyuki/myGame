@@ -1,6 +1,7 @@
 #include "EnemyMove.h"
 #include "Enemy.h"
 #include "Player.h"
+#include <ParticleEmitter.h>
 #include <cmath>
 
 void EnemyMove::Update(Enemy* enemy, Player* player)
@@ -15,6 +16,7 @@ void EnemyMove::Update(Enemy* enemy, Player* player)
 
     Approach(enemy, player);
     RecoverRotation(enemy);
+    UpdateTrailEffect(enemy->GetCenterPosition());
 }
 
 void EnemyMove::Approach(Enemy* enemy, Player* player)
@@ -67,8 +69,28 @@ void EnemyMove::Approach(Enemy* enemy, Player* player)
     }
 }
 
-void EnemyMove::RecoverRotation(Enemy* enemy)
+// =============================================================
+//  軌跡エフェクト更新
+// =============================================================
+void EnemyMove::UpdateTrailEffect(const Vector3& currentWorldPos)
 {
+    if (!trailEffect_) { return; }
+
+    Vector3 footPosition = currentWorldPos;
+    footPosition.y += kFootOffsetY_;
+
+    if (velocity_.Length() > 0.01f) {
+        trailEffect_->SetPosition(footPosition);
+        trailEffect_->SetActive(true);
+        isTrailActive_ = true;
+    }
+    else {
+        trailEffect_->SetActive(false);
+        isTrailActive_ = false;
+    }
+}
+
+void EnemyMove::RecoverRotation(Enemy* enemy) {
     Vector3 currentRot = enemy->GetObjRotation();
     Vector3 baseRot = enemy->GetWorldRotation();
     Vector3 originalRot = enemy->GetOriginalRotation();

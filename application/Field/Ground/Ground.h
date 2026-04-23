@@ -24,10 +24,16 @@ public:
 	/// </summary>
 	void Draw(const ViewProjection& viewProjection) override;
 
+	/// <summary>
+	/// スカイボックスの設定
+	/// </summary>
+	void SetSkybox(Skybox* skybox) { skybox_ = skybox; }
+
 private:
 
 	// --- モデル ---
 	std::unique_ptr<Object3d> obj3d_;
+	Skybox* skybox_ = nullptr;
 	float scale_ = 1000.0f;
 	const float kGroundOffsetY_ = -2.5f;  // 地面のY座標オフセット
 

@@ -4,6 +4,7 @@
 #include "ViewProjection.h"
 #include "GlobalVariables.h"
 #include <Sprite.h>
+#include <ParticleEmitter.h>
 
 // コンポーネント
 #include "EnemyMove.h"
@@ -95,6 +96,7 @@ public:
 	void SetGameState(GameState state) { gameState_ = state; }
 	void SetVelocity(const Vector3& v) { if (move_) { move_->SetVelocity(v); } }
 	void SetIsAlive(bool alive) { isAlive_ = alive; }
+	void SetViewProjection(const ViewProjection* vp) { vp_ = vp; }
 	void SetObjRotation(const Vector3& rot);
 	void UpdateBaseObject() { BaseObject::Update(); }
 
@@ -123,6 +125,9 @@ private:
 
 	// --- エフェクト ---
 	std::unique_ptr<EnemyEffect> effect_;
+
+	// --- パーティクル ---
+	std::unique_ptr<ParticleEmitter> trailEffect_;
 
 	// --- State Pattern ---
 	std::unique_ptr<IEnemyState> currentState_;
@@ -164,7 +169,7 @@ private:
 
 	// --- 初期化パラメータ ---
 	const Vector3 kInitialWorldPosition_ = { 0.0f, 2.0f, 15.0f };
-	const float   kColliderSize_ = 1.0f;
+	const float   kColliderSize_ = 2.0f;
 	const Vector3 kModelInitialRotation_ = { 0.0f, 1.57f * 2.0f, 0.0f };
 
 	// --- HPバー UI座標 ---
