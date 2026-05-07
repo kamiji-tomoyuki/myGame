@@ -22,121 +22,128 @@ class Object3dCommon;
 /// オブジェクト3Dクラス
 /// </summary>
 class Object3d {
-  public: // メンバ関数
-    /// <summary>
-    /// 初期化
-    /// </summary>
-    void Initialize(const std::string &filePath);
 
-    /// <summary>
-    /// 更新処理
-    /// </summary>
-    void Update(const WorldTransform &worldTransform, const ViewProjection &viewProjection);
+	private:
+	// --- 座標変換行列データ ---
+	struct TransformationMatrix {
+		Matrix4x4 WVP;
+		Matrix4x4 World;
+		Matrix4x4 WorldInverseTranspose;
+	};
+	TransformationMatrix* transformationMatrixData = nullptr;
 
-    /// <summary>
-    /// アニメーションの更新処理
-    /// </summary>
-    void UpdateAnimation(bool loop);
+	// --- マテリアルデータ ---
+	struct Material {
+		Vector4 color;
+		int32_t enableLighting;
+		float padding[3];
+		Matrix4x4 uvTransform;
+		float shininess;
+		float environmentCoefficient = 0.0f;
+	};
+	Material* materialData = nullptr;
 
-    /// <summary>
-    /// アニメーションの再生・停止
-    /// </summary>
-    /// <param name="anime"></param>
-    void SetStopAnimation(bool anime) { modelAnimation_->SetIsAnimation(anime); }
+	struct Transform {
+		Vector3 scale;
+		Vector3 rotate;
+		Vector3 translate;
+	};
+	Transform transform;
 
-    /// <summary>
-    /// アニメーションのセット
-    /// </summary>
-    /// <param name="fileName"></param>
-    void SetAnimation(const std::string &fileName);
+public: // メンバ関数
+	/// <summary>
+	/// 初期化
+	/// </summary>
+	void Initialize(const std::string& filePath);
 
-    /// <summary>
-    /// 描画処理
-    /// </summary>
-    void Draw(const WorldTransform &worldTransform, const ViewProjection &viewProjection, ObjColor *color = nullptr, bool Lighting = true);
+	/// <summary>
+	/// 更新処理
+	/// </summary>
+	void Update(const WorldTransform& worldTransform, const ViewProjection& viewProjection);
 
-    /// <summary>
-    /// スケルトン描画処理
-    /// </summary>
-    void DrawSkeleton(const WorldTransform &worldTransform, const ViewProjection &viewProjection);
+	/// <summary>
+	/// アニメーションの更新処理
+	/// </summary>
+	void UpdateAnimation(bool loop);
 
-  public:
-    /// 各ステータス取得関数
-    /// <returns></returns>
-    const Vector3 &GetPosition() const { return position; }
-    const Vector3 &GetRotation() const { return rotation; }
-    const Vector3 &GetSize() const { return size; }
-    Model *GetModel() { return model; }
+	/// <summary>
+	/// アニメーションの再生・停止
+	/// </summary>
+	/// <param name="anime"></param>
+	void SetStopAnimation(bool anime) { modelAnimation_->SetIsAnimation(anime); }
 
-    /// 各ステータス設定関数
-    /// <returns></returns>
-    void SetModel(Model *model) { this->model = model; }
-    void SetPosition(const Vector3 &position) { this->position = position; }
-    void SetRotation(const Vector3 &rotation) { this->rotation = rotation; }
-    void SetSize(const Vector3 &size) { this->size = size; }
-    void SetModel(const std::string &filePath);
-    void SetRefrect(bool reflect) { isReflect_ = reflect; }
+	/// <summary>
+	/// アニメーションのセット
+	/// </summary>
+	/// <param name="fileName"></param>
+	void SetAnimation(const std::string& fileName);
 
-    /// <summary>
-    /// 光沢度の設定
-    /// </summary>
-    /// <param name="shininess">マテリアルの光沢度</param>
-    void SetShininess(float shininess = 20.0f);
+	/// <summary>
+	/// 描画処理
+	/// </summary>
+	void Draw(const WorldTransform& worldTransform, const ViewProjection& viewProjection, ObjColor* color = nullptr, bool Lighting = true);
 
-  private: // メンバ関数
-    /// <summary>
-    /// 座標変換行列データ作成
-    /// </summary>
-    void CreateTransformationMatrix();
+	/// <summary>
+	/// スケルトン描画処理
+	/// </summary>
+	void DrawSkeleton(const WorldTransform& worldTransform, const ViewProjection& viewProjection);
 
-    /// <summary>
-    /// マテリアルデータ作成
-    /// </summary>
-    void CreateMaterial();
+public:
+	/// 各ステータス取得関数
+	/// <returns></returns>
+	const Vector3& GetPosition() const { return position; }
+	const Vector3& GetRotation() const { return rotation; }
+	const Vector3& GetSize() const { return size; }
+	Model* GetModel() { return model; }
 
-    Vector3 ExtractTranslation(const Matrix4x4 &matrix) { return Vector3(matrix.m[3][0], matrix.m[3][1], matrix.m[3][2]); }
+	/// 各ステータス設定関数
+	/// <returns></returns>
+	void SetModel(Model* model) { this->model = model; }
+	void SetPosition(const Vector3& position) { this->position = position; }
+	void SetRotation(const Vector3& rotation) { this->rotation = rotation; }
+	void SetSize(const Vector3& size) { this->size = size; }
+	void SetModel(const std::string& filePath);
+	void SetRefrect(const float environmentCoefficient_) { materialData->environmentCoefficient = environmentCoefficient_; }
 
-  private:
-    Object3dCommon *obj3dCommon = nullptr;
+	/// <summary>
+	/// 光沢度の設定
+	/// </summary>
+	/// <param name="shininess">マテリアルの光沢度</param>
+	void SetShininess(float shininess = 20.0f);
 
-    // --- 座標変換行列データ ---
-    struct TransformationMatrix {
-        Matrix4x4 WVP;
-        Matrix4x4 World;
-        Matrix4x4 WorldInverseTranspose;
-    };
-    Matrix4x4 worldViewProjectionMatrix_;
-    Microsoft::WRL::ComPtr<ID3D12Resource> transformationMatrixResource;
-    TransformationMatrix *transformationMatrixData = nullptr;
+private: // メンバ関数
+	/// <summary>
+	/// 座標変換行列データ作成
+	/// </summary>
+	void CreateTransformationMatrix();
 
-    // --- マテリアルデータ ---
-    struct Material {
-        Vector4 color;
-        int32_t enableLighting;
-        float padding[3];
-        Matrix4x4 uvTransform;
-        float shininess;
-        float enviromentCoefficent;
-    };
-    Microsoft::WRL::ComPtr<ID3D12Resource> materialResource = nullptr;
-    Material *materialData = nullptr;
+	/// <summary>
+	/// マテリアルデータ作成
+	/// </summary>
+	void CreateMaterial();
 
-    struct Transform {
-        Vector3 scale;
-        Vector3 rotate;
-        Vector3 translate;
-    };
-    Transform transform;
+	Vector3 ExtractTranslation(const Matrix4x4& matrix) { return Vector3(matrix.m[3][0], matrix.m[3][1], matrix.m[3][2]); }
 
-    Model *model = nullptr;
-    std::unique_ptr<ModelAnimation> modelAnimation_ = nullptr;
-    ModelCommon *modelCommon = nullptr;
-    LightGroup *lightGroup = nullptr;
+private:
+	Object3dCommon* obj3dCommon = nullptr;
 
-    Vector3 position = {0.0f, 0.0f, 0.0f};
-    Vector3 rotation = {0.0f, 0.0f, 0.0f};
-    Vector3 size = {1.0f, 1.0f, 1.0f};
+	// --- 座標変換行列データ ---
+	Matrix4x4 worldViewProjectionMatrix_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> transformationMatrixResource;
 
-    bool hasBone_ = false;
-    bool isReflect_ = false;
+	// --- マテリアルデータ ---
+	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource = nullptr;
+
+
+	Model* model = nullptr;
+	std::unique_ptr<ModelAnimation> modelAnimation_ = nullptr;
+	ModelCommon* modelCommon = nullptr;
+	LightGroup* lightGroup = nullptr;
+
+	Vector3 position = { 0.0f, 0.0f, 0.0f };
+	Vector3 rotation = { 0.0f, 0.0f, 0.0f };
+	Vector3 size = { 1.0f, 1.0f, 1.0f };
+
+	bool hasBone_ = false;
+	bool isReflect_ = false;
 };

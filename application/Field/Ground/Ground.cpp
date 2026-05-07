@@ -12,7 +12,7 @@ void Ground::Init()
 
 	if (skybox_) {
 		obj3d_->GetModel()->SetEnvironmentSrvIndex(skybox_->GetTextureIndex());
-		obj3d_->SetRefrect(true);
+		obj3d_->SetRefrect(0.6f);
 	}
 }
 

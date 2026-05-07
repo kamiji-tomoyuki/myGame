@@ -6,6 +6,7 @@ struct Material
     int enableLighting;
     float4x4 uvTransform;
     float shininess;
+    float enviromentCoefficent;
 };
 
 struct DirectionalLight
@@ -47,23 +48,13 @@ SamplerState gSampler : register(s0);
 ConstantBuffer<DirectionalLight> gDirectionalLight : register(b1);
 ConstantBuffer<Camera> gCamera : register(b2);
 ConstantBuffer<PointLight> gPointLight : register(b3); //<! ポイントライト定数バッファ
-
+TextureCube<float4> gEnvironmentTexture : register(t1);
 
 PixelShaderOutput main(VertexShaderOutput input)
 {
     float4 transformedUV = mul(float4(input.texcoord, 0.0f, 1.0f), gMaterial.uvTransform);
     float4 textureColor = gTexture.Sample(gSampler, transformedUV.xy);
     PixelShaderOutput output;
-    
-    if (textureColor.a == 0.0f)
-    {
-        discard;
-    }
-    if (output.color.a == 0.0f)
-    {
-        discard;
-    }
-    
     if (gMaterial.enableLighting != 0)
     {
         output.color.rgb = float3(0.0f, 0.0f, 0.0f);
@@ -140,13 +131,31 @@ PixelShaderOutput main(VertexShaderOutput input)
                 output.color.rgb += (diffusePoint + specularPoint) * (gPointLight.color.rgb * gPointLight.intensity * factor);
             }
         }
-        output.color.a = gMaterial.color.a * textureColor.a;
         
+        // === 環境マッピング ===
+        // 環境マッピング係数が0より大きい場合のみ環境マッピングを適用
+        if (gMaterial.enviromentCoefficent > 0.0f)
+        {
+            float3 cameraToPosition = normalize(input.worldPosition - gCamera.worldPosition);
+            float3 reflectedVector = reflect(cameraToPosition, normalize(input.normal));
+            float4 environmentColor = gEnvironmentTexture.Sample(gSampler, reflectedVector);
+            output.color.rgb += environmentColor.rgb * gMaterial.enviromentCoefficent;
+        }
+        
+        output.color.a = gMaterial.color.a * textureColor.a;
     }
     else
     {
         output.color = gMaterial.color * textureColor;
     }
-   
+    if (textureColor.a == 0.0f)
+    {
+        discard;
+    }
+    if (output.color.a == 0.0f)
+    {
+        discard;
+    }
+    
     return output;
 }
