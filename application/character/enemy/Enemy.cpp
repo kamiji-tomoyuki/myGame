@@ -120,6 +120,8 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 	// デバッグ一時停止中は状態・移動・攻撃の更新をスキップ
 	if (!isPaused_)
 	{
+		hitReaction_->UpdateWobble();
+
 		// 現在の状態を更新し、次状態が返ってきたら遷移する
 		if (currentState_) {
 			std::unique_ptr<IEnemyState> next = currentState_->Update(this);
@@ -172,6 +174,8 @@ void Enemy::OnRushHit(bool isFinalHit)
 void Enemy::TakeDamage(uint32_t damage)
 {
 	if (!isAlive_) { return; }
+
+	hitReaction_->OnHit();
 
 	if (HP_ > damage) {
 		HP_ -= damage;
@@ -252,7 +256,37 @@ void Enemy::HandleCollisionWithPlayer(Player* player)
 // =============================================================
 void Enemy::Draw(const ViewProjection& viewProjection)
 {
-	obj3d_->Draw(BaseObject::GetWorldTransform(), viewProjection);
+	if (hitReaction_->IsWobbling()) {
+		// 行列計算ではなく、SRTを一時的に変更して Object3d::Draw に渡す
+		// Object3d::Update が内部で SRT から行列を再計算するため
+		Vector3 originalPos = transform_.translation_;
+		Vector3 originalRot = transform_.rotation_;
+
+		Vector3 wobbleRot = hitReaction_->GetWobbleRotation();
+		float halfHeight = kColliderSize_ * 0.5f;
+		
+		// 足元を支点とした回転後の座標を計算
+		Vector3 footPos = originalPos;
+		footPos.y -= halfHeight;
+
+		Matrix4x4 matRotate = MakeRotateXYZMatrix(wobbleRot);
+		Vector3 localOffset = { 0.0f, halfHeight, 0.0f };
+		Vector3 rotatedOffset = Transformation(localOffset, matRotate);
+
+		transform_.translation_ = footPos + rotatedOffset;
+		transform_.rotation_ = originalRot + wobbleRot;
+		transform_.UpdateMatrix();
+
+		obj3d_->Draw(transform_, viewProjection);
+
+		// 元に戻す
+		transform_.translation_ = originalPos;
+		transform_.rotation_ = originalRot;
+		transform_.UpdateMatrix();
+	}
+	else {
+		obj3d_->Draw(transform_, viewProjection);
+	}
 
 	if (attackManager_) {
 		if (auto* rangedAttack = attackManager_->GetRangedAttack()) {

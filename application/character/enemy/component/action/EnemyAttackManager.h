@@ -49,7 +49,7 @@ public:
 	/// <summary>
 	/// ラッシュ攻撃による中断処理
 	/// </summary>
-	void InterruptByRush();
+	void InterruptByRush(Enemy* enemy);
 
 public:
 	// Getter

@@ -39,7 +39,7 @@ public:
 	/// <summary>
 	/// 攻撃中断
 	/// </summary>
-	void Interrupt();
+	void Interrupt(Enemy* enemy);
 
 	/// <summary>
 	/// 軌跡エフェクト更新

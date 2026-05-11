@@ -89,8 +89,10 @@ bool PlayerArm::UpdateRushBehavior()
 
     bool finished = rush_->Update(bodyRotY);
     transform_.translation_ = rush_->GetCurrentTranslation();
+    transform_.rotation_ = rush_->GetCurrentRotation();
 
     if (finished) {
+        transform_.rotation_ = { 0.0f, 0.0f, 0.0f };
         attack_->SetComboCount(0);
         attack_->SetComboTimer(0);
         attack_->SetLastAttackType(AttackType::kNone);

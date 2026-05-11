@@ -1,5 +1,6 @@
 #include "PlayerArmRush.h"
 #include <cmath>
+#include <random.h>
 
 const std::string PlayerArmRush::kGroupName_ = "PlayerArmRush";
 
@@ -136,7 +137,14 @@ void PlayerArmRush::UpdateRapidPunch()
 		if (isRightArm_) { sideOffset += kRapidPunchArmSideOffset_; }
 		else { sideOffset -= kRapidPunchArmSideOffset_; }
 
-		Vector3 attackOffset = { sideOffset, 0.0f, kRushDistance_ };
+		// パンチごとにターゲット位置に大きなランダム性を加える
+		Vector3 randomTargetOffset = {
+			Random::Range(-kMaxRandomOffsetX_, kMaxRandomOffsetX_),
+			Random::Range(-kMaxRandomOffsetY_, kMaxRandomOffsetY_),
+			Random::Range(-kMaxRandomOffsetZ_, kMaxRandomOffsetZ_)
+		};
+
+		Vector3 attackOffset = { sideOffset + randomTargetOffset.x, randomTargetOffset.y, kRushDistance_ + randomTargetOffset.z };
 
 		targetPosition_ = {
 			originalPosition_.x + attackOffset.x,

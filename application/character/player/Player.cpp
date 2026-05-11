@@ -264,6 +264,9 @@ void Player::UpdateArms()
 	for (const auto& arm : arms_) {
 		if (arm) { arm->Update(); }
 	}
+	for (const auto& arm : extraArms_) {
+		if (arm) { arm->Update(); }
+	}
 }
 
 void Player::UpdateModelAnimation()
@@ -308,6 +311,23 @@ void Player::DrawAnimation(const ViewProjection& viewProjection)
 	if (!isAlive_) { return; }
 	for (const auto& arm : arms_) {
 		if (arm) { arm->DrawAnimation(viewProjection); }
+	}
+
+	// ラッシュ中かつ連打フェーズのみ残像腕を描画
+	if (IsRushActive()) {
+		bool isRapidPunchPhase = false;
+		if (arms_[kRArm]) {
+			auto phase = arms_[kRArm]->GetRushPhase();
+			if (phase == PlayerArmRush::RushPhase::kRapidPunch) {
+				isRapidPunchPhase = true;
+			}
+		}
+
+		if (isRapidPunchPhase) {
+			for (const auto& arm : extraArms_) {
+				if (arm) { arm->DrawAnimation(viewProjection); }
+			}
+		}
 	}
 }
 
@@ -358,6 +378,14 @@ void Player::ApplyVariables()
 			arms_[kLArm]->SetTranslation(kLeftArmTranslation_);
 			arms_[kLArm]->SetScale(kArmScale_);
 		}
+		if (extraArms_[kRArm]) {
+			extraArms_[kRArm]->SetTranslation(kRightArmTranslation_);
+			extraArms_[kRArm]->SetScale(kArmScale_);
+		}
+		if (extraArms_[kLArm]) {
+			extraArms_[kLArm]->SetTranslation(kLeftArmTranslation_);
+			extraArms_[kLArm]->SetScale(kArmScale_);
+		}
 	}
 }
 
@@ -401,6 +429,7 @@ void Player::OnCollision(Collider* other)
 // =============================================================
 void Player::InitArm()
 {
+	// メインの腕
 	arms_[kRArm] = std::make_unique<PlayerArm>();
 	arms_[kRArm]->Init("player/Arm/playerArm.gltf");
 	arms_[kRArm]->SetPlayer(this);
@@ -420,4 +449,25 @@ void Player::InitArm()
 	arms_[kLArm]->SetTranslation(kLeftArmTranslation_);
 	arms_[kLArm]->SetScale(kArmScale_);
 	arms_[kLArm]->SetPlayerAttack(attack_.get());
+
+	// 残像用の腕（透明度を下げ、当たり判定は無効化）
+	extraArms_[kRArm] = std::make_unique<PlayerArm>();
+	extraArms_[kRArm]->Init("player/Arm/playerArm.gltf");
+	extraArms_[kRArm]->SetPlayer(this);
+	extraArms_[kRArm]->SetIsRightArm(true);
+	extraArms_[kRArm]->SetTranslation(kRightArmTranslation_);
+	extraArms_[kRArm]->SetScale(kArmScale_);
+	extraArms_[kRArm]->SetObjColor(Vector4(1, 1, 1, 0.4f));
+	extraArms_[kRArm]->SetColliderID(CollisionTypeIdDef::kNone); // 当たり判定用IDをNoneに
+	extraArms_[kRArm]->SetCollisionEnabled(false);              // 衝突判定自体を無効化
+
+	extraArms_[kLArm] = std::make_unique<PlayerArm>();
+	extraArms_[kLArm]->Init("player/Arm/playerArm.gltf");
+	extraArms_[kLArm]->SetPlayer(this);
+	extraArms_[kLArm]->SetIsRightArm(false);
+	extraArms_[kLArm]->SetTranslation(kLeftArmTranslation_);
+	extraArms_[kLArm]->SetScale(kArmScale_);
+	extraArms_[kLArm]->SetObjColor(Vector4(1, 1, 1, 0.4f));
+	extraArms_[kLArm]->SetColliderID(CollisionTypeIdDef::kNone); // 当たり判定用IDをNoneに
+	extraArms_[kLArm]->SetCollisionEnabled(false);              // 衝突判定自体を無効化
 }

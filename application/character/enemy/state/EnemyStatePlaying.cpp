@@ -55,6 +55,6 @@ void EnemyStatePlaying::Exit(Enemy* enemy)
 {
 	// 攻撃を中断する
 	if (EnemyAttackManager* mgr = enemy->GetAttackManager()) {
-		mgr->InterruptByRush();
+		mgr->InterruptByRush(enemy);
 	}
 }

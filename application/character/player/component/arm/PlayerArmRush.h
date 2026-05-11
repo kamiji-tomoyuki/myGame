@@ -66,6 +66,8 @@ public:
 
 	/// <summary>現フレームで計算された腕の位置を取得</summary>
 	Vector3 GetCurrentTranslation()   const { return currentTranslation_; }
+	/// <summary>現フレームで計算された腕の回転を取得</summary>
+	Vector3 GetCurrentRotation()      const { return currentRandomRotation_; }
 
 	void SetHasFinisherHit(bool v) { hasFinisherHit_ = v; }
 	void SetIsFinisherHitFrame(bool v) { isFinisherHitFrame_ = v; }
@@ -161,6 +163,15 @@ private:
 	static inline const float kRecoverStartRatio_ = 0.75f;
 	/// リカバリー開始から何フレーム後にヒット判定フレームを解除するか
 	static inline const uint32_t kRecoverHitFrameClearDelay_ = 2;
+
+	// -------------------------------------------------------
+	// 揺れ・ランダム挙動用
+	// -------------------------------------------------------
+	Vector3 targetRandomRotation_ = { 0.0f, 0.0f, 0.0f };
+	Vector3 currentRandomRotation_ = { 0.0f, 0.0f, 0.0f };
+	const float kMaxRandomOffsetX_ = 0.8f;
+	const float kMaxRandomOffsetY_ = 0.8f;
+	const float kMaxRandomOffsetZ_ = 0.3f;
 
 	GlobalVariables* variables_ = nullptr;
 	static const std::string kGroupName_;

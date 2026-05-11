@@ -135,10 +135,10 @@ void EnemyAttackManager::ResetAttack()
 // =============================================================
 //  InterruptByRush
 // =============================================================
-void EnemyAttackManager::InterruptByRush()
+void EnemyAttackManager::InterruptByRush(Enemy* enemy)
 {
 	if (currentAttackType_ == AttackType::kMelee) {
-		meleeAttack_->Interrupt();
+		meleeAttack_->Interrupt(enemy);
 	}
 	else if (currentAttackType_ == AttackType::kRanged) {
 		rangedAttack_->Interrupt();

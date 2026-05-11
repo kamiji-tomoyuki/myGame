@@ -119,6 +119,13 @@ void PlayerAttack::Update()
 
         if (a[kRArm]) { a[kRArm]->StartRush(kRightArmTimerOffset_); }
         if (a[kLArm]) { a[kLArm]->StartRush(leftArmOffset); }
+
+        // 残像腕にも StartRush（オフセットをさらにずらして残像感を出す）
+        const auto& extra = player_->GetExtraArms();
+        uint32_t extraOffset = rushInterval / 4;
+        if (extra[kRArm]) { extra[kRArm]->StartRush(kRightArmTimerOffset_ + extraOffset); }
+        if (extra[kLArm]) { extra[kLArm]->StartRush(leftArmOffset + extraOffset); }
+
         return;
     }
 

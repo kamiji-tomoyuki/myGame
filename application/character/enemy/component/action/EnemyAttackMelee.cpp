@@ -191,8 +191,14 @@ void EnemyAttackMelee::CheckCollision(Player* player)
 	}
 }
 
-void EnemyAttackMelee::Interrupt()
+void EnemyAttackMelee::Interrupt(Enemy* enemy)
 {
+	// 攻撃中断時に回転をリセット
+	if (enemy) {
+		Vector3 rot = enemy->GetWorldRotation();
+		rot.x = originalRotation_.x;
+		enemy->SetRotation(rot);
+	}
 	phase_ = Phase::kNone;
 	isComplete_ = true;
 	chargeCount_ = 0;

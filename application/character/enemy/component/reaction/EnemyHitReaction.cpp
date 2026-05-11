@@ -33,20 +33,57 @@ void EnemyHitReaction::OnRushHit(bool isFinalHit, Enemy* enemy)
 {
 	if (!enemy->GetIsAlive()) { return; }
 
+	// 被弾時の揺れを開始
+	OnHit();
+
 	if (isFinalHit) {
 		isRushStunned_ = true;
 		rushStunTimer_ = kRushStunDuration_ * kFinalHitStunMultiplier_;
 		rushFinalHitReceived_ = false;
 		isBeingRushed_ = false;
-
-		if (EnemyAttackManager* mgr = enemy->GetAttackManager()) {
-			mgr->InterruptByRush();
-		}
 	}
 	else {
 		isRushStunned_ = true;
 		rushStunTimer_ = kRushStunDuration_;
 	}
+
+	// 攻撃を中断させる（全ヒットで中断させる）
+	if (EnemyAttackManager* mgr = enemy->GetAttackManager()) {
+		mgr->InterruptByRush(enemy);
+	}
+}
+
+void EnemyHitReaction::OnHit()
+{
+	isWobbling_ = true;
+	wobbleTimer_ = kWobbleDuration_;
+	// Phase はリセットせず継続させることで、連続ヒット時も動きがつながるようにする
+}
+
+void EnemyHitReaction::UpdateWobble()
+{
+	if (!isWobbling_) {
+		wobblePhase_ = 0.0f;
+		return;
+	}
+
+	wobbleTimer_--;
+	if (wobbleTimer_ <= 0) {
+		isWobbling_ = false;
+		wobbleTimer_ = 0;
+		wobbleRotation_ = { 0.0f, 0.0f, 0.0f };
+		wobblePhase_ = 0.0f;
+		return;
+	}
+
+	wobblePhase_ += kWobbleFrequency_;
+
+	float t = static_cast<float>(wobbleTimer_) / static_cast<float>(kWobbleDuration_);
+	float decay = t * t; // 二乗で減衰
+
+	// サイン波で揺らす。Phase を使うことで連続ヒット時も不自然なジャンプを防ぐ
+	wobbleRotation_.z = sin(wobblePhase_) * kWobbleMaxAngle_ * decay;
+	wobbleRotation_.x = cos(wobblePhase_ * 0.7f) * kWobbleMaxAngle_ * 0.5f * decay;
 }
 
 void EnemyHitReaction::StartKnockback(Enemy* enemy, Player* player)
@@ -58,7 +95,7 @@ void EnemyHitReaction::StartKnockback(Enemy* enemy, Player* player)
 	knockbackGroundY_ = enemy->GetCenterPosition().y;
 
 	if (EnemyAttackManager* mgr = enemy->GetAttackManager()) {
-		mgr->InterruptByRush();
+		mgr->InterruptByRush(enemy);
 	}
 
 	Vector3 originalRot = enemy->GetOriginalRotation();

@@ -88,6 +88,7 @@ public:
 	bool      IsRangedInvincible() const { return hitReaction_ && hitReaction_->IsRangedCooldownActive(); }
 	GameState GetGameState()       const { return gameState_; }
 	const std::array<std::unique_ptr<PlayerArm>, kModelNum>& GetArms() const { return arms_; }
+	const std::array<std::unique_ptr<PlayerArm>, kModelNum>& GetExtraArms() const { return extraArms_; }
 
 	bool CanRightPunch()      const;
 	bool CanLeftPunch()       const;
@@ -134,6 +135,8 @@ private:
 
 	// 腕
 	std::array<std::unique_ptr<PlayerArm>, kModelNum> arms_;
+	// ラッシュ時用残像腕
+	std::array<std::unique_ptr<PlayerArm>, kModelNum> extraArms_;
 
 	// サブシステム
 	std::unique_ptr<PlayerMove>           move_;

@@ -32,9 +32,17 @@ public:
 	/// <summary>ノックバック終了</summary>
 	void EndKnockback(Enemy* enemy);
 
+	/// <summary>被弾時の揺れを開始</summary>
+	void OnHit();
+
+	/// <summary>揺れの更新</summary>
+	void UpdateWobble();
+
 	// --- ゲッター ---
 	bool IsStunned()          const { return isRushStunned_; }
 	bool IsBeingKnockedBack() const { return isBeingRushed_; }
+	bool IsWobbling()         const { return isWobbling_; }
+	Vector3 GetWobbleRotation() const { return wobbleRotation_; }
 
 private:
 	// スタン
@@ -42,6 +50,15 @@ private:
 	int   rushStunTimer_ = 0;
 	const int kRushStunDuration_ = 18;
 	const int kFinalHitStunMultiplier_ = 3;     // ファイナルヒット時のスタン時間倍率
+
+	// 被弾リアクション（よろめき）
+	bool    isWobbling_ = false;
+	int     wobbleTimer_ = 0;
+	float   wobblePhase_ = 0.0f;
+	Vector3 wobbleRotation_ = { 0.0f, 0.0f, 0.0f };
+	const int kWobbleDuration_ = 10;
+	const float kWobbleMaxAngle_ = 0.25f; // 少し強めに
+	const float kWobbleFrequency_ = 1.2f;  // 速めに
 
 	// ノックバック
 	bool     isBeingRushed_ = false;
