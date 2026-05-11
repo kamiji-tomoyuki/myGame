@@ -1,4 +1,5 @@
 #include "SceneTransition.h"
+#include "SceneTransitionStates.h"
 #include "TextureManager.h"
 #include <algorithm>
 #include <cmath>
@@ -20,6 +21,9 @@ void SceneTransition::Initialize() {
     // グリッドの初期化
     InitializeGrid();
     SetGridSize(12, 8);
+
+    // 初期状態はNone
+    state_ = std::make_unique<SceneTransitionStateNone>();
 }
 
 void SceneTransition::InitializeGrid() {
@@ -80,38 +84,40 @@ void SceneTransition::InitializeGrid() {
 }
 
 void SceneTransition::Update() {
-    if (fadeInStart) {
-        // フェードイン中（画面が黒く埋まる）
-        if (!fadeInFinish) {
-            FadeIn();
-        }
-    }
-    if (fadeOutStart) {
-        // フェードインが終わったら、フェードアウトを開始
-        if (fadeInFinish && !fadeOutFinish) {
-            FadeOut();
-        }
-    }
-
-    // グリッドの更新
-    UpdateGrid();
-
-    // トランジションが終了したら、終了フラグを立てる
-    if (fadeInFinish && fadeOutFinish) {
-        isEnd = true;
-        fadeInStart = false;
-        fadeOutStart = false;
+    if (state_) {
+        state_->Update(this);
     }
 }
 
 void SceneTransition::Draw() {
-    // 全てのグリッド矩形を描画
-    for (auto &rect : gridRects_) {
-        rect.sprite->Draw();
+    if (state_) {
+        state_->Draw(this);
     }
 }
 
-void SceneTransition::FadeIn() {
+void SceneTransition::ChangeState(std::unique_ptr<ISceneTransitionState> newState) {
+    state_ = std::move(newState);
+}
+
+void SceneTransition::SetFadeInStart(bool start) {
+    fadeInStart = start;
+    if (start) {
+        ChangeState(std::make_unique<SceneTransitionStateFadeIn>());
+    }
+}
+
+void SceneTransition::SetFadeOutStart(bool start) {
+    fadeOutStart = start;
+    if (start) {
+        ChangeState(std::make_unique<SceneTransitionStateFadeOut>());
+    }
+}
+
+void SceneTransition::SetFadeInFinish(bool finish) {
+    fadeInFinish = finish;
+}
+
+void SceneTransition::ProcFadeIn() {
     counter_ += 1.0f / 60.0f; // フレームレートを基にカウント
 
     // 全てのグリッドが完全に表示されるまで待つ
@@ -128,7 +134,7 @@ void SceneTransition::FadeIn() {
     }
 }
 
-void SceneTransition::FadeOut() {
+void SceneTransition::ProcFadeOut() {
     // フェードアウト開始時に各矩形のfadeStartTimeをリセット
     static bool resetDone = false;
     if (!resetDone) {
@@ -143,6 +149,9 @@ void SceneTransition::FadeOut() {
     if (counter_ <= 0.0f) {
         counter_ = 0.0f;      // カウンターが負になるのを防ぐ
         fadeOutFinish = true; // フェードアウト完了フラグを立てる
+        isEnd = true;         // トランジション終了
+        fadeInStart = false;  // フラグリセット
+        fadeOutStart = false; // フラグリセット
         resetDone = false;    // 次回のために静的変数をリセット
     }
 }
@@ -211,6 +220,13 @@ void SceneTransition::UpdateGrid() {
     }
 }
 
+void SceneTransition::DrawGrid() {
+    // 全てのグリッド矩形を描画
+    for (auto &rect : gridRects_) {
+        rect.sprite->Draw();
+    }
+}
+
 // トランジション状態をリセット
 void SceneTransition::Reset() {
     counter_ = 0.0f;
@@ -225,4 +241,6 @@ void SceneTransition::Reset() {
         rect.sprite->SetAlpha(0.0f);
         rect.fadeStartTime = -1.0f; // フェード開始時刻をリセット
     }
+
+    ChangeState(std::make_unique<SceneTransitionStateNone>());
 }

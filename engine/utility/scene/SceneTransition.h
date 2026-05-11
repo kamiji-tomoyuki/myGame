@@ -2,6 +2,7 @@
 #include "Sprite.h"
 #include "memory"
 #include "vector"
+#include "ISceneTransitionState.h"
 
 class SceneTransition {
   public:
@@ -24,11 +25,17 @@ class SceneTransition {
     void Draw();
 
     /// <summary>
+    /// 状態変更
+    /// </summary>
+    /// <param name="newState"></param>
+    void ChangeState(std::unique_ptr<ISceneTransitionState> newState);
+
+    /// <summary>
     /// セット
     /// </summary>
-    void SetFadeInStart(bool start) { fadeInStart = start; }
-    void SetFadeOutStart(bool start) { fadeOutStart = start; }
-    void SetFadeInFinish(bool finish) { fadeInFinish = finish; }
+    void SetFadeInStart(bool start);
+    void SetFadeOutStart(bool start);
+    void SetFadeInFinish(bool finish);
 
     /// <summary>
     /// getter
@@ -51,26 +58,32 @@ class SceneTransition {
         InitializeGrid();
     }
 
+  public:
+    /// <summary>
+    /// フェードイン処理（内部用）
+    /// </summary>
+    void ProcFadeIn();
+
+    /// <summary>
+    /// フェードアウト処理（内部用）
+    /// </summary>
+    void ProcFadeOut();
+
+    /// <summary>
+    /// グリッド矩形の更新（内部用）
+    /// </summary>
+    void UpdateGrid();
+
+    /// <summary>
+    /// 全てのグリッドを描画
+    /// </summary>
+    void DrawGrid();
+
   private:
-    /// <summary>
-    /// フェードイン（画面が黒く埋まる）
-    /// </summary>
-    void FadeIn();
-
-    /// <summary>
-    /// フェードアウト（次シーンへ移行）
-    /// </summary>
-    void FadeOut();
-
     /// <summary>
     /// グリッド矩形の初期化
     /// </summary>
     void InitializeGrid();
-
-    /// <summary>
-    /// グリッド矩形の更新
-    /// </summary>
-    void UpdateGrid();
 
   private:
     // グリッド構造体
@@ -83,6 +96,9 @@ class SceneTransition {
         float currentAlpha;
         float fadeStartTime;
     };
+
+    // 現在の状態
+    std::unique_ptr<ISceneTransitionState> state_;
 
     // フェードの持続時間
     float duration_ = 0.0f;
@@ -99,7 +115,7 @@ class SceneTransition {
     // グリッド矩形の配列
     std::vector<GridRect> gridRects_;
 
-    // フラグ
+    // フラグ (State Pattern移行後も互換性のために残すが、状態管理はstate_で行う)
     bool fadeInStart = false;
     bool fadeOutStart = false;
     bool fadeInFinish = false;

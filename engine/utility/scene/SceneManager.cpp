@@ -1,4 +1,5 @@
 #include "SceneManager.h"
+#include "SceneManagerStates.h"
 #include <cassert>
 #include <ImGuiManager.h>
 #include"GlobalVariables.h"
@@ -20,6 +21,9 @@ void SceneManager::Initialize()
 {
 	transition_ = std::make_unique<SceneTransition>();
 	transition_->Initialize();
+
+	// 初期状態は通常状態
+	state_ = std::make_unique<SceneManagerNormalState>();
 }
 
 void SceneManager::Finalize()
@@ -39,56 +43,24 @@ void SceneManager::Update()
 
 	ImGui::Begin("scene");
 	if (ImGui::Button("TitleScene") && (transition_->IsEnd() && !transition_->FadeInStart())) {
-		transition_->Reset();
-		nextScene_ = sceneFactory_->CreateScene("TITLE");
-		transition_->SetFadeInStart(true);
+		NextSceneReservation("TITLE");
 	}
 	if (ImGui::Button("GameScene") && (transition_->IsEnd() && !transition_->FadeInStart())) {
-		if (!transition_->IsEnd() && transition_->FadeInStart()) {
-			return; // すでに遷移中なので、次の遷移予約はしない
-		}
-		transition_->Reset();
-		nextScene_ = sceneFactory_->CreateScene("GAME");
-		transition_->SetFadeInStart(true);
+		NextSceneReservation("GAME");
 	}
 	if (ImGui::Button("GameClearScene") && (transition_->IsEnd() && !transition_->FadeInStart())) {
-		if (!transition_->IsEnd() && transition_->FadeInStart()) {
-			return; // すでに遷移中なので、次の遷移予約はしない
-		}
-		transition_->Reset();
-		nextScene_ = sceneFactory_->CreateScene("CLEAR"); 
-		transition_->SetFadeInStart(true);
+		NextSceneReservation("CLEAR");
 	}
 	if (ImGui::Button("GameOverScene") && (transition_->IsEnd() && !transition_->FadeInStart())) {
-		if (!transition_->IsEnd() && transition_->FadeInStart()) {
-			return; // すでに遷移中なので、次の遷移予約はしない
-		}
-		transition_->Reset();
-		nextScene_ = sceneFactory_->CreateScene("OVER");
-		transition_->SetFadeInStart(true);
+		NextSceneReservation("OVER");
 	}
 	ImGui::End();
 
 #endif // _DEBUG
 
-	// 次のシーンの予約があるなら
-	if (nextScene_) {
-		if (!firstChange) {
-			transition_->SetFadeInFinish(true);
-			firstChange = true;
-		}
-		SceneChange();
-	}
-	if (!transition_->IsEnd()) {
-		transitionEnd = false;
-		transition_->Update();
-	}
-	else {
-		transitionEnd = true;
-	}
-	if (scene_) {
-		// 実行中シーンを更新する
-		scene_->Update();
+	// 状態に応じた更新
+	if (state_) {
+		state_->Update(this);
 	}
 }
 
@@ -113,12 +85,21 @@ void SceneManager::DrawTransition()
 	}
 }
 
+void SceneManager::ChangeState(std::unique_ptr<ISceneManagerState> newState)
+{
+	state_ = std::move(newState);
+}
+
 void SceneManager::NextSceneReservation(const std::string& sceneName)
 {
 	// トランジション中なら処理をスキップ
 	if (!transition_->IsEnd() && transition_->FadeInStart()) {
 		return; // すでに遷移中なので、次の遷移予約はしない
 	}
+	
+	// 状態を遷移中に変更
+	ChangeState(std::make_unique<SceneManagerTransitionState>());
+
 	transition_->Reset();
 	assert(sceneFactory_);
 	assert(nextScene_ == nullptr);
@@ -162,5 +143,20 @@ void SceneManager::SceneChange()
 
 		transition_->SetFadeOutStart(true);
 
+	}
+}
+
+void SceneManager::UpdateTransition()
+{
+	// 次のシーンの予約があるなら（最初のシーン設定用）
+	if (nextScene_) {
+		if (!firstChange) {
+			transition_->SetFadeInFinish(true);
+			firstChange = true;
+		}
+	}
+
+	if (!transition_->IsEnd()) {
+		transition_->Update();
 	}
 }

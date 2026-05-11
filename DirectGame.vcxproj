@@ -210,6 +210,8 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\core\MyGame.cpp" />
     <ClCompile Include="engine\3d\line\LineManager.cpp" />
     <ClCompile Include="engine\utility\scene\SceneTransition.cpp" />
+    <ClCompile Include="engine\utility\scene\SceneTransitionStates.cpp" />
+    <ClCompile Include="engine\utility\scene\SceneManagerStates.cpp" />
     <ClCompile Include="engine\offscreen\OffScreen.cpp" />
     <ClCompile Include="application\scene\base\BaseScene.cpp" />
     <ClCompile Include="application\scene\gameClearScene\GameClearScene.cpp" />
@@ -346,6 +348,10 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\utility\scene\AbstractSceneFactory.h" />
     <ClInclude Include="engine\utility\scene\SceneFactory.h" />
     <ClInclude Include="engine\utility\scene\SceneManager.h" />
+    <ClInclude Include="engine\utility\scene\ISceneManagerState.h" />
+    <ClInclude Include="engine\utility\scene\SceneManagerStates.h" />
+    <ClInclude Include="engine\utility\scene\ISceneTransitionState.h" />
+    <ClInclude Include="engine\utility\scene\SceneTransitionStates.h" />
     <ClInclude Include="engine\utility\string\StringUtility.h" />
     <ClInclude Include="engine\utility\graphics\TextureManager.h" />
     <ClInclude Include="engine\base\WinApp.h" />

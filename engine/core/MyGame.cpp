@@ -1,6 +1,8 @@
 #include "MyGame.h"
 #include "SceneFactory.h"
 #include <ImGuiManager.h>
+#include "BaseScene.h"
+#include "ViewProjection.h"
 
 void MyGame::Initialize()
 {
@@ -33,7 +35,7 @@ void MyGame::Draw()
 	srvManager->PreDraw();
 
 	object3dCommon->DrawCommonSetting();
-	if (sceneManager_->GetTransitionEnd()) {
+	if (sceneManager_->GetTransitionEnd() && sceneManager_->GetBaseScene()) {
 		collisionManager_->Draw(*sceneManager_->GetBaseScene()->GetViewProjection());
 	}
 	sceneManager_->Draw();
@@ -42,7 +44,9 @@ void MyGame::Draw()
 	sceneManager_->DrawTransition();
 
 	dxCommon->PreDraw();
-	offscreen_->SetProjection(sceneManager_->GetBaseScene()->GetViewProjection()->matProjection_);
+	if (sceneManager_->GetBaseScene()) {
+		offscreen_->SetProjection(sceneManager_->GetBaseScene()->GetViewProjection()->matProjection_);
+	}
 	offscreen_->Draw();
 	dxCommon->TransitionDepthBarrier();
 	sceneManager_->DrawForOffScreen();

@@ -2,6 +2,7 @@
 #include"AbstractSceneFactory.h"
 #include"memory"
 #include"SceneTransition.h"
+#include"ISceneManagerState.h"
 
 /// <summary>
 /// シーン管理クラス
@@ -54,7 +55,13 @@ public:// メンバ関数
 	/// </summary>
 	void DrawTransition();
 
-	bool GetTransitionEnd() { return transitionEnd; }
+	/// <summary>
+	/// 状態変更
+	/// </summary>
+	/// <param name="newState"></param>
+	void ChangeState(std::unique_ptr<ISceneManagerState> newState);
+
+	bool GetTransitionEnd() { return transition_->IsEnd(); }
 
 public: // setter
 	/// <summary>
@@ -76,7 +83,21 @@ public: // setter
 
 	BaseScene* GetBaseScene() { return scene_; }
 
+	/// <summary>
+	/// 次のシーンがあるか
+	/// </summary>
+	/// <returns></returns>
+	bool HasNextScene() const { return nextScene_ != nullptr; }
+
+	/// <summary>
+	/// トランジションの更新（内部用）
+	/// </summary>
+	void UpdateTransition();
+
 private:
+	// 現在のマネージャー状態
+	std::unique_ptr<ISceneManagerState> state_;
+
 	// 今のシーン(実行中のシーン)
 	BaseScene* scene_ = nullptr;
 	// 次のシーン
@@ -85,7 +106,6 @@ private:
 	AbstractSceneFactory* sceneFactory_ = nullptr;
 	std::unique_ptr<SceneTransition> transition_;
 
-	bool transitionEnd = false;
 	bool firstChange = false;
 };
 
