@@ -128,11 +128,9 @@ void GameScene::Update()
 	// 再生マークのフェードアウト処理（ポーズ解除後）
 	pause_->UpdatePlayIconFade();
 
-	// UIPauseのフェードイン処理（再生マークが消えた後）
-	if (pause_->IsUIPauseFadingIn()) {
-		pause_->UpdateUIPauseFade();
-		UIPause_->SetAlpha(pause_->GetUIPauseAlpha());
-	}
+	// UIPauseのフェード更新（再生マークが消えた後にフェードインするロジックはPauseクラス内）
+	pause_->UpdateUIPauseFade();
+	UIPause_->SetAlpha(pause_->GetUIPauseAlpha());
 
 #ifdef _DEBUG
 	// デバッグ
@@ -176,119 +174,96 @@ void GameScene::Draw()
 {
 	/// -------描画処理開始-------
 
+	// 1. スカイボックス (3D背景)
 	skybox_->Draw();
 
-	/// Spriteの描画準備
+	// 2. 3Dモデル (アニメーション)
+	objCommon_->skinningDrawCommonSetting();
+	player_->DrawAnimation(vp_);
+	enemy_->DrawAnimation(vp_);
+
+	// 3. 3Dモデル (通常)
+	objCommon_->DrawCommonSetting();
+#ifdef _DEBUG
+	if (obj_) { obj_->Draw(vp_); }
+#endif // _DEBUG
+	player_->Draw(vp_);
+	enemy_->Draw(vp_);
+	ground_->Draw(vp_);
+
+	// 4. パーティクル
+	ptCommon_->DrawCommonSetting();
+	stageWall_->Draw(Cylinder);
+	player_->DrawParticle(vp_);
+	enemy_->DrawParticle(vp_);
+
+	// 5. ライン (デバッグ用など)
+	DrawLine3D::GetInstance()->Draw(vp_);
+
+	// 6. スプライト (2D/UI)
 	spCommon_->DrawCommonSetting();
-	//-----Spriteの描画開始-----
 
-	UI_->Draw();
+	// ゲーム中のUI (ポーズ中でない、かつフェードアウト演出中でもない場合のみ)
+	if (!pause_->IsPaused() && !pause_->IsPlayIconFading()) {
+		UI_->Draw();
 
-	// ポーズ中でない場合のみ攻撃UI表示
-	if (!pause_->IsPaused()) {
 		if (currentPhase_ == GamePhase::Battle) {
 			if (player_) {
 				// 右パンチUI
 				if (player_->CanRightPunch()) {
-					// 実行中なら暗くする
 					if (player_->IsRightPunchActive()) {
 						attackUI_Right_->SetColor({ 0.4f, 0.4f, 0.4f });
-						attackUI_Right_->SetAlpha(1.0f);
 					}
 					else {
 						attackUI_Right_->SetColor({ 1.0f, 1.0f, 1.0f });
-						attackUI_Right_->SetAlpha(1.0f);
 					}
+					attackUI_Right_->SetAlpha(1.0f);
 					attackUI_Right_->Draw();
 				}
 				// 左パンチUI
 				else if (player_->CanLeftPunch()) {
-					// 実行中なら暗くする
 					if (player_->IsLeftPunchActive()) {
 						attackUI_Left_->SetColor({ 0.4f, 0.4f, 0.4f });
-						attackUI_Left_->SetAlpha(1.0f);
 					}
 					else {
 						attackUI_Left_->SetColor({ 1.0f, 1.0f, 1.0f });
-						attackUI_Left_->SetAlpha(1.0f);
 					}
+					attackUI_Left_->SetAlpha(1.0f);
 					attackUI_Left_->Draw();
 				}
 				// ラッシュUI
 				else if (player_->CanRush()) {
-					// 実行中なら暗くする
 					if (player_->IsRushActive()) {
 						attackUI_Rush_->SetColor({ 0.4f, 0.4f, 0.4f });
-						attackUI_Rush_->SetAlpha(1.0f);
 					}
 					else {
 						attackUI_Rush_->SetColor({ 1.0f, 1.0f, 1.0f });
-						attackUI_Rush_->SetAlpha(1.0f);
 					}
+					attackUI_Rush_->SetAlpha(1.0f);
 					attackUI_Rush_->Draw();
 				}
 			}
 		}
+
+		// HPバー
+		player_->DrawSprite(vp_);
+		enemy_->DrawSprite(vp_);
 	}
 
-	// UIPauseの表示（ポーズ中でない場合のみ）
+	// UIPause (ポーズ中でない場合のみ)
 	if (!pause_->IsPaused()) {
 		UIPause_->Draw();
 	}
 
-	// ポーズ画面の描画（最前面）
+	// ポーズ画面 (最前面)
 	if (pause_->IsPaused()) {
-		spCommon_->DrawCommonSetting();
 		pause_->Draw();
 	}
 
-	player_->DrawSprite(vp_);
-	enemy_->DrawSprite(vp_);
-
 	// ポーズ解除後の再生マークフェードアウト描画
 	if (pause_->IsPlayIconFading()) {
-		spCommon_->DrawCommonSetting();
 		pause_->DrawPlayIcon();
 	}
-
-	//------------------------
-
-	objCommon_->skinningDrawCommonSetting();
-	//-----アニメーションの描画開始-----
-
-	player_->DrawAnimation(vp_);
-	enemy_->DrawAnimation(vp_);
-
-	//------------------------------
-
-
-	objCommon_->DrawCommonSetting();
-	//-----3DObjectの描画開始-----
-
-#ifdef _DEBUG
-	obj_->Draw(vp_);
-#endif // _DEBUG
-
-	player_->Draw(vp_);
-	enemy_->Draw(vp_);
-
-	ground_->Draw(vp_);
-
-	//--------------------------
-
-	/// Particleの描画準備
-	ptCommon_->DrawCommonSetting();
-	//------Particleの描画開始-------
-	stageWall_->Draw(Cylinder);
-	player_->DrawParticle(vp_);
-	enemy_->DrawParticle(vp_);
-	//-----------------------------
-
-	//-----線描画-----
-	DrawLine3D::GetInstance()->Draw(vp_);
-	//---------------
-
-	/// ----------------------------------
 
 	/// -------描画処理終了-------
 }
