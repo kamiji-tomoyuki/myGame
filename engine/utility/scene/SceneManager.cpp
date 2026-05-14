@@ -54,6 +54,9 @@ void SceneManager::Update()
 	if (ImGui::Button("GameOverScene") && (transition_->IsEnd() && !transition_->FadeInStart())) {
 		NextSceneReservation("OVER");
 	}
+	if (ImGui::Button("DEBUGScene") && (transition_->IsEnd() && !transition_->FadeInStart())) {
+		NextSceneReservation("PARTICLE_DEBUG");
+	}
 	ImGui::End();
 
 #endif // _DEBUG

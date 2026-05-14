@@ -30,6 +30,7 @@ public:
 	/// 起動
 	/// <returns></returns>
 	bool GetActive() { return isActive_; }
+	void SetActive(bool active) { isActive_ = active; }
 
 	// X,Y,Z軸回りのローカル回転角
 	Vector3 rotation_ = { 0.0f, 0.0f, 0.0f };

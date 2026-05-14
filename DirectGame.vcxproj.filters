@@ -503,6 +503,15 @@
     <ClCompile Include="engine\utility\scene\transOption\GridTransition.cpp">
       <Filter>ソースファイル\myEngine\utility\scene\transOption</Filter>
     </ClCompile>
+    <ClCompile Include="engine\utility\scene\SceneTransitionStates.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\utility\scene\SceneManagerStates.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\scene\debugScene\ParticleDebugScene.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -881,6 +890,11 @@
     <ClInclude Include="engine\utility\scene\transOption\GridTransition.h">
       <Filter>ソースファイル\myEngine\utility\scene\transOption</Filter>
     </ClInclude>
+    <ClInclude Include="engine\utility\scene\ISceneManagerState.h" />
+    <ClInclude Include="engine\utility\scene\SceneManagerStates.h" />
+    <ClInclude Include="engine\utility\scene\ISceneTransitionState.h" />
+    <ClInclude Include="engine\utility\scene\SceneTransitionStates.h" />
+    <ClInclude Include="application\scene\debugScene\ParticleDebugScene.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\particle\Particle.PS.hlsl">

@@ -3,6 +3,7 @@
 #include"GameScene.h"
 #include"GameClearScene.h"
 #include"GameOverScene.h"
+#include"debugScene/ParticleDebugScene.h"
 
 BaseScene* SceneFactory::CreateScene(const std::string& sceneName)
 {
@@ -20,6 +21,9 @@ BaseScene* SceneFactory::CreateScene(const std::string& sceneName)
 	}
 	else if (sceneName == "OVER") {
 		newScene = new GameOverScene();
+	}
+	else if (sceneName == "PARTICLE_DEBUG") {
+		newScene = new ParticleDebugScene();
 	}
 	return newScene;
 }

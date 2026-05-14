@@ -141,6 +141,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\character\player\state\PlayerStateGameOver.cpp" />
     <ClCompile Include="application\character\player\state\PlayerStatePlaying.cpp" />
     <ClCompile Include="application\field\StageManager.cpp" />
+    <ClCompile Include="application\scene\debugScene\ParticleDebugScene.cpp" />
     <ClCompile Include="application\scene\gameScene\Pause\Pause.cpp" />
     <ClCompile Include="application\other\temp\TempObj.cpp" />
     <ClCompile Include="application\character\TitleCharacter.cpp" />
@@ -279,6 +280,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\character\player\state\PlayerStatePlaying.h" />
     <ClInclude Include="application\field\StageManager.h" />
     <ClInclude Include="application\other\CollisionTypeIdDef.h" />
+    <ClInclude Include="application\scene\debugScene\ParticleDebugScene.h" />
     <ClInclude Include="application\scene\gameScene\Pause\Pause.h" />
     <ClInclude Include="application\other\temp\TempObj.h" />
     <ClInclude Include="application\character\TitleCharacter.h" />

@@ -304,6 +304,7 @@ void GameScene::DrawForOffScreen()
 void GameScene::Debug()
 {
 	ImGui::Begin("GameScene:Debug");
+
 	debugCamera_->imgui();
 	LightGroup::GetInstance()->imgui();
 
