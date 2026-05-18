@@ -246,13 +246,12 @@ void Player::UpdateLockOn()
 		};
 
 	float targetRotY = std::atan2(dir.x, dir.z);
-	float targetRotX = -std::atan2(dir.y, std::sqrt(dir.x * dir.x + dir.z * dir.z));
 
 	Vector3 rot = GetCenterRotation();
-	float newRotX = rot.x + NormalizedDiff(targetRotX, rot.x) * 0.2f;
 	float newRotY = rot.y + NormalizedDiff(targetRotY, rot.y) * 0.2f;
 
-	BaseObject::SetRotation({ newRotX, newRotY, rot.z });
+	// X回転（上下）は追従させない
+	BaseObject::SetRotation({ rot.x, newRotY, rot.z });
 	if (followCamera_) { followCamera_->SetStableAngleY(targetRotY); }
 }
 

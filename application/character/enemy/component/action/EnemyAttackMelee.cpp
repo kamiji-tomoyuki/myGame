@@ -1,6 +1,7 @@
 #include "EnemyAttackMelee.h"
 #include "Enemy.h"
 #include "Player.h"
+#include "StageManager.h"
 #include <ParticleEmitter.h>
 #include <cmath>
 
@@ -128,6 +129,10 @@ void EnemyAttackMelee::UpdateCharging(Enemy* enemy, Player* player)
 	chargeVelocity.y = 0.0f;  // 突進はXZ平面のみ
 	Vector3 newPos = enemy->GetCenterPosition() + chargeVelocity;
 	newPos.y = groundY_;       // 地面Y座標に固定
+
+	// ステージ境界内に制限
+	newPos = StageManager::GetInstance()->ClampToStageBounds(newPos);
+
 	enemy->SetWorldPosition(newPos);
 
 	UpdateTrailEffect(enemy);
@@ -195,8 +200,9 @@ void EnemyAttackMelee::Interrupt(Enemy* enemy)
 {
 	// 攻撃中断時に回転をリセット
 	if (enemy) {
+		Vector3 originalRot = enemy->GetOriginalRotation();
 		Vector3 rot = enemy->GetWorldRotation();
-		rot.x = originalRotation_.x;
+		rot.x = originalRot.x;
 		enemy->SetRotation(rot);
 	}
 	phase_ = Phase::kNone;

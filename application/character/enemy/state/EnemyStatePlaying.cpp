@@ -28,24 +28,29 @@ std::unique_ptr<IEnemyState> EnemyStatePlaying::Update(Enemy* enemy)
 	EnemyMove* move = enemy->GetMove();
 	EnemyAttackManager* attackManager = enemy->GetAttackManager();
 
+	// ラッシュ状態チェック
+	hitReaction->CheckPlayerRushStatus(enemy);
+
+	// ノックバック中は専用更新（スタン中より優先して即座に開始させる）
+	if (hitReaction->IsBeingKnockedBack()) {
+		hitReaction->UpdateKnockback(enemy);
+		// ノックバック中もスタン時間は進める
+		if (hitReaction->IsStunned()) {
+			hitReaction->UpdateStun();
+		}
+		return nullptr;
+	}
+
 	// スタン中は行動をスキップ
 	if (hitReaction->IsStunned()) {
 		hitReaction->UpdateStun();
 		return nullptr;
 	}
 
-	// ラッシュ状態チェック
-	hitReaction->CheckPlayerRushStatus(enemy->GetPlayer());
-
-	// ノックバック中は専用更新、通常時は移動＋攻撃
-	if (hitReaction->IsBeingKnockedBack()) {
-		hitReaction->UpdateKnockback(enemy);
-	}
-	else {
-		move->Update(enemy, enemy->GetPlayer());
-		if (attackManager) {
-			attackManager->Update(enemy, enemy->GetPlayer());
-		}
+	// 通常時は移動＋攻撃
+	move->Update(enemy, enemy->GetPlayer());
+	if (attackManager) {
+		attackManager->Update(enemy, enemy->GetPlayer());
 	}
 
 	return nullptr;

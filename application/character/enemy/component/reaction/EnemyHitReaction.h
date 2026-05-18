@@ -15,7 +15,7 @@ public:
 	EnemyHitReaction() = default;
 
 	/// <summary>ラッシュ状態の変化を監視し、終了時のクリーンアップを行う</summary>
-	void CheckPlayerRushStatus(Player* player);
+	void CheckPlayerRushStatus(Enemy* enemy);
 
 	/// <summary>スタンタイマーを進める</summary>
 	void UpdateStun();
@@ -24,7 +24,7 @@ public:
 	void OnRushHit(bool isFinalHit, Enemy* enemy);
 
 	/// <summary>ノックバック開始（EnemyStatePlaying から呼ぶ）</summary>
-	void StartKnockback(Enemy* enemy, Player* player);
+	void StartKnockback(Enemy* enemy, Player* player, bool shouldBounce = false);
 
 	/// <summary>ノックバック更新（EnemyStatePlaying から毎フレーム呼ぶ）</summary>
 	void UpdateKnockback(Enemy* enemy);
@@ -44,7 +44,7 @@ public:
 	bool IsWobbling()         const { return isWobbling_; }
 	Vector3 GetWobbleRotation() const { return wobbleRotation_; }
 
-private:
+	private:
 	// スタン
 	bool  isRushStunned_ = false;
 	int   rushStunTimer_ = 0;
@@ -65,21 +65,25 @@ private:
 	bool     rushFinalHitReceived_ = false;
 	bool     wasRushActive_ = false;
 	uint32_t rushKnockbackTimer_ = 0;
+	bool     isBouncing_ = false;
 
 	Vector3 knockbackDirection_ = { 0.0f, 0.0f, 1.0f };
 	float   knockbackSpeed_ = 0.02f;
 	float   knockbackVerticalVelocity_ = 0.0f;
 	float   knockbackGroundY_ = 0.0f;
 
-	const float    initialKnockbackSpeed_ = 0.35f;
-	const float    knockbackDecay_ = 0.88f;
+	const float    initialKnockbackSpeed_ = 0.8f;
+	const float    knockbackDecay_ = 0.92f;
 	const float    maxTiltAngle_ = 0.5f;
-	const float    knockbackInitialVerticalVelocity_ = 0.22f;
-	const float    knockbackGravity_ = 0.012f;
+	const float    knockbackInitialVerticalVelocity_ = 0.45f;
+	const float    knockbackGravity_ = 0.02f;
 	const uint32_t kMaxRushKnockbackDuration_ = 150;
 
 	const float    kKnockbackDirectionMinLength_ = 0.001f;  // ノックバック方向の有効最小長さ
 	const float    kAirborneThreshold_ = 0.01f;   // 空中判定の高さ閾値
 	const float    kGroundTiltFrequency_ = 0.4f;    // 着地後揺れのサイン周波数
 	const float    kGroundTiltDampingScale_ = 0.5f;    // 着地後揺れの減衰係数
-};
+
+	const float    kBounceFactor_ = 0.5f;          // バウンド時の速度減衰率
+	const float    kMinBounceVelocity_ = 0.05f;    // バウンドを終了する最小速度
+	};

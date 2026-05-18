@@ -1,6 +1,7 @@
 #include "EnemyMove.h"
 #include "Enemy.h"
 #include "Player.h"
+#include "StageManager.h"
 #include <ParticleEmitter.h>
 #include <cmath>
 
@@ -50,6 +51,10 @@ void EnemyMove::Approach(Enemy* enemy, Player* player)
 
         Vector3 newPos = enemy->GetCenterPosition() + velocity_;
         newPos.y = groundY_;  // Y座標を地面に固定
+        
+        // ステージ境界内に制限
+        newPos = StageManager::GetInstance()->ClampToStageBounds(newPos);
+
         enemy->SetWorldPosition(newPos);
     }
 

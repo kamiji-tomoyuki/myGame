@@ -2,23 +2,29 @@
 #include "Enemy.h"
 #include "Player.h"
 #include "EnemyAttackManager.h"
+#include "EnemyAttackMelee.h"
+#include "StageManager.h"
 #include <cmath>
 
-void EnemyHitReaction::CheckPlayerRushStatus(Player* player)
+void EnemyHitReaction::CheckPlayerRushStatus(Enemy* enemy)
 {
+	if (enemy == nullptr) { return; }
+	Player* player = enemy->GetPlayer();
 	if (player == nullptr) { return; }
 
 	bool isRushActive = player->IsRushActive();
 
 	if (wasRushActive_ && !isRushActive) {
 		if (!rushFinalHitReceived_) {
-			isBeingRushed_ = false;
+			// ラッシュが終了し、かつフィニッシュを食らっていなければノックバック終了
+			EndKnockback(enemy);
 		}
 		rushFinalHitReceived_ = false;
 	}
 
 	wasRushActive_ = isRushActive;
 }
+
 
 void EnemyHitReaction::UpdateStun()
 {
@@ -39,8 +45,10 @@ void EnemyHitReaction::OnRushHit(bool isFinalHit, Enemy* enemy)
 	if (isFinalHit) {
 		isRushStunned_ = true;
 		rushStunTimer_ = kRushStunDuration_ * kFinalHitStunMultiplier_;
-		rushFinalHitReceived_ = false;
-		isBeingRushed_ = false;
+		rushFinalHitReceived_ = true; // フィニッシュを受けたフラグを立てる
+
+		// 最後のヒットでノックバック（バウンドあり）を開始
+		StartKnockback(enemy, enemy->GetPlayer(), true);
 	}
 	else {
 		isRushStunned_ = true;
@@ -86,9 +94,10 @@ void EnemyHitReaction::UpdateWobble()
 	wobbleRotation_.x = cos(wobblePhase_ * 0.7f) * kWobbleMaxAngle_ * 0.5f * decay;
 }
 
-void EnemyHitReaction::StartKnockback(Enemy* enemy, Player* player)
+void EnemyHitReaction::StartKnockback(Enemy* enemy, Player* player, bool shouldBounce)
 {
 	isBeingRushed_ = true;
+	isBouncing_ = shouldBounce;
 	rushKnockbackTimer_ = 0;
 	knockbackSpeed_ = initialKnockbackSpeed_;
 	knockbackVerticalVelocity_ = knockbackInitialVerticalVelocity_;
@@ -96,11 +105,17 @@ void EnemyHitReaction::StartKnockback(Enemy* enemy, Player* player)
 
 	if (EnemyAttackManager* mgr = enemy->GetAttackManager()) {
 		mgr->InterruptByRush(enemy);
+		// 現在のアタックを強制停止させる
+		if (auto* melee = mgr->GetMeleeAttack()) { melee->Interrupt(enemy); }
 	}
 
+	// 回転のリセット（本体・モデル両方）
 	Vector3 originalRot = enemy->GetOriginalRotation();
-	Vector3 currentRot = enemy->GetWorldRotation();
-	enemy->SetObjRotation(Vector3(originalRot.x, currentRot.y, originalRot.z));
+	Vector3 worldRot = enemy->GetWorldRotation();
+	worldRot.x = originalRot.x;
+	worldRot.z = originalRot.z;
+	enemy->SetRotation(worldRot);
+	enemy->SetObjRotation(originalRot);
 
 	if (player != nullptr) {
 		Vector3 direction = enemy->GetCenterPosition() - player->GetCenterPosition();
@@ -122,13 +137,26 @@ void EnemyHitReaction::UpdateKnockback(Enemy* enemy)
 
 	Vector3 currentPos = enemy->GetCenterPosition();
 
-	// 縦方向（ノックアップ）
+	// 縦方向（ノックアップ・バウンド）
 	knockbackVerticalVelocity_ -= knockbackGravity_;
 	float newY = currentPos.y + knockbackVerticalVelocity_;
 
 	if (newY <= knockbackGroundY_ && knockbackVerticalVelocity_ <= 0.0f) {
 		newY = knockbackGroundY_;
-		knockbackVerticalVelocity_ = 0.0f;
+
+		if (isBouncing_) {
+			// 下降中に地面に触れたら反転してバウンド
+			knockbackVerticalVelocity_ = -knockbackVerticalVelocity_ * kBounceFactor_;
+
+			// バウンド速度が一定以下なら終了
+			if (knockbackVerticalVelocity_ < kMinBounceVelocity_) {
+				knockbackVerticalVelocity_ = 0.0f;
+				isBouncing_ = false;
+			}
+		}
+		else {
+			knockbackVerticalVelocity_ = 0.0f;
+		}
 	}
 
 	// 水平方向（吹っ飛び）
@@ -138,10 +166,14 @@ void EnemyHitReaction::UpdateKnockback(Enemy* enemy)
 
 	Vector3 newPos = currentPos + horizontalVelocity;
 	newPos.y = newY;
+
+	// ステージ境界内に制限
+	newPos = StageManager::GetInstance()->ClampToStageBounds(newPos);
+
 	enemy->SetWorldPosition(newPos);
 
 	// 回転演出
-	Vector3 currentRot = enemy->GetWorldRotation();
+	Vector3 worldRot = enemy->GetWorldRotation();
 	Vector3 originalRot = enemy->GetOriginalRotation();
 	float   tiltAmount = 0.0f;
 
@@ -154,25 +186,32 @@ void EnemyHitReaction::UpdateKnockback(Enemy* enemy)
 		tiltAmount = sin(static_cast<float>(rushKnockbackTimer_) * kGroundTiltFrequency_) * maxTiltAngle_ * decayFactor * kGroundTiltDampingScale_;
 	}
 
-	Vector3 objRot = currentRot;
-	objRot.x = originalRot.x + tiltAmount;
-	enemy->SetObjRotation(objRot);
+	// 本体を傾ける
+	worldRot.x = originalRot.x + tiltAmount;
+	enemy->SetRotation(worldRot);
+	// モデル側の個別回転はリセットしておく
+	enemy->SetObjRotation(originalRot);
 }
 
 void EnemyHitReaction::EndKnockback(Enemy* enemy)
 {
 	isBeingRushed_ = false;
+	isBouncing_ = false;
 	rushKnockbackTimer_ = 0;
-	knockbackSpeed_ = initialKnockbackSpeed_;
+	knockbackSpeed_ = 0.0f;
 	knockbackVerticalVelocity_ = 0.0f;
 
-	Vector3 pos = enemy->GetCenterPosition();
-	if (pos.y < knockbackGroundY_) {
-		pos.y = knockbackGroundY_;
-		enemy->SetWorldPosition(pos);
-	}
+	if (enemy) {
+		Vector3 pos = enemy->GetCenterPosition();
+		if (pos.y < knockbackGroundY_) {
+			pos.y = knockbackGroundY_;
+			enemy->SetWorldPosition(pos);
+		}
 
-	Vector3 currentRot = enemy->GetWorldRotation();
-	Vector3 originalRot = enemy->GetOriginalRotation();
-	enemy->SetObjRotation(Vector3(originalRot.x, currentRot.y, originalRot.z));
+		// 回転を最終リセット
+		Vector3 currentRot = enemy->GetWorldRotation();
+		Vector3 originalRot = enemy->GetOriginalRotation();
+		enemy->SetRotation(Vector3(originalRot.x, currentRot.y, originalRot.z));
+		enemy->SetObjRotation(originalRot);
+	}
 }

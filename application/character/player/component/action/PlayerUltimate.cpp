@@ -49,6 +49,10 @@ void PlayerUltimate::Start(Player* player, Enemy* enemy)
     enemy_ = enemy;   // ★ 毎フレーム追従するために保持
 
     startPos_ = player->GetCenterPosition();
+    // 通常の立ち位置（0.0f）を基準にする
+    const float kGroundY = 0.0f;
+    startPos_.y = kGroundY; 
+
     peakPos_ = startPos_;
     peakPos_.y += kRiseHeight_;
 
@@ -76,8 +80,11 @@ void PlayerUltimate::Update(Player* player, Enemy* enemy)
 
     timer_++;
 
-    // ★ 全フェーズ共通：毎フレーム敵の現在位置から向きを再計算して追従
-    RecalcTarget(player);
+    // ★ 衝撃発生前（Dive終了まで）のみターゲット位置を更新して追従する
+    if (phase_ == Phase::kRise || phase_ == Phase::kCharge || phase_ == Phase::kDive) {
+        RecalcTarget(player);
+    }
+    
     FaceTarget(player);
 
     switch (phase_) {
@@ -278,6 +285,9 @@ void PlayerUltimate::UpdateRecover(Player* player)
 {
     float t = std::clamp(static_cast<float>(timer_) / kRecoverDuration_, 0.0f, 1.0f);
 
+    // 座標の固定（Y軸のずれ防止）
+    player->SetTranslation(targetPos_);
+
     const auto& arms = player->GetArms();
 
     // Impact の突き出し位置 → 初期位置 へ線形補間
@@ -314,6 +324,7 @@ void PlayerUltimate::ApplyAreaDamage(Player* player)
     float dz = enemyPos.z - targetPos_.z;
     if (dx * dx + dz * dz <= kAreaRadius_ * kAreaRadius_) {
         enemy_->TakeDamage(static_cast<uint32_t>(kAreaDamage_));
+        enemy_->OnRushHit(true);  // 特殊リアクション発動
     }
 }
 

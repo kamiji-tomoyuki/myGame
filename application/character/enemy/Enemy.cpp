@@ -219,24 +219,33 @@ void Enemy::HandleCollisionWithPlayer(Player* player)
 	Vector3 enemyPos = GetCenterPosition();
 	Vector3 playerPos = player->GetCenterPosition();
 	Vector3 direction = enemyPos - playerPos;
-	float   distance = direction.Length();
+	
+	// 水平方向の距離と方向を計算
+	Vector3 directionXZ = { direction.x, 0.0f, direction.z };
+	float   distanceXZ = directionXZ.Length();
 
 	float totalRadius = GetRadius() + player->GetRadius();
-	if (distance < totalRadius && distance > 0.0f) {
-		direction = direction.Normalize();
-		float overlap = totalRadius - distance;
+	
+	// Y軸の重なりも考慮しつつ、押し出しは水平のみにする
+	float distanceY = std::abs(direction.y);
+	float heightSum = GetRadius() + player->GetRadius(); // 簡易的に半径を高さとして使用
+
+	if (distanceXZ < totalRadius && distanceXZ > 0.0f && distanceY < heightSum) {
+		directionXZ = directionXZ.Normalize();
+		float overlap = totalRadius - distanceXZ;
 
 		if (attackManager_ && attackManager_->IsAttacking()) {
 			overlap *= kAttackOverlapMultiplier_;
 		}
 
-		Vector3 pushVector = direction * overlap;
+		Vector3 pushVector = directionXZ * overlap;
+		// プレイヤーを水平方向に押し戻す
 		player->SetTranslation(playerPos - pushVector);
 
 		Vector3 playerVelocity = player->GetVelocity();
-		float   dotProduct = playerVelocity.Dot(-direction);
+		float   dotProduct = playerVelocity.Dot(-directionXZ);
 		if (dotProduct > 0) {
-			Vector3 projectedVelocity = -direction * dotProduct;
+			Vector3 projectedVelocity = -directionXZ * dotProduct;
 			playerVelocity -= projectedVelocity;
 			player->SetVelocity(playerVelocity);
 		}
