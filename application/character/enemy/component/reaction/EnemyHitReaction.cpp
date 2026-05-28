@@ -61,6 +61,25 @@ void EnemyHitReaction::OnRushHit(bool isFinalHit, Enemy* enemy)
 	}
 }
 
+void EnemyHitReaction::Reset(Enemy* enemy)
+{
+	// スタンリセット
+	isRushStunned_ = false;
+	rushStunTimer_ = 0;
+
+	// 揺れリセット
+	isWobbling_ = false;
+	wobbleTimer_ = 0;
+	wobblePhase_ = 0.0f;
+	wobbleRotation_ = { 0.0f, 0.0f, 0.0f };
+
+	// ノックバック終了
+	EndKnockback(enemy);
+
+	wasRushActive_ = false;
+	rushFinalHitReceived_ = false;
+}
+
 void EnemyHitReaction::OnHit()
 {
 	isWobbling_ = true;

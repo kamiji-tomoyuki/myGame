@@ -3,9 +3,9 @@
 #include<numbers>
 #include <cmath>
 
-float LeroE(const float& start, const float& end, float t) { return (1.0f - t) * start + end * t; }
+float LerpE(const float& start, const float& end, float t) { return (1.0f - t) * start + end * t; }
 
-Vector3 LeroE(const Vector3& start, const Vector3& end, float t) {
+Vector3 LerpE(const Vector3& start, const Vector3& end, float t) {
 	Vector3 result;
 	result.x = (1.0f - t) * start.x + end.x * t;
 	result.y = (1.0f - t) * start.y + end.y * t;
@@ -13,7 +13,7 @@ Vector3 LeroE(const Vector3& start, const Vector3& end, float t) {
 	return result;
 }
 
-Vector2 LeroE(const Vector2& start, const Vector2& end, float t) {
+Vector2 LerpE(const Vector2& start, const Vector2& end, float t) {
 	Vector2 result;
 	result.x = (1.0f - t) * start.x + end.x * t;
 	result.y = (1.0f - t) * start.y + end.y * t;
@@ -51,8 +51,8 @@ Vector3 SLerpE(const Vector3& start, const Vector3& end, float t) {
 	// ベクトルの長さはstartとendの長さを線形補間
 	float length1 = (start).Length();
 	float length2 = (end).Length();
-	// LeroEで補間ベクトルの長さを求める
-	float length = LeroE(length1, length2, t);
+	// LerpEで補間ベクトルの長さを求める
+	float length = LerpE(length1, length2, t);
 	// 長さを反映
 	return NormalizeVector * length;
 }
@@ -125,21 +125,21 @@ template<typename T> T EaseAmplitudeScale(const T& initScale, const float& easeT
 template<typename T> T EaseInSine(const T& start, const T& end, float x, float totalX) {
 	float t = x / totalX;
 	float easeT = 1.0f - std::cosf((t * std::numbers::pi_v<float>) / 2.0f);
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseOutSine 関数
 template<typename T> T EaseOutSine(const T& start, const T& end, float x, float totalX) {
 	float t = x / totalX;
 	float easeT = std::sinf((t * std::numbers::pi_v<float>) / 2.0f);
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseInOutSine 関数
 template<typename T> T EaseInOutSine(const T& start, const T& end, float x, float totalX) {
 	float t = x / (totalX / 2.0f);
 	float easeT = 0.5f * (1.0f - std::cosf(t * std::numbers::pi_v<float>));
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 /// EaseInBack
@@ -148,7 +148,7 @@ T EaseInBack(const T& start, const T& end, float x, float totalX) {
 	const float s = 1.70158f; // オーバーシュートの量 (調整可能)
 	float t = x / totalX;
 	float easeT = t * t * ((s + 1) * t - s);
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 /// EaseOutBack
@@ -157,7 +157,7 @@ T EaseOutBack(const T& start, const T& end, float x, float totalX) {
 	const float s = 1.70158f; // オーバーシュートの量 (調整可能)
 	float t = x / totalX - 1;
 	float easeT = (t * t * ((s + 1) * t + s)) + 1;
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 
@@ -176,21 +176,21 @@ T EaseInOutBack(const T& start, const T& end, float x, float totalX) {
 		easeT = 0.5f * ((t * t * ((s + 1) * t + s)) + 2);
 	}
 
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseInQuint 関数
 template<typename T> T EaseInQuint(const T& start, const T& end, float x, float totalX) {
 	float t = x / totalX;
 	float easeT = t * t * t * t * t;
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseOutQuint 関数
 template<typename T> T EaseOutQuint(const T& start, const T& end, float x, float totalX) {
 	float t = x / totalX;
 	float easeT = 1.0f - std::powf(1.0f - t, 5);
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseInOutQuint 関数
@@ -204,21 +204,21 @@ template<typename T> T EaseInOutQuint(const T& start, const T& end, float x, flo
 		t -= 2.0f;
 		easeT = 0.5f * (std::powf(t, 5) + 2.0f);
 	}
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseInCirc 関数
 template<typename T> T EaseInCirc(const T& start, const T& end, float x, float totalX) {
 	float t = x / totalX;
 	float easeT = 1.0f - std::sqrtf(1.0f - std::powf(t, 2));
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseOutCirc 関数
 template<typename T> T EaseOutCirc(const T& start, const T& end, float x, float totalX) {
 	float t = x / totalX;
 	float easeT = std::sqrtf(1.0f - std::powf(t - 1.0f, 2));
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseInOutCirc 関数
@@ -232,21 +232,21 @@ template<typename T> T EaseInOutCirc(const T& start, const T& end, float x, floa
 		t -= 2.0f;
 		easeT = 0.5f * (std::sqrtf(1.0f - std::powf(t, 2)) + 1.0f);
 	}
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseInExpo 関数
 template<typename T> T EaseInExpo(const T& start, const T& end, float x, float totalX) {
 	float t = x / totalX;
 	float easeT = (t == 0.0f) ? 0.0f : std::powf(2.0f, 10.0f * (t - 1.0f));
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseOutExpo 関数
 template<typename T> T EaseOutExpo(const T& start, const T& end, float x, float totalX) {
 	float t = x / totalX;
 	float easeT = (t == 1.0f) ? 1.0f : 1.0f - std::powf(2.0f, -10.0f * t);
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseInOutExpo 関数
@@ -260,21 +260,21 @@ template<typename T> T EaseInOutExpo(const T& start, const T& end, float x, floa
 		t -= 1.0f;
 		easeT = 0.5f * (2.0f - std::powf(2.0f, -10.0f * t));
 	}
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseInCubic 関数
 template<typename T> T EaseInCubic(const T& start, const T& end, float x, float totalX) {
 	float t = x / totalX;
 	float easeT = t * t * t;
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseOutCubic 関数
 template<typename T> T EaseOutCubic(const T& start, const T& end, float x, float totalX) {
 	float t = x / totalX;
 	float easeT = 1.0f - std::powf(1.0f - t, 3);
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseInOutCubic 関数
@@ -288,21 +288,21 @@ template<typename T> T EaseInOutCubic(const T& start, const T& end, float x, flo
 		t -= 2.0f;
 		easeT = 0.5f * (std::powf(t, 3) + 2.0f);
 	}
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseInQuad 関数
 template<typename T> T EaseInQuad(const T& start, const T& end, float x, float totalX) {
 	float t = x / totalX;
 	float easeT = t * t;
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseOutQuad 関数
 template<typename T> T EaseOutQuad(const T& start, const T& end, float x, float totalX) {
 	float t = x / totalX;
 	float easeT = 1.0f - (1.0f - t) * (1.0f - t);
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseInOutQuad 関数
@@ -316,21 +316,21 @@ template<typename T> T EaseInOutQuad(const T& start, const T& end, float x, floa
 		t -= 1.0f;
 		easeT = -0.5f * (t * (t - 2.0f) - 1.0f);
 	}
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseInQuart 関数
 template<typename T> T EaseInQuart(const T& start, const T& end, float x, float totalX) {
 	float t = x / totalX;
 	float easeT = t * t * t * t;
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseOutQuart 関数
 template<typename T> T EaseOutQuart(const T& start, const T& end, float x, float totalX) {
 	float t = x / totalX;
 	float easeT = 1.0f - std::powf(1.0f - t, 4);
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseInOutQuart 関数
@@ -344,7 +344,7 @@ template<typename T> T EaseInOutQuart(const T& start, const T& end, float x, flo
 		t -= 2.0f;
 		easeT = -0.5f * (std::powf(t, 4) - 2.0f);
 	}
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 //バウンス補助関数
@@ -376,14 +376,14 @@ float BounceEaseOut(float x) {
 template<typename T> T EaseInBounce(const T& start, const T& end, float x, float totalX) {
 	float t = 1.0f - (x / totalX);
 	float easeT = 1.0f - BounceEaseOut(t);
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseOutBounce 関数
 template<typename T> T EaseOutBounce(const T& start, const T& end, float x, float totalX) {
 	float t = x / totalX;
 	float easeT = BounceEaseOut(t);
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 // EaseInOutBounce 関数
@@ -397,7 +397,7 @@ template<typename T> T EaseInOutBounce(const T& start, const T& end, float x, fl
 		t -= 1.0f;
 		easeT = 0.5f * BounceEaseOut(t) + 0.5f;
 	}
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 /// EaseInElastic
@@ -411,7 +411,7 @@ T EaseInElastic(const T& start, const T& end, float x, float totalX) {
 	float s = p / 4.0f; // calculated shift
 	float easeT = -std::pow(2.0f, 10.0f * (t - 1)) * std::sin((t - 1 - s) * (2 * std::numbers::pi_v<float>) / p);
 
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 /// EaseOutElastic
@@ -425,7 +425,7 @@ T EaseOutElastic(const T& start, const T& end, float x, float totalX) {
 	float s = p / 4.0f; // calculated shift
 	float easeT = std::pow(2.0f, -10.0f * t) * std::sin((t - s) * (2 * std::numbers::pi_v<float>) / p) + 1.0f;
 
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 
@@ -448,7 +448,7 @@ T EaseInOutElastic(const T& start, const T& end, float x, float totalX) {
 		easeT = std::pow(2.0f, -10.0f * t) * std::sin((t - s) * (2 * std::numbers::pi_v<float>) / p) * 0.5f + 1.0f;
 	}
 
-	return LeroE(start, end, easeT);
+	return LerpE(start, end, easeT);
 }
 
 //// イージングタイムコントール

@@ -69,6 +69,9 @@ void Enemy::Init()
 	trailEffect_ = std::make_unique<ParticleEmitter>();
 	trailEffect_->Initialize("enemyTrail", "debug/ringPlane.obj");
 
+	powerUpEffect_ = std::make_unique<ParticleEmitter>();
+	powerUpEffect_->Initialize("EnemyPowerUp", "debug/ringPlane.obj");
+
 	// --- コンポーネントへのエフェクト設定 ---
 	move_->SetTrailEmitter(trailEffect_.get());
 	move_->SetLastTrailPosition(BaseObject::GetWorldPosition());
@@ -135,6 +138,7 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 	obj3d_->Update(BaseObject::GetWorldTransform(), vp);
 
 	trailEffect_->Update(vp);
+	powerUpEffect_->Update(vp);
 
 	// HPバー更新
 	float hpRatio = static_cast<float>(HP_) / static_cast<float>(kMaxHP_);
@@ -173,7 +177,7 @@ void Enemy::OnRushHit(bool isFinalHit)
 // =============================================================
 void Enemy::TakeDamage(uint32_t damage)
 {
-	if (!isAlive_) { return; }
+	if (!isAlive_ || isInvincible_) { return; }
 
 	hitReaction_->OnHit();
 
@@ -317,7 +321,8 @@ void Enemy::DrawParticle(const ViewProjection& viewProjection)
 		}
 	}
 	trailEffect_->Draw(Ring);
-}
+	powerUpEffect_->Draw(Ring);
+	}
 
 void Enemy::DrawSprite(const ViewProjection& viewProjection)
 {

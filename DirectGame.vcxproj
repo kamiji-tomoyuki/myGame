@@ -120,6 +120,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\character\enemy\state\EnemyStateGameClear.cpp" />
     <ClCompile Include="application\character\enemy\state\EnemyStateGameOver.cpp" />
     <ClCompile Include="application\character\enemy\state\EnemyStatePlaying.cpp" />
+    <ClCompile Include="application\character\enemy\state\EnemyStateTransformation.cpp" />
     <ClCompile Include="application\character\player\component\action\PlayerAttack.cpp" />
     <ClCompile Include="application\character\player\component\action\PlayerDodge.cpp" />
     <ClCompile Include="application\character\player\component\action\PlayerMove.cpp" />
@@ -255,6 +256,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\character\enemy\state\EnemyStateGameClear.h" />
     <ClInclude Include="application\character\enemy\state\EnemyStateGameOver.h" />
     <ClInclude Include="application\character\enemy\state\EnemyStatePlaying.h" />
+    <ClInclude Include="application\character\enemy\state\EnemyStateTransformation.h" />
     <ClInclude Include="application\character\enemy\state\IEnemyState.h" />
     <ClInclude Include="application\character\player\component\action\PlayerAttack.h" />
     <ClInclude Include="application\character\player\component\action\PlayerDodge.h" />

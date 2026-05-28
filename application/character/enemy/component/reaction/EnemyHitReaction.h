@@ -38,6 +38,9 @@ public:
 	/// <summary>揺れの更新</summary>
 	void UpdateWobble();
 
+	/// <summary>被弾リアクション（揺れ・スタン・ノックバック）を全てリセットする</summary>
+	void Reset(Enemy* enemy);
+
 	// --- ゲッター ---
 	bool IsStunned()          const { return isRushStunned_; }
 	bool IsBeingKnockedBack() const { return isBeingRushed_; }

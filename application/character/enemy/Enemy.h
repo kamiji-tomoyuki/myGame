@@ -75,7 +75,10 @@ public:
 	uint32_t         GetSerialNumber()    const { return serialNumber_; }
 	static uint32_t  GetNextSerialNumber() { return nextSerialNumber_; }
 	uint32_t         GetHP()              const { return HP_; }
+	uint32_t         GetMaxHP()           const { return kMaxHP_; }
 	bool             GetIsAlive()         const { return isAlive_; }
+	bool             GetIsPhase2()        const { return isPhase2_; }
+	bool             GetIsInvincible()    const { return isInvincible_; }
 	GameState        GetGameState()       const { return gameState_; }
 	bool             GetIsPaused()        const { return isPaused_; }
 	Vector3          GetVelocity()        const { return move_ ? move_->GetVelocity() : Vector3{}; }
@@ -86,6 +89,7 @@ public:
 	EnemyHitReaction* GetHitReaction()   const { return hitReaction_.get(); }
 	EnemyMove* GetMove()          const { return move_.get(); }
 	Player* GetPlayer()        const { return player_; }
+	ParticleEmitter* GetPowerUpEffect() const { return powerUpEffect_.get(); }
 	Vector3             GetObjRotation()   const;
 	Vector3             GetOriginalRotation() const { return originalRotation_; }
 
@@ -93,6 +97,8 @@ public:
 	static void SetSerialNumber(int num) { nextSerialNumber_ = num; }
 	void SetTranslation(const Vector3& t) { transform_.translation_ = t; }
 	void SetIsStart(bool isStart) { isStart_ = isStart; }
+	void SetIsPhase2(bool isPhase2) { isPhase2_ = isPhase2; }
+	void SetIsInvincible(bool isInvincible) { isInvincible_ = isInvincible; }
 	void SetGameState(GameState state) { gameState_ = state; }
 	void SetVelocity(const Vector3& v) { if (move_) { move_->SetVelocity(v); } }
 	void SetIsAlive(bool alive) { isAlive_ = alive; }
@@ -128,12 +134,15 @@ private:
 
 	// --- パーティクル ---
 	std::unique_ptr<ParticleEmitter> trailEffect_;
+	std::unique_ptr<ParticleEmitter> powerUpEffect_;
 
 	// --- State Pattern ---
 	std::unique_ptr<IEnemyState> currentState_;
 
 	// --- ステータス ---
 	bool      isAlive_ = true;
+	bool      isPhase2_ = false;
+	bool      isInvincible_ = false;
 	GameState gameState_ = GameState::kPlaying;
 
 	// --- デバッグ用一時停止 ---

@@ -84,7 +84,7 @@ private:
 
 	// 攻撃準備タイマー
 	uint32_t attackPreparationTimer_ = 0;
-	const uint32_t kAttackPreparationTime_ = 180;
+	uint32_t kAttackPreparationTime_ = 180;
 
 	// 攻撃範囲の閾値
 	const float kMeleeAttackRange_ = 17.0f;

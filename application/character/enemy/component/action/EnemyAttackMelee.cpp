@@ -51,6 +51,13 @@ void EnemyAttackMelee::Start(Enemy* enemy, Player* player)
 
 	ApplyVariables();
 
+	if (enemy->GetIsPhase2()) {
+		maxChargeCount_ = 2;
+	}
+	else {
+		maxChargeCount_ = 1;
+	}
+
 	phase_ = Phase::kPreparation;
 	isComplete_ = false;
 	preparationTimer_ = 0;
@@ -167,6 +174,18 @@ void EnemyAttackMelee::UpdateRecovery(Enemy* enemy)
 			phase_ = Phase::kPreparation;
 			preparationTimer_ = kPreparationTime_ - kNextChargeDelay_;
 			hitRegistered_ = false;
+
+			// 再ターゲット
+			Player* player = enemy->GetPlayer();
+			if (player) {
+				Vector3 targetPos = player->GetCenterPosition();
+				Vector3 currentPos = enemy->GetCenterPosition();
+				chargeDirection_ = (targetPos - currentPos).Normalize();
+				chargeStartPos_ = currentPos;
+
+				float targetRotationY = std::atan2(chargeDirection_.x, chargeDirection_.z);
+				enemy->SetRotationY(targetRotationY);
+			}
 		}
 		else {
 			phase_ = Phase::kNone;

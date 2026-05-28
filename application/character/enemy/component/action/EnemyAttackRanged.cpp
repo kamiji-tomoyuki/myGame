@@ -50,13 +50,12 @@ void EnemyAttackRanged::Start(Enemy* enemy, Player* player)
 
 	ApplyVariables();
 
+	if (enemy->GetIsPhase2()) {
+		kWarningDuration_ /= 2;
+		kAttackCount_ *= 2;
+	}
+
 	phase_ = Phase::kPreparation;
-	isComplete_ = false;
-	preparationTimer_ = 0;
-	attackTimer_ = 0;
-	recoveryTimer_ = 0;
-	attackPhase_ = 0;
-	attackInstances_.clear();
 
 	// 元の回転を保存
 	originalRotation_ = enemy->GetCenterRotation();

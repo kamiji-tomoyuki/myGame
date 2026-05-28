@@ -44,7 +44,13 @@ void EnemyAttackManager::Update(Enemy* enemy, Player* player)
 
 	if (currentAttackType_ == AttackType::kNone) {
 		attackPreparationTimer_++;
-		if (attackPreparationTimer_ >= kAttackPreparationTime_) {
+
+		uint32_t effectivePrepTime = kAttackPreparationTime_;
+		if (enemy->GetIsPhase2()) {
+			effectivePrepTime = static_cast<uint32_t>(kAttackPreparationTime_ * 0.7f);
+		}
+
+		if (attackPreparationTimer_ >= effectivePrepTime) {
 			SelectAndStartAttack(enemy, player);
 		}
 		return;
@@ -111,7 +117,19 @@ void EnemyAttackManager::SelectAndStartAttack(Enemy* enemy, Player* player)
 	float distanceToPlayer =
 		(player->GetCenterPosition() - enemy->GetCenterPosition()).Length();
 
+	// 距離に関わらずランダムで攻撃を選択 (近距離なら近接優先だが、遠距離も混ぜる)
+	// 50%の確率で切り替える
+	bool useMelee = false;
 	if (distanceToPlayer <= kMeleeAttackRange_) {
+		// 近距離なら70%で近接
+		useMelee = (rand() % 100 < 70);
+	}
+	else {
+		// 遠距離なら30%で近接(突進してくる)
+		useMelee = (rand() % 100 < 30);
+	}
+
+	if (useMelee) {
 		currentAttackType_ = AttackType::kMelee;
 		meleeAttack_->Start(enemy, player);
 	}

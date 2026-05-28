@@ -1,6 +1,7 @@
 #include "EnemyStatePlaying.h"
 #include "EnemyStateGameOver.h"
 #include "EnemyStateGameClear.h"
+#include "EnemyStateTransformation.h"
 #include "Enemy.h"
 #include "EnemyMove.h"
 #include "EnemyHitReaction.h"
@@ -22,6 +23,11 @@ std::unique_ptr<IEnemyState> EnemyStatePlaying::Update(Enemy* enemy)
 	// ゲームクリア遷移チェック
 	if (enemy->GetGameState() == Enemy::GameState::kGameClear) {
 		return std::make_unique<EnemyStateGameClear>();
+	}
+
+	// 強化演出遷移チェック
+	if (enemy->GetHP() <= enemy->GetMaxHP() / 2 && !enemy->GetIsPhase2()) {
+		return std::make_unique<EnemyStateTransformation>();
 	}
 
 	EnemyHitReaction* hitReaction = enemy->GetHitReaction();
