@@ -70,6 +70,7 @@ void Player::Init()
 
 	trailEffect_ = std::make_unique<ParticleEmitter>();
 	trailEffect_->Initialize("playerTrail", "debug/ringPlane.obj");
+	trailEffect_->SetActive(false);
 
 	// =============================================================
 	// サブシステムの生成・初期化

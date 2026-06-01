@@ -68,9 +68,11 @@ void Enemy::Init()
 
 	trailEffect_ = std::make_unique<ParticleEmitter>();
 	trailEffect_->Initialize("enemyTrail", "debug/ringPlane.obj");
+	trailEffect_->SetActive(false);
 
 	powerUpEffect_ = std::make_unique<ParticleEmitter>();
 	powerUpEffect_->Initialize("EnemyPowerUp", "debug/ringPlane.obj");
+	powerUpEffect_->SetActive(false);
 
 	// --- コンポーネントへのエフェクト設定 ---
 	move_->SetTrailEmitter(trailEffect_.get());
@@ -159,9 +161,6 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 void Enemy::UpdateStartEffect()
 {
 	effect_->UpdateStartEffect(this);
-	if (vp_) {
-		trailEffect_->Update(*vp_);
-	}
 }
 
 // =============================================================
@@ -315,14 +314,9 @@ void Enemy::DrawAnimation(const ViewProjection& viewProjection)
 
 void Enemy::DrawParticle(const ViewProjection& viewProjection)
 {
-	if (attackManager_) {
-		if (auto* meleeAttack = attackManager_->GetMeleeAttack()) {
-			meleeAttack->DrawTrailEffect();
-		}
-	}
 	trailEffect_->Draw(Ring);
 	powerUpEffect_->Draw(Ring);
-	}
+}
 
 void Enemy::DrawSprite(const ViewProjection& viewProjection)
 {

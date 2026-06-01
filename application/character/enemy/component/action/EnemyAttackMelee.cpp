@@ -9,8 +9,6 @@ const std::string EnemyAttackMelee::kGroupName_ = "EnemyAttackMelee";
 
 EnemyAttackMelee::EnemyAttackMelee()
 {
-	trailEffect_ = std::make_unique<ParticleEmitter>();
-
 	variables_ = GlobalVariables::GetInstance();
 
 	if (!variables_->GroupExists(kGroupName_)) {
@@ -40,9 +38,6 @@ void EnemyAttackMelee::Initialize()
 	preparationTimer_ = 0;
 	chargingTimer_ = 0;
 	recoveryTimer_ = 0;
-
-	// 軌跡エフェクトの初期化
-	trailEffect_->Initialize("enemyTrail", "debug/plane.obj");
 }
 
 void EnemyAttackMelee::Start(Enemy* enemy, Player* player)
@@ -79,11 +74,6 @@ void EnemyAttackMelee::Start(Enemy* enemy, Player* player)
 	// プレイヤーの方向を向く
 	float targetRotationY = std::atan2(chargeDirection_.x, chargeDirection_.z);
 	enemy->SetRotationY(targetRotationY);
-
-	// 軌跡エフェクトの初期位置設定
-	Vector3 initialFootPos = enemy->GetWorldPosition();
-	initialFootPos.y += kFootOffsetY_;
-	lastTrailPosition_ = initialFootPos;
 }
 
 void EnemyAttackMelee::Update(Enemy* enemy, Player* player)
@@ -110,6 +100,30 @@ void EnemyAttackMelee::UpdatePreparation(Enemy* enemy)
 	preparationTimer_++;
 
 	enemy->SetVelocity(Vector3(0.0f, 0.0f, 0.0f));
+
+	// プレイヤーを追跡（Y軸旋回）
+	Player* player = enemy->GetPlayer();
+	if (player) {
+		Vector3 targetPos = player->GetCenterPosition();
+		Vector3 currentPos = enemy->GetCenterPosition();
+		Vector3 toPlayer = (targetPos - currentPos).Normalize();
+		float targetRotationY = std::atan2(toPlayer.x, toPlayer.z);
+
+		float currentRotY = enemy->GetWorldRotation().y;
+		float angleDiff = targetRotationY - currentRotY;
+
+		// 最短角計算
+		while (angleDiff > 3.14159265f) { angleDiff -= 6.2831853f; }
+		while (angleDiff < -3.14159265f) { angleDiff += 6.2831853f; }
+
+		// 旋回スピード
+		float newRotY = currentRotY + angleDiff * 0.15f;
+		enemy->SetRotationY(newRotY);
+
+		// 突進開始座標と方向を常に最新に更新
+		chargeDirection_ = { std::sin(newRotY), 0.0f, std::cos(newRotY) };
+		chargeStartPos_ = currentPos;
+	}
 
 	if (preparationTimer_ < kPreparationTime_) {
 		float preparationProgress = static_cast<float>(preparationTimer_) / static_cast<float>(kPreparationTime_);
@@ -142,7 +156,6 @@ void EnemyAttackMelee::UpdateCharging(Enemy* enemy, Player* player)
 
 	enemy->SetWorldPosition(newPos);
 
-	UpdateTrailEffect(enemy);
 	CheckCollision(player);
 
 	if (chargingTimer_ >= kChargingTime_) {
@@ -175,17 +188,8 @@ void EnemyAttackMelee::UpdateRecovery(Enemy* enemy)
 			preparationTimer_ = kPreparationTime_ - kNextChargeDelay_;
 			hitRegistered_ = false;
 
-			// 再ターゲット
-			Player* player = enemy->GetPlayer();
-			if (player) {
-				Vector3 targetPos = player->GetCenterPosition();
-				Vector3 currentPos = enemy->GetCenterPosition();
-				chargeDirection_ = (targetPos - currentPos).Normalize();
-				chargeStartPos_ = currentPos;
-
-				float targetRotationY = std::atan2(chargeDirection_.x, chargeDirection_.z);
-				enemy->SetRotationY(targetRotationY);
-			}
+			// 座標だけ最新にしておく。向きの旋回は UpdatePreparation に委譲する
+			chargeStartPos_ = enemy->GetCenterPosition();
 		}
 		else {
 			phase_ = Phase::kNone;
@@ -227,35 +231,6 @@ void EnemyAttackMelee::Interrupt(Enemy* enemy)
 	phase_ = Phase::kNone;
 	isComplete_ = true;
 	chargeCount_ = 0;
-}
-
-void EnemyAttackMelee::UpdateTrailEffect(Enemy* enemy)
-{
-	if (enemy == nullptr) return;
-
-	Vector3 currentPos = enemy->GetCenterPosition();
-
-	// 足元の位置を計算
-	Vector3 footPosition = currentPos;
-	footPosition.y += kFootOffsetY_;
-
-	float distanceMoved = (footPosition - lastTrailPosition_).Length();
-
-	// 一定距離移動したらパーティクルを発生
-	if (distanceMoved >= trailEmitDistance_) {
-		// 移動している場合のみパーティクルを発生
-		Vector3 velocity = enemy->GetVelocity();
-		if (velocity.Length() > kTrailVelocityMinLength_) {
-			trailEffect_->SetPosition(footPosition);
-			trailEffect_->SetActive(false);
-		}
-		lastTrailPosition_ = footPosition;
-	}
-}
-
-void EnemyAttackMelee::DrawTrailEffect()
-{
-	trailEffect_->Draw(Normal);
 }
 
 // =============================================================

@@ -41,16 +41,6 @@ public:
 	/// </summary>
 	void Interrupt(Enemy* enemy);
 
-	/// <summary>
-	/// 軌跡エフェクト更新
-	/// </summary>
-	void UpdateTrailEffect(Enemy* enemy);
-
-	/// <summary>
-	/// 軌跡エフェクト描画
-	/// </summary>
-	void DrawTrailEffect();
-
 public:
 	// Getter
 	bool IsComplete() const { return isComplete_; }
@@ -101,11 +91,7 @@ private:
 	// 突進中のY座標固定（地面に張り付かせる）
 	float groundY_ = 0.0f;
 
-	std::unique_ptr<ParticleEmitter> trailEffect_;
-	Vector3 lastTrailPosition_ = { 0.0f, 0.0f, 0.0f };
-	float trailEmitDistance_ = 0.5f;
 	const float kFootOffsetY_ = -0.8f;
-	const float kTrailVelocityMinLength_ = 0.01f;  // トレイル発生の最小速度
 
 	GlobalVariables* variables_ = nullptr;
 	static const std::string kGroupName_;

@@ -20,9 +20,14 @@ public:
     float   GetShortDistance() const { return shortDistance_; }
     void    SetVelocity(const Vector3& v) { velocity_ = v; }
     void    SetTrailEmitter(ParticleEmitter* emitter) { trailEffect_ = emitter; }
-    void    SetLastTrailPosition(const Vector3& pos) { lastTrailPosition_ = pos; }
+    void SetLastTrailPosition(const Vector3& pos) { lastTrailPosition_ = pos; }
 
-private:
+    /// <summary>
+    /// 軌跡エフェクトを強制停止する
+    /// </summary>
+    void StopTrail();
+
+    private:
     void Approach(Enemy* enemy, Player* player);
     void RecoverRotation(Enemy* enemy);
     void UpdateTrailEffect(const Vector3& currentWorldPos);

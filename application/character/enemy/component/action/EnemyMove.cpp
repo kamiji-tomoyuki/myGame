@@ -9,6 +9,12 @@ void EnemyMove::Update(Enemy* enemy, Player* player)
 {
     if (player == nullptr) { return; }
 
+    // 攻撃中は移動・回転を行わない（各攻撃コンポーネントが制御するため）
+    if (enemy->IsAttacking()) {
+        StopTrail();
+        return; 
+    }
+
     // 初回フレームで地面Y座標を記録する
     if (!groundYInitialized_) {
         groundY_ = enemy->GetCenterPosition().y;
@@ -18,6 +24,13 @@ void EnemyMove::Update(Enemy* enemy, Player* player)
     Approach(enemy, player);
     RecoverRotation(enemy);
     UpdateTrailEffect(enemy->GetCenterPosition());
+}
+
+void EnemyMove::StopTrail()
+{
+    if (trailEffect_) {
+        trailEffect_->SetActive(false);
+    }
 }
 
 void EnemyMove::Approach(Enemy* enemy, Player* player)

@@ -25,6 +25,11 @@ void EnemyStateTransformation::Enter(Enemy* enemy)
 {
 	enemy->SetIsInvincible(true);
 	
+	// 軌跡を停止
+	if (auto* move = enemy->GetMove()) {
+		move->StopTrail();
+	}
+
 	// 被弾リアクションを確実にリセット
 	if (auto* hitReaction = enemy->GetHitReaction()) {
 		hitReaction->Reset(enemy);
