@@ -114,19 +114,23 @@ void EnemyAttackManager::SelectAndStartAttack(Enemy* enemy, Player* player)
 {
 	if (enemy == nullptr || player == nullptr) { return; }
 
-	float distanceToPlayer =
-		(player->GetCenterPosition() - enemy->GetCenterPosition()).Length();
+	// XZ平面での距離を計算
+	Vector3 toPlayer = player->GetCenterPosition() - enemy->GetCenterPosition();
+	toPlayer.y = 0.0f;
+	float distanceToPlayerXZ = toPlayer.Length();
 
-	// 距離に関わらずランダムで攻撃を選択 (近距離なら近接優先だが、遠距離も混ぜる)
-	// 50%の確率で切り替える
 	bool useMelee = false;
-	if (distanceToPlayer <= kMeleeAttackRange_) {
-		// 近距離なら70%で近接
-		useMelee = (rand() % 100 < 70);
+	if (distanceToPlayerXZ <= kMeleeAttackRange_) {
+		// 近距離なら近接優先
+		// 通常: 70%, Phase2: 60% (Phase2は遠距離も積極的に使う)
+		int meleeProb = enemy->GetIsPhase2() ? 60 : 70;
+		useMelee = (static_cast<int>(rand() % 100) < meleeProb);
 	}
 	else {
-		// 遠距離なら30%で近接(突進してくる)
-		useMelee = (rand() % 100 < 30);
+		// 遠距離なら遠距離優先
+		// 通常: 30%, Phase2: 15% (遠距離では突進の頻度を下げる)
+		int meleeProb = enemy->GetIsPhase2() ? 15 : 30;
+		useMelee = (static_cast<int>(rand() % 100) < meleeProb);
 	}
 
 	if (useMelee) {
