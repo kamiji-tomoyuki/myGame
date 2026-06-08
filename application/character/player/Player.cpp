@@ -228,6 +228,23 @@ void Player::ApplyDamage(uint32_t damage, const Vector3& hitPosition)
 	TakeDamage(hitPosition);
 }
 
+void Player::ApplyDamageDirect(uint32_t damage, const Vector3& hitPosition)
+{
+	// 回避中と必殺技中のみ無効化（被弾硬直中もダメージは受ける）
+	if (dodge_->IsDodging() || IsUltimateActive()) { return; }
+
+	if (HP_ > damage) {
+		HP_ -= damage;
+	}
+	else {
+		HP_ = 0;
+		gameState_ = GameState::kGameOver;
+	}
+
+	// 演出として被弾処理を呼ぶ（内部で IsHitReacting なら return するので重ならない）
+	TakeDamage(hitPosition);
+}
+
 // =============================================================
 //  ロックオン
 // =============================================================

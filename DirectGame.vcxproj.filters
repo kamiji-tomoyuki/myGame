@@ -419,6 +419,9 @@
     <ClCompile Include="application\character\enemy\component\action\EnemyAttackRanged.cpp">
       <Filter>ソースファイル\application\Character\Enemy\component\action</Filter>
     </ClCompile>
+    <ClCompile Include="application\character\enemy\component\action\EnemyAttackRangedSpecial.cpp">
+      <Filter>ソースファイル\application\Character\Enemy\component\action</Filter>
+    </ClCompile>
     <ClCompile Include="application\character\enemy\component\action\EnemyMove.cpp">
       <Filter>ソースファイル\application\Character\Enemy\component\action</Filter>
     </ClCompile>
@@ -795,6 +798,9 @@
       <Filter>ソースファイル\application\Character\Enemy\component\action</Filter>
     </ClInclude>
     <ClInclude Include="application\character\enemy\component\action\EnemyAttackRanged.h">
+      <Filter>ソースファイル\application\Character\Enemy\component\action</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\enemy\component\action\EnemyAttackRangedSpecial.h">
       <Filter>ソースファイル\application\Character\Enemy\component\action</Filter>
     </ClInclude>
     <ClInclude Include="application\character\enemy\component\action\EnemyMove.h">

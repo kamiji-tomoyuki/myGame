@@ -113,6 +113,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\character\enemy\component\action\EnemyAttackManager.cpp" />
     <ClCompile Include="application\character\enemy\component\action\EnemyAttackMelee.cpp" />
     <ClCompile Include="application\character\enemy\component\action\EnemyAttackRanged.cpp" />
+    <ClCompile Include="application\character\enemy\component\action\EnemyAttackRangedSpecial.cpp" />
     <ClCompile Include="application\character\enemy\component\action\EnemyMove.cpp" />
     <ClCompile Include="application\character\enemy\component\reaction\EnemyHitReaction.cpp" />
     <ClCompile Include="application\character\enemy\effect\EnemyEffect.cpp" />
@@ -249,6 +250,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\character\enemy\component\action\EnemyAttackManager.h" />
     <ClInclude Include="application\character\enemy\component\action\EnemyAttackMelee.h" />
     <ClInclude Include="application\character\enemy\component\action\EnemyAttackRanged.h" />
+    <ClInclude Include="application\character\enemy\component\action\EnemyAttackRangedSpecial.h" />
     <ClInclude Include="application\character\enemy\component\action\EnemyMove.h" />
     <ClInclude Include="application\character\enemy\component\reaction\EnemyHitReaction.h" />
     <ClInclude Include="application\character\enemy\effect\EnemyEffect.h" />

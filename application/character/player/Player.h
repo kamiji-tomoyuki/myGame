@@ -101,6 +101,7 @@ public:
 	Enemy* GetEnemy()         const { return enemy_; }  // ★ 追加
 
 	void ApplyDamage(uint32_t damage, const Vector3& hitPosition);
+	void ApplyDamageDirect(uint32_t damage, const Vector3& hitPosition);
 	void StartRangedCooldown() { if (hitReaction_) { hitReaction_->StartRangedCooldown(); } }
 
 	// =============================================================

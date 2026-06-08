@@ -2,6 +2,7 @@
 #include "Enemy.h"
 #include "EnemyAttackMelee.h"
 #include "EnemyAttackRanged.h"
+#include "EnemyAttackRangedSpecial.h"
 #include "Player.h"
 
 // =============================================================
@@ -9,20 +10,23 @@
 // =============================================================
 const std::unordered_map<EnemyAttackManager::AttackType, EnemyAttackManager::UpdateFunc>
 EnemyAttackManager::kUpdateTable_ = {
-	{ AttackType::kMelee,  &EnemyAttackManager::UpdateMelee  },
-	{ AttackType::kRanged, &EnemyAttackManager::UpdateRanged },
+	{ AttackType::kMelee,         &EnemyAttackManager::UpdateMelee         },
+	{ AttackType::kRanged,        &EnemyAttackManager::UpdateRanged        },
+	{ AttackType::kRangedSpecial, &EnemyAttackManager::UpdateRangedSpecial },
 };
 
 const std::unordered_map<EnemyAttackManager::AttackType, EnemyAttackManager::CompleteFunc>
 EnemyAttackManager::kCompleteTable_ = {
-	{ AttackType::kMelee,  &EnemyAttackManager::IsCompleteMelee  },
-	{ AttackType::kRanged, &EnemyAttackManager::IsCompleteRanged },
+	{ AttackType::kMelee,         &EnemyAttackManager::IsCompleteMelee         },
+	{ AttackType::kRanged,        &EnemyAttackManager::IsCompleteRanged        },
+	{ AttackType::kRangedSpecial, &EnemyAttackManager::IsCompleteRangedSpecial },
 };
 
 EnemyAttackManager::EnemyAttackManager()
 {
 	meleeAttack_ = std::make_unique<EnemyAttackMelee>();
 	rangedAttack_ = std::make_unique<EnemyAttackRanged>();
+	rangedAttackSpecial_ = std::make_unique<EnemyAttackRangedSpecial>();
 }
 
 EnemyAttackManager::~EnemyAttackManager() = default;
@@ -31,6 +35,7 @@ void EnemyAttackManager::Initialize()
 {
 	meleeAttack_->Initialize();
 	rangedAttack_->Initialize();
+	rangedAttackSpecial_->Initialize();
 	currentAttackType_ = AttackType::kNone;
 	attackPreparationTimer_ = 0;
 }
@@ -82,6 +87,12 @@ bool EnemyAttackManager::UpdateRanged(Enemy* enemy, Player* player)
 	return rangedAttack_->IsComplete();
 }
 
+bool EnemyAttackManager::UpdateRangedSpecial(Enemy* enemy, Player* player)
+{
+	rangedAttackSpecial_->Update(enemy, player);
+	return rangedAttackSpecial_->IsComplete();
+}
+
 // =============================================================
 //  AttackType 別の完了チェック関数
 // =============================================================
@@ -93,6 +104,11 @@ bool EnemyAttackManager::IsCompleteMelee() const
 bool EnemyAttackManager::IsCompleteRanged() const
 {
 	return rangedAttack_->IsComplete();
+}
+
+bool EnemyAttackManager::IsCompleteRangedSpecial() const
+{
+	return rangedAttackSpecial_->IsComplete();
 }
 
 // =============================================================
@@ -122,13 +138,13 @@ void EnemyAttackManager::SelectAndStartAttack(Enemy* enemy, Player* player)
 	bool useMelee = false;
 	if (distanceToPlayerXZ <= kMeleeAttackRange_) {
 		// 近距離なら近接優先
-		// 通常: 70%, Phase2: 60% (Phase2は遠距離も積極的に使う)
+		// 通常: 70%, Phase2: 60%
 		int meleeProb = enemy->GetIsPhase2() ? 60 : 70;
 		useMelee = (static_cast<int>(rand() % 100) < meleeProb);
 	}
 	else {
 		// 遠距離なら遠距離優先
-		// 通常: 30%, Phase2: 15% (遠距離では突進の頻度を下げる)
+		// 通常: 30%, Phase2: 15%
 		int meleeProb = enemy->GetIsPhase2() ? 15 : 30;
 		useMelee = (static_cast<int>(rand() % 100) < meleeProb);
 	}
@@ -138,8 +154,21 @@ void EnemyAttackManager::SelectAndStartAttack(Enemy* enemy, Player* player)
 		meleeAttack_->Start(enemy, player);
 	}
 	else {
-		currentAttackType_ = AttackType::kRanged;
-		rangedAttack_->Start(enemy, player);
+		// 遠距離攻撃が選択された場合
+		// 強化状態(Phase2)かつHPが50%以下のとき、70%の確率で特殊攻撃を選択
+		bool useSpecial = false;
+		if (enemy->GetIsPhase2() && static_cast<float>(enemy->GetHP()) <= static_cast<float>(enemy->GetMaxHP()) * 0.5f) {
+			useSpecial = (static_cast<int>(rand() % 100) < 70);
+		}
+
+		if (useSpecial) {
+			currentAttackType_ = AttackType::kRangedSpecial;
+			rangedAttackSpecial_->Start(enemy, player);
+		}
+		else {
+			currentAttackType_ = AttackType::kRanged;
+			rangedAttack_->Start(enemy, player);
+		}
 	}
 
 	attackPreparationTimer_ = 0;
@@ -155,6 +184,31 @@ void EnemyAttackManager::ResetAttack()
 }
 
 // =============================================================
+//  DebugTriggerAttack
+// =============================================================
+void EnemyAttackManager::DebugTriggerAttack(EnemyAttackManager::AttackType type, Enemy* enemy, Player* player)
+{
+	if (enemy == nullptr || player == nullptr) return;
+	ResetAttack();
+	currentAttackType_ = type;
+
+	switch (type) {
+	case AttackType::kMelee:
+		meleeAttack_->Start(enemy, player);
+		break;
+	case AttackType::kRanged:
+		rangedAttack_->Start(enemy, player);
+		break;
+	case AttackType::kRangedSpecial:
+		rangedAttackSpecial_->Start(enemy, player);
+		break;
+	default:
+		currentAttackType_ = AttackType::kNone;
+		break;
+	}
+}
+
+// =============================================================
 //  InterruptByRush
 // =============================================================
 void EnemyAttackManager::InterruptByRush(Enemy* enemy)
@@ -164,6 +218,9 @@ void EnemyAttackManager::InterruptByRush(Enemy* enemy)
 	}
 	else if (currentAttackType_ == AttackType::kRanged) {
 		rangedAttack_->Interrupt();
+	}
+	else if (currentAttackType_ == AttackType::kRangedSpecial) {
+		rangedAttackSpecial_->Interrupt();
 	}
 
 	ResetAttack();

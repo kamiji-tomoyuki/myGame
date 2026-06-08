@@ -8,6 +8,7 @@
 #include "EnemyAttackManager.h"
 #include "EnemyAttackMelee.h"
 #include "EnemyAttackRanged.h"
+#include "EnemyAttackRangedSpecial.h"
 
 // State
 #include "EnemyStatePlaying.h"
@@ -151,6 +152,9 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 	if (vp_ != nullptr && attackManager_) {
 		if (auto* rangedAttack = attackManager_->GetRangedAttack()) {
 			rangedAttack->UpdateViewProjection(vp);
+		}
+		if (auto* rangedAttackSpecial = attackManager_->GetRangedAttackSpecial()) {
+			rangedAttackSpecial->UpdateViewProjection(vp);
 		}
 	}
 }
@@ -304,6 +308,9 @@ void Enemy::Draw(const ViewProjection& viewProjection)
 		if (auto* rangedAttack = attackManager_->GetRangedAttack()) {
 			rangedAttack->Draw(viewProjection);
 		}
+		if (auto* rangedAttackSpecial = attackManager_->GetRangedAttackSpecial()) {
+			rangedAttackSpecial->Draw(viewProjection);
+		}
 	}
 }
 
@@ -373,6 +380,26 @@ void Enemy::ImGui()
 
 	Vector3 pos = GetCenterPosition();
 	ImGui::Text("Position  : (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
+
+	ImGui::Separator();
+
+	// ===== 攻撃デバッグ =====
+	if (ImGui::CollapsingHeader("Attack Debug", ImGuiTreeNodeFlags_DefaultOpen)) {
+		if (attackManager_) {
+			if (ImGui::Button("FORCE: Melee Attack", ImVec2(200, 30))) {
+				attackManager_->DebugTriggerAttack(EnemyAttackManager::AttackType::kMelee, this, player_);
+			}
+			if (ImGui::Button("FORCE: Ranged Attack", ImVec2(200, 30))) {
+				attackManager_->DebugTriggerAttack(EnemyAttackManager::AttackType::kRanged, this, player_);
+			}
+			if (ImGui::Button("FORCE: Special Ranged", ImVec2(200, 30))) {
+				attackManager_->DebugTriggerAttack(EnemyAttackManager::AttackType::kRangedSpecial, this, player_);
+			}
+			if (ImGui::Button("Interrupt Attack", ImVec2(200, 30))) {
+				attackManager_->InterruptByRush(this);
+			}
+		}
+	}
 
 	ImGui::Separator();
 
