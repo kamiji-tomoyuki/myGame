@@ -105,12 +105,15 @@ void EnemyAttackRangedSpecial::UpdatePreparation(Enemy* enemy, Player* player)
 			SpikeProjectile spike;
 			spike.model = std::make_unique<Object3d>();
 			spike.model->Initialize("Enemy/Cube.obj");
-			spike.model->SetSize({ 0.5f, 0.5f, 1.5f });
+			spike.model->SetSize({ 0.0f, 0.0f, 0.0f }); // 初期スケールは0
 			spike.transform.Initialize();
 			spike.isActive = true;
 			
 			// 発射タイミングをさらにばらす
 			spike.launchDelay = rand() % kLaunchDuration_;
+			// 出現タイミングもばらす (予備動作中にバラバラに出現)
+			spike.spawnDelay = rand() % (kPrepTime_ - kSpawnTime_);
+			spike.spawnTimer = 0;
 
 			// 初期オフセットをさらに広範囲にばらつきを持たせる (よりバラバラに)
 			// 重なりを減らすために、X方向を広げ、ある程度の最小間隔を意識した配置にする
@@ -144,11 +147,7 @@ void EnemyAttackRangedSpecial::UpdateJump(Enemy* enemy)
 	jumpVelocityY_ -= kGravity_;
 	enemy->SetWorldPosition(pos);
 
-	for (auto& spike : projectiles_) {
-		if (!spike.isLaunched) {
-			spike.transform.translation_.y += jumpVelocityY_;
-		}
-	}
+	// トゲは一緒にジャンプさせないように修正
 
 	if (jumpVelocityY_ < 0.0f && pos.y <= basePosition_.y) {
 		enemy->SetWorldPosition(basePosition_);
@@ -260,6 +259,16 @@ void EnemyAttackRangedSpecial::ArrangeSpikes(Enemy* enemy, Player* player)
 
 	for (size_t i = 0; i < projectiles_.size(); ++i) {
 		if (projectiles_[i].isLaunched) continue;
+
+		// 出現演出の更新
+		if (timer_ >= projectiles_[i].spawnDelay) {
+			if (projectiles_[i].spawnTimer < kSpawnTime_) {
+				projectiles_[i].spawnTimer++;
+			}
+		}
+
+		float scaleProgress = static_cast<float>(projectiles_[i].spawnTimer) / kSpawnTime_;
+		projectiles_[i].transform.scale_ = { scaleProgress * 0.5f, scaleProgress * 0.5f, scaleProgress * 1.5f };
 
 		// 背後方向（ローカル座標からの変換）
 		Vector3 offset = Transformation(projectiles_[i].startOffset, matWorld);

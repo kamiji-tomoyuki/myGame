@@ -1,11 +1,11 @@
 {
     "EnemyAttackRangedSpecial": {
         "Damage": 20,
-        "Homing Strength": 0.05000000074505806,
+        "Homing Strength": 0.03,
         "Prep Time": 90,
         "Recovery Time": 41,
-        "Spike Count": 8,
+        "Spike Count": 10,
         "Spike Life Time": 150,
-        "Spike Speed": 0.4000000059604645
+        "Spike Speed": 0.3499999940395355
     }
 }

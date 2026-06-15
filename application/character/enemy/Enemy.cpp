@@ -9,6 +9,7 @@
 #include "EnemyAttackMelee.h"
 #include "EnemyAttackRanged.h"
 #include "EnemyAttackRangedSpecial.h"
+#include "EnemyAttackCircle.h"
 
 // State
 #include "EnemyStatePlaying.h"
@@ -155,6 +156,9 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 		}
 		if (auto* rangedAttackSpecial = attackManager_->GetRangedAttackSpecial()) {
 			rangedAttackSpecial->UpdateViewProjection(vp);
+		}
+		if (auto* circleAttack = attackManager_->GetCircleAttack()) {
+			circleAttack->UpdateViewProjection(vp);
 		}
 	}
 }
@@ -311,6 +315,9 @@ void Enemy::Draw(const ViewProjection& viewProjection)
 		if (auto* rangedAttackSpecial = attackManager_->GetRangedAttackSpecial()) {
 			rangedAttackSpecial->Draw(viewProjection);
 		}
+		if (auto* circleAttack = attackManager_->GetCircleAttack()) {
+			circleAttack->Draw(viewProjection);
+		}
 	}
 }
 
@@ -394,6 +401,9 @@ void Enemy::ImGui()
 			}
 			if (ImGui::Button("FORCE: Special Ranged", ImVec2(200, 30))) {
 				attackManager_->DebugTriggerAttack(EnemyAttackManager::AttackType::kRangedSpecial, this, player_);
+			}
+			if (ImGui::Button("FORCE: Circle Attack", ImVec2(200, 30))) {
+				attackManager_->DebugTriggerAttack(EnemyAttackManager::AttackType::kCircle, this, player_);
 			}
 			if (ImGui::Button("Interrupt Attack", ImVec2(200, 30))) {
 				attackManager_->InterruptByRush(this);

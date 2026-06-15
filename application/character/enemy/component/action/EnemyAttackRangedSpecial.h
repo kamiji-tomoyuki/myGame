@@ -33,6 +33,8 @@ public:
 		bool isActive = false;
 		bool isLaunched = false;
 		uint32_t launchDelay = 0;		// 発射までの遅延
+		uint32_t spawnDelay = 0;		// 出現までの遅延
+		uint32_t spawnTimer = 0;		// 出現演出用タイマー
 		uint32_t lifeTimer = 0;
 		bool hasHit = false;
 		float currentSpeed = 0.0f;
@@ -86,11 +88,12 @@ private:
 	uint32_t kJumpTime_ = 15;		// ジャンプ上昇時間
 	uint32_t kLaunchDuration_ = 180; // 発射にかける時間 (さらに長く、バラバラに)
 	uint32_t kRecoveryTime_ = 40;	// 発射後硬直
+	uint32_t kSpawnTime_ = 20;		// 出現演出にかかる時間
 	float kJumpPower_ = 0.4f;		// ジャンプ力
 	float kGravity_ = 0.04f;		// ジャンプ中の重力
 	
-	float kSpikeSpeed_ = 0.6f;		// トゲの弾速
-	float kHomingStrength_ = 0.02f; // ホーミングの強さ (吸い付きを弱く)
+	float kSpikeSpeed_ = 0.35f;		// トゲの弾速
+	float kHomingStrength_ = 0.015f; // ホーミングの強さ (吸い付きを弱く)
 	uint32_t kSpikeLifeTime_ = 180; // 消滅までの時間
 	uint32_t kSpikeCount_ = 10;		// トゲの数 (さらに増やす)
 	int32_t kDamage_ = 8;			// ダメージ (さらに複数ヒット前提で調整)

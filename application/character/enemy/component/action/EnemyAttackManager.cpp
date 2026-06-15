@@ -3,6 +3,7 @@
 #include "EnemyAttackMelee.h"
 #include "EnemyAttackRanged.h"
 #include "EnemyAttackRangedSpecial.h"
+#include "EnemyAttackCircle.h"
 #include "Player.h"
 
 // =============================================================
@@ -13,6 +14,7 @@ EnemyAttackManager::kUpdateTable_ = {
 	{ AttackType::kMelee,         &EnemyAttackManager::UpdateMelee         },
 	{ AttackType::kRanged,        &EnemyAttackManager::UpdateRanged        },
 	{ AttackType::kRangedSpecial, &EnemyAttackManager::UpdateRangedSpecial },
+	{ AttackType::kCircle,        &EnemyAttackManager::UpdateCircle        },
 };
 
 const std::unordered_map<EnemyAttackManager::AttackType, EnemyAttackManager::CompleteFunc>
@@ -20,6 +22,7 @@ EnemyAttackManager::kCompleteTable_ = {
 	{ AttackType::kMelee,         &EnemyAttackManager::IsCompleteMelee         },
 	{ AttackType::kRanged,        &EnemyAttackManager::IsCompleteRanged        },
 	{ AttackType::kRangedSpecial, &EnemyAttackManager::IsCompleteRangedSpecial },
+	{ AttackType::kCircle,        &EnemyAttackManager::IsCompleteCircle        },
 };
 
 EnemyAttackManager::EnemyAttackManager()
@@ -27,6 +30,7 @@ EnemyAttackManager::EnemyAttackManager()
 	meleeAttack_ = std::make_unique<EnemyAttackMelee>();
 	rangedAttack_ = std::make_unique<EnemyAttackRanged>();
 	rangedAttackSpecial_ = std::make_unique<EnemyAttackRangedSpecial>();
+	circleAttack_ = std::make_unique<EnemyAttackCircle>();
 }
 
 EnemyAttackManager::~EnemyAttackManager() = default;
@@ -36,6 +40,7 @@ void EnemyAttackManager::Initialize()
 	meleeAttack_->Initialize();
 	rangedAttack_->Initialize();
 	rangedAttackSpecial_->Initialize();
+	circleAttack_->Initialize();
 	currentAttackType_ = AttackType::kNone;
 	attackPreparationTimer_ = 0;
 }
@@ -93,6 +98,12 @@ bool EnemyAttackManager::UpdateRangedSpecial(Enemy* enemy, Player* player)
 	return rangedAttackSpecial_->IsComplete();
 }
 
+bool EnemyAttackManager::UpdateCircle(Enemy* enemy, Player* player)
+{
+	circleAttack_->Update(enemy, player);
+	return circleAttack_->IsComplete();
+}
+
 // =============================================================
 //  AttackType 別の完了チェック関数
 // =============================================================
@@ -109,6 +120,11 @@ bool EnemyAttackManager::IsCompleteRanged() const
 bool EnemyAttackManager::IsCompleteRangedSpecial() const
 {
 	return rangedAttackSpecial_->IsComplete();
+}
+
+bool EnemyAttackManager::IsCompleteCircle() const
+{
+	return circleAttack_->IsComplete();
 }
 
 // =============================================================
@@ -134,6 +150,17 @@ void EnemyAttackManager::SelectAndStartAttack(Enemy* enemy, Player* player)
 	Vector3 toPlayer = player->GetCenterPosition() - enemy->GetCenterPosition();
 	toPlayer.y = 0.0f;
 	float distanceToPlayerXZ = toPlayer.Length();
+
+	// 強化状態(Phase2)かつ条件を満たす場合の円形攻撃選択
+	if (enemy->GetIsPhase2()) {
+		int circleProb = (distanceToPlayerXZ <= kMeleeAttackRange_) ? 60 : 30;
+		if (static_cast<int>(rand() % 100) < circleProb) {
+			currentAttackType_ = AttackType::kCircle;
+			circleAttack_->Start(enemy, player);
+			attackPreparationTimer_ = 0;
+			return;
+		}
+	}
 
 	bool useMelee = false;
 	if (distanceToPlayerXZ <= kMeleeAttackRange_) {
@@ -202,6 +229,9 @@ void EnemyAttackManager::DebugTriggerAttack(EnemyAttackManager::AttackType type,
 	case AttackType::kRangedSpecial:
 		rangedAttackSpecial_->Start(enemy, player);
 		break;
+	case AttackType::kCircle:
+		circleAttack_->Start(enemy, player);
+		break;
 	default:
 		currentAttackType_ = AttackType::kNone;
 		break;
@@ -221,6 +251,9 @@ void EnemyAttackManager::InterruptByRush(Enemy* enemy)
 	}
 	else if (currentAttackType_ == AttackType::kRangedSpecial) {
 		rangedAttackSpecial_->Interrupt();
+	}
+	else if (currentAttackType_ == AttackType::kCircle) {
+		circleAttack_->Interrupt();
 	}
 
 	ResetAttack();

@@ -1,0 +1,12 @@
+{
+    "EnemyAttackCircle": {
+        "Attack Radius": 15.0,
+        "Damage": 25,
+        "Gravity": 0.05000000074505806,
+        "Jump Height": 15.0,
+        "Prep Time": 60,
+        "Recovery Time": 45,
+        "Shake Amount": 0.5,
+        "Tilt Angle": 0.4000000059604645
+    }
+}

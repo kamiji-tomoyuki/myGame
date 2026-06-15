@@ -515,6 +515,12 @@
     <ClCompile Include="application\scene\debugScene\ParticleDebugScene.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
+    <ClCompile Include="application\character\enemy\state\EnemyStateTransformation.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\enemy\component\action\EnemyAttackCircle.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -901,6 +907,8 @@
     <ClInclude Include="engine\utility\scene\ISceneTransitionState.h" />
     <ClInclude Include="engine\utility\scene\SceneTransitionStates.h" />
     <ClInclude Include="application\scene\debugScene\ParticleDebugScene.h" />
+    <ClInclude Include="application\character\enemy\state\EnemyStateTransformation.h" />
+    <ClInclude Include="application\character\enemy\component\action\EnemyAttackCircle.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resources\shaders\particle\Particle.PS.hlsl">

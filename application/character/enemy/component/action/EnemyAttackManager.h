@@ -8,6 +8,7 @@ class Enemy;
 class EnemyAttackMelee;
 class EnemyAttackRanged;
 class EnemyAttackRangedSpecial;
+class EnemyAttackCircle;
 
 class EnemyAttackManager
 {
@@ -17,6 +18,7 @@ public:
 		kMelee,		// 近接攻撃(突進)
 		kRanged,	// 遠距離攻撃
 		kRangedSpecial, // 特殊遠距離攻撃 (HP50以下)
+		kCircle,	// 円形範囲攻撃
 	};
 
 public:
@@ -64,6 +66,7 @@ public:
 	EnemyAttackMelee* GetMeleeAttack()  const { return meleeAttack_.get(); }
 	EnemyAttackRanged* GetRangedAttack() const { return rangedAttack_.get(); }
 	EnemyAttackRangedSpecial* GetRangedAttackSpecial() const { return rangedAttackSpecial_.get(); }
+	EnemyAttackCircle* GetCircleAttack() const { return circleAttack_.get(); }
 	bool IsAttacking() const { return currentAttackType_ != AttackType::kNone; }
 
 private:
@@ -77,10 +80,12 @@ private:
 	bool UpdateMelee(Enemy* enemy, Player* player);
 	bool UpdateRanged(Enemy* enemy, Player* player);
 	bool UpdateRangedSpecial(Enemy* enemy, Player* player);
+	bool UpdateCircle(Enemy* enemy, Player* player);
 
 	bool IsCompleteMelee() const;
 	bool IsCompleteRanged() const;
 	bool IsCompleteRangedSpecial() const;
+	bool IsCompleteCircle() const;
 
 	static const std::unordered_map<AttackType, UpdateFunc>   kUpdateTable_;
 	static const std::unordered_map<AttackType, CompleteFunc> kCompleteTable_;
@@ -92,6 +97,7 @@ private:
 	std::unique_ptr<EnemyAttackMelee>  meleeAttack_;
 	std::unique_ptr<EnemyAttackRanged> rangedAttack_;
 	std::unique_ptr<EnemyAttackRangedSpecial> rangedAttackSpecial_;
+	std::unique_ptr<EnemyAttackCircle> circleAttack_;
 
 	// 攻撃準備タイマー
 	uint32_t attackPreparationTimer_ = 0;
