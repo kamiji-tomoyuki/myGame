@@ -4,6 +4,7 @@
 /// <summary>
 /// ランダム値出力用クラス
 /// </summary>
+namespace Engine {
 class Random {
 public:
     // int型のランダムな値を返す（minからmaxまで）
@@ -16,3 +17,4 @@ private:
     // 乱数生成器（メルセンヌ・ツイスタ）
     static std::mt19937& GetEngine();
 };
+} // namespace Engine

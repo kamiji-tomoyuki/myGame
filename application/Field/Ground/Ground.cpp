@@ -1,5 +1,6 @@
 #include "Ground.h"
 
+using namespace Engine;
 void Ground::Init()
 {
 	BaseObject::Init();

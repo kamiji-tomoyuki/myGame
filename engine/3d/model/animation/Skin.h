@@ -6,6 +6,7 @@
 /// <summary>
 /// スキニングクラス
 /// </summary>
+namespace Engine {
 class Skin
 {
 public:
@@ -46,3 +47,4 @@ private:
 	uint32_t skinClusterSrvIndex_ = 0;
 };
 
+} // namespace Engine

@@ -12,6 +12,7 @@
 /// <summary>
 /// アニメーション管理クラス
 /// </summary>
+namespace Engine {
 class Animator
 {
 public:
@@ -94,3 +95,4 @@ private:
 	Matrix4x4 localMatrix_;
 };
 
+} // namespace Engine

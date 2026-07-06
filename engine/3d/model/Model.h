@@ -25,6 +25,7 @@
 /// <summary>
 /// モデルクラス
 /// </summary>
+namespace Engine {
 class Model {
   public:
     /// <summary>
@@ -115,3 +116,4 @@ class Model {
 
     static std::unordered_set<std::string> jointNames;
 };
+} // namespace Engine

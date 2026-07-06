@@ -9,6 +9,7 @@
 #include <Vector2.h>
 #include <Matrix4x4.h>
 
+namespace Engine {
 class DirectXCommon;
 
 /// <summary>
@@ -23,7 +24,7 @@ public:
 
 	void DrawCommonSetting();
 
-	void SetProjection(Matrix4x4 projectionMatrix) { projectionInverse_ = projectionMatrix; }
+	void SetProjection(const Matrix4x4& projectionMatrix) { projectionInverse_ = projectionMatrix; }
 
 private:
 
@@ -101,3 +102,4 @@ private:
 	RadialBlur* radialData = nullptr;
 };
 
+} // namespace Engine

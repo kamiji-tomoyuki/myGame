@@ -2,6 +2,7 @@
 #include <cmath>
 #include <random.h>
 
+using namespace Engine;
 const std::string PlayerArmRush::kGroupName_ = "PlayerArmRush";
 
 // =============================================================

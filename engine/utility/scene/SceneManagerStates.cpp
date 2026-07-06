@@ -2,6 +2,7 @@
 #include "SceneManager.h"
 #include "BaseScene.h"
 
+namespace Engine {
 void SceneManagerNormalState::Update(SceneManager* manager) {
     // 実行中シーンを更新する
     if (manager->GetBaseScene()) {
@@ -28,3 +29,4 @@ void SceneManagerTransitionState::Update(SceneManager* manager) {
         manager->GetBaseScene()->Update();
     }
 }
+} // namespace Engine

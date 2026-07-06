@@ -4,6 +4,7 @@
 #include <numbers>
 #include <ModelManager.h>
 
+namespace Engine {
 bool JsonLoader::LoadFromFile(const std::string& filePath) {
 	const std::string fullPath = "resources/jsons/" + filePath;
 
@@ -305,3 +306,4 @@ void JsonLoader::Recursive(const nlohmann::json& jsonObject, ObjectData& parent)
 		}
 	}
 }
+} // namespace Engine

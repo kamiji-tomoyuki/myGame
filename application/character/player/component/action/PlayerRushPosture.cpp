@@ -3,6 +3,7 @@
 #include <StageManager.h>
 #include <cmath>
 
+using namespace Engine;
 void PlayerRushPosture::Init(FollowCamera* followCamera, StageManager* stageManager)
 {
 	followCamera_ = followCamera;

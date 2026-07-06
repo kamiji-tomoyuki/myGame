@@ -2,6 +2,7 @@
 #include "Vector3.h"
 #include"Quaternion.h"
 
+namespace Engine {
 Liner::Liner()
 {
     obj3d_ = std::make_unique<Object3d>();
@@ -45,3 +46,4 @@ void Liner::Draw(const Vector3& startPoint, const Vector3& endPoint, const ViewP
     // Object3Dの描画を呼び出す
     obj3d_->Draw(worldTransform_, viewProjection);
 }
+} // namespace Engine

@@ -2,6 +2,7 @@
 #include <ParticleEmitter.h>
 #include <random>
 
+using namespace Engine;
 void PlayerHitReaction::Init()
 {
 	isHitReacting_ = false;

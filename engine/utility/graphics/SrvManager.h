@@ -1,11 +1,13 @@
 #pragma once
 #include <cstdint>
+#include <memory>
 #include <queue>  // 空きインデックスの管理用
 #include <wrl.h>
 #include <d3d12.h>
 
 #include <DirectXTex.h>
 
+namespace Engine {
 class DirectXCommon;
 
 /// <summary>
@@ -13,11 +15,13 @@ class DirectXCommon;
 /// </summary>
 class SrvManager
 {
+public:
+	~SrvManager() = default;
+
 private:
-	static SrvManager* instance;
+	static std::unique_ptr<SrvManager> instance;
 
 	SrvManager() = default;
-	~SrvManager() = default;
 	SrvManager(SrvManager&) = delete;
 	SrvManager& operator=(SrvManager&) = delete;
 
@@ -125,3 +129,4 @@ public:
 	/// <param name="srvIndex"></param>
 	void SetGraphicsRootDescriptorTable(UINT RootParameterIndex, uint32_t srvIndex);
 };
+} // namespace Engine

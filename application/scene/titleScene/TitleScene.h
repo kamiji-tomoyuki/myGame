@@ -17,6 +17,7 @@
 
 #include "JsonLoader.h"
 
+using namespace Engine;
 class TitleScene : public BaseScene {
 public: // メンバ関数
 

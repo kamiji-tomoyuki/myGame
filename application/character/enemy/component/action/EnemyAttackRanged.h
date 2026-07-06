@@ -5,9 +5,10 @@
 #include <vector>
 #include <memory>
 
+using namespace Engine;
 class Enemy;
 class Player;
-class ViewProjection;
+namespace Engine { class ViewProjection; }
 
 class EnemyAttackRanged
 {

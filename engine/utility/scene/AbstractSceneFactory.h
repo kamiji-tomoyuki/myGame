@@ -1,10 +1,12 @@
 #pragma once
 #include"BaseScene.h"
 #include"string"
+#include<memory>
 
 /// <summary>
 /// シーン生成用基底クラス
 /// </summary>
+namespace Engine {
 class AbstractSceneFactory 
 {
 public:
@@ -19,5 +21,6 @@ public:
 	/// </summary>
 	/// <param name="sceneName"></param>
 	/// <returns></returns>
-	virtual BaseScene* CreateScene(const std::string& sceneName) = 0;
+	virtual std::unique_ptr<BaseScene> CreateScene(const std::string& sceneName) = 0;
 };
+} // namespace Engine

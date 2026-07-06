@@ -4,6 +4,7 @@
 #include <string>
 #include <array>
 
+using namespace Engine;
 class FollowCamera;
 
 class Player;

@@ -7,17 +7,18 @@
 /// <summary>
 /// シーン管理クラス
 /// </summary>
+namespace Engine {
 class SceneManager
 {
 private:
-	static SceneManager* instance;
+	static std::unique_ptr<SceneManager> instance;
 
 	SceneManager() = default;
-	~SceneManager() = default;
 	SceneManager(SceneManager&) = delete;
 	SceneManager& operator=(SceneManager&) = delete;
 
 public:// メンバ関数
+	~SceneManager() = default;
 
 	/// <summary>
 	/// シングルトンインスタンスの取得
@@ -81,7 +82,7 @@ public: // setter
 	/// </summary>
 	void SceneChange();
 
-	BaseScene* GetBaseScene() { return scene_; }
+	BaseScene* GetBaseScene() { return scene_.get(); }
 
 	/// <summary>
 	/// 次のシーンがあるか
@@ -99,9 +100,9 @@ private:
 	std::unique_ptr<ISceneManagerState> state_;
 
 	// 今のシーン(実行中のシーン)
-	BaseScene* scene_ = nullptr;
+	std::unique_ptr<BaseScene> scene_ = nullptr;
 	// 次のシーン
-	BaseScene* nextScene_ = nullptr;
+	std::unique_ptr<BaseScene> nextScene_ = nullptr;
 	// シーンファクトリー
 	AbstractSceneFactory* sceneFactory_ = nullptr;
 	std::unique_ptr<SceneTransition> transition_;
@@ -109,3 +110,4 @@ private:
 	bool firstChange = false;
 };
 
+} // namespace Engine

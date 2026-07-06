@@ -1,6 +1,8 @@
 #pragma once
 #include <memory>
 
+namespace Engine {}
+using namespace Engine;
 class Enemy;
 
 /// <summary>

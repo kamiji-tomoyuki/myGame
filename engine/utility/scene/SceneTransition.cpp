@@ -5,6 +5,7 @@
 #include <cmath>
 #include <random>
 
+namespace Engine {
 SceneTransition::SceneTransition() {}
 
 SceneTransition::~SceneTransition() {}
@@ -244,3 +245,4 @@ void SceneTransition::Reset() {
 
     ChangeState(std::make_unique<SceneTransitionStateNone>());
 }
+} // namespace Engine

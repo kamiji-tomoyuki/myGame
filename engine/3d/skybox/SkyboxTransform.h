@@ -7,6 +7,7 @@
 /// <summary>
 /// スカイボックス用変換データ管理クラス
 /// </summary>
+namespace Engine {
 class SkyboxTransform {
   public:
     /// <summary>
@@ -68,3 +69,4 @@ class SkyboxTransform {
     Microsoft::WRL::ComPtr<ID3D12Resource> transformationMatrixResource_ = nullptr;
     TransformationMatrix *transformationMatrixData_ = nullptr;
 };
+} // namespace Engine

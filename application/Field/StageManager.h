@@ -4,6 +4,7 @@
 /// <summary>
 /// ステージ管理クラス
 /// </summary>
+using namespace Engine;
 class StageManager
 {
 public:

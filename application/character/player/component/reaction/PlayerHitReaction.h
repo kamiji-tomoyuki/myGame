@@ -2,7 +2,8 @@
 #include "Vector3.h"
 #include <cstdint>
 
-class ParticleEmitter;
+using namespace Engine;
+namespace Engine { class ParticleEmitter; }
 
 /// <summary>
 /// プレイヤー被弾リアクション管理

@@ -7,6 +7,7 @@
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>
 
+namespace Engine {
 std::unordered_map<std::string, Animation> Animator::animationCache;
 
 void Animator::Initialize(const std::string& directorypath, const std::string& filename)
@@ -169,3 +170,4 @@ Quaternion Animator::CalculateValue(const std::vector<KeyframeQuaternion>& keyfr
 	}
 	return (*keyframes.rbegin()).value;
 }
+} // namespace Engine

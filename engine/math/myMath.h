@@ -7,6 +7,7 @@
 #include <Quaternion.h>
 
 
+namespace Engine {
 class ViewProjection;
 
 static const int kColumnWidth = 60;
@@ -79,15 +80,16 @@ float LerpShortAngle(float a, float b, float t);
 Vector3 GetEulerAnglesFromMatrix(const Matrix4x4& mat);
 
 
-Vector3 ScreenTransform(Vector3 worldPos, const ViewProjection& viewProjection);
+Vector3 ScreenTransform(const Vector3& worldPos, const ViewProjection& viewProjection);
 
 
 float radiansToDegrees(float radians);
 
 float degreesToRadians(float degrees);
 
-Quaternion Slerp(Quaternion q0, Quaternion q1, float t);
+Quaternion Slerp(const Quaternion& q0, const Quaternion& q1, float t);
 
 //// デバッグ用
 //void VectorScreenPrintf(int x, int y, const Vector3& vector, const char* label);
 //void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix, const char* label);
+} // namespace Engine

@@ -2,6 +2,7 @@
 #include "TextureManager.h"
 #include "fstream"
 
+namespace Engine {
 std::unordered_map<std::string, ParticleManager::ModelData> ParticleManager::modelCache;
 
 void ParticleManager::Initialize(SrvManager* srvManager)
@@ -561,3 +562,4 @@ std::list<ParticleManager::Particle> ParticleManager::Emit(
 
 	return newParticles;
 }
+} // namespace Engine

@@ -6,6 +6,7 @@
 /// <summary>
 /// プレイヤー腕 - 通常攻撃ロジック
 /// </summary>
+using namespace Engine;
 class PlayerArmAttack
 {
 public:

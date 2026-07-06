@@ -1,4 +1,5 @@
 #include "AnimationManager.h"
+namespace Engine {
 std::unique_ptr<AnimationManager> AnimationManager::instance = nullptr;
 
 AnimationManager* AnimationManager::GetInstance()
@@ -47,3 +48,4 @@ void AnimationManager::LoadAnimation(const std::string& filePath, ModelData mode
 	// モデルをmapコンテナに格納する
 	animations.insert(std::make_pair(filePath, std::move(animator)));
 }
+} // namespace Engine

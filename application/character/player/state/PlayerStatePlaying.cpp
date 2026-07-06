@@ -5,31 +5,32 @@
 #include "IPlayerBehavior.h"
 #include "Player.h"
 
+using namespace Engine;
 void PlayerStatePlaying::Enter(Player* player)
 {
 	// 最初は通常行動から開始
-	ChangeBehavior(player, new PlayerBehaviorRoot());
+	ChangeBehavior(player, std::make_unique<PlayerBehaviorRoot>());
 }
 
-IPlayerState* PlayerStatePlaying::Update(Player* player)
+std::unique_ptr<IPlayerState> PlayerStatePlaying::Update(Player* player)
 {
 	// ゲームオーバー遷移チェック
 	if (player->GetGameState() == Player::GameState::kGameOver) {
-		return new PlayerStateGameOver();
+		return std::make_unique<PlayerStateGameOver>();
 	}
 
 	// ゲームクリア遷移チェック
 	if (player->GetGameState() == Player::GameState::kGameClear) {
-		return new PlayerStateGameClear();
+		return std::make_unique<PlayerStateGameClear>();
 	}
 
 	player->hitReaction_->UpdateContactCooldown();
 
 	// Behavior の更新・遷移
 	if (behavior_) {
-		IPlayerBehavior* next = behavior_->Update(player);
+		std::unique_ptr<IPlayerBehavior> next = behavior_->Update(player);
 		if (next) {
-			ChangeBehavior(player, next);
+			ChangeBehavior(player, std::move(next));
 		}
 	}
 
@@ -80,12 +81,12 @@ void PlayerStatePlaying::Exit(Player* player)
 	}
 }
 
-void PlayerStatePlaying::ChangeBehavior(Player* player, IPlayerBehavior* next)
+void PlayerStatePlaying::ChangeBehavior(Player* player, std::unique_ptr<IPlayerBehavior> next)
 {
 	if (behavior_) {
 		behavior_->Exit(player);
 	}
-	behavior_.reset(next);
+	behavior_ = std::move(next);
 	if (behavior_) {
 		behavior_->Enter(player);
 	}

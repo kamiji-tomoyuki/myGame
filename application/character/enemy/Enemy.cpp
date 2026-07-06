@@ -18,6 +18,7 @@
 
 #include "myMath.h"
 
+using namespace Engine;
 uint32_t Enemy::nextSerialNumber_ = 0;
 const std::string Enemy::kGroupName_ = "Enemy";
 

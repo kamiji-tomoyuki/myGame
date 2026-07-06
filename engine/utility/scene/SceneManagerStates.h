@@ -4,6 +4,7 @@
 /// <summary>
 /// 通常更新状態
 /// </summary>
+namespace Engine {
 class SceneManagerNormalState : public ISceneManagerState {
 public:
     void Update(SceneManager* manager) override;
@@ -16,3 +17,4 @@ class SceneManagerTransitionState : public ISceneManagerState {
 public:
     void Update(SceneManager* manager) override;
 };
+} // namespace Engine

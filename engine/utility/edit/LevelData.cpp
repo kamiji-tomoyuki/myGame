@@ -3,6 +3,7 @@
 #include <stdexcept> // 例外処理用
 
 // JSONファイルを読み込む関数
+namespace Engine {
 void LevelData::LoadJson(const std::string& jsonFileName) {
     fullpath = directoryPath_ + "/" + jsonFileName;
     // JSONファイルを開く処理
@@ -83,3 +84,4 @@ void LevelData::Draw(const ViewProjection& viewProjection) {
         object3dList[i]->Draw(*worldTransforms[i], viewProjection); // 描画関数の呼び出し
     }
 }
+} // namespace Engine

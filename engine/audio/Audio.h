@@ -11,6 +11,7 @@
 /// <summary>
 /// 音声管理クラス
 /// </summary>
+namespace Engine {
 class Audio
 {
 	class VoiceCallback : public IXAudio2VoiceCallback {
@@ -152,3 +153,4 @@ private:
 	uint16_t blockAlign;
 	uint16_t bitsPerSample;
 };
+} // namespace Engine

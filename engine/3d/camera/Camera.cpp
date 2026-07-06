@@ -3,6 +3,7 @@
 
 #include "myMath.h"
 
+namespace Engine {
 Camera::Camera()
 	:transform({ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} })
 	, fovY(0.45f)
@@ -23,3 +24,4 @@ void Camera::Update()
 	projectionMatrix = MakePerspectiveFovMatrix(fovY, aspectRatio, nearClip, farClip);
 	viewProjectionMatrix = viewMatrix * projectionMatrix;
 }
+} // namespace Engine

@@ -1,6 +1,7 @@
 #include "BaseObject.h"
 
 
+using namespace Engine;
 void BaseObject::Init() {
 	Collider::Initialize();
 	/// ワールドトランスフォームの初期化

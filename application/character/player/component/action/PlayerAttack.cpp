@@ -4,6 +4,7 @@
 #include <Arm/PlayerArm.h>
 #include <Enemy.h>
 
+using namespace Engine;
 const std::string PlayerAttack::kGroupName_ = "PlayerAttack";
 
 PlayerAttack::PlayerAttack(Player* player,

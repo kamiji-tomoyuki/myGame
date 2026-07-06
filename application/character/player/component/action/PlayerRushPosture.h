@@ -5,6 +5,7 @@
 #include <array>
 #include <memory>
 
+using namespace Engine;
 class FollowCamera;
 class StageManager;
 

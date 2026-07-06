@@ -2,8 +2,9 @@
 #include "Vector3.h"
 #include <cstdint>
 
+using namespace Engine;
 class StageManager;
-class ParticleEmitter;
+namespace Engine { class ParticleEmitter; }
 class FollowCamera;
 
 /// <summary>

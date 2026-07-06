@@ -1,5 +1,6 @@
 #include "WorldTransform.h"
 
+namespace Engine {
 void WorldTransform::Initialize()
 {
 	scale_ = { 1.0f, 1.0f, 1.0f };
@@ -42,3 +43,4 @@ void WorldTransform::UpdateMatrix()
 	TransferMatrix();
 }
 
+} // namespace Engine

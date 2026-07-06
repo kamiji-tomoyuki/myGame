@@ -2,20 +2,20 @@
 #include <filesystem>
 #include <fstream>
 
-LightGroup* LightGroup::instance = nullptr;
+namespace Engine {
+std::unique_ptr<LightGroup> LightGroup::instance = nullptr;
 
 LightGroup* LightGroup::GetInstance()
 {
 	if (instance == nullptr) {
-		instance = new LightGroup();
+		instance = std::unique_ptr<LightGroup>(new LightGroup());
 	}
-	return instance;
+	return instance.get();
 }
 
 void LightGroup::Finalize()
 {
-	delete instance;
-	instance = nullptr;
+	instance.reset();
 }
 
 void LightGroup::Initialize()
@@ -290,3 +290,4 @@ void LightGroup::CreateCamera()
 	cameraForGPUResource->Map(0, nullptr, reinterpret_cast<void**>(&cameraForGPUData));
 	cameraForGPUData->worldPosition = { 0.0f,0.0f,-50.0f };
 }
+} // namespace Engine

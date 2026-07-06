@@ -8,6 +8,7 @@
 /// <summary>
 /// デバッグカメラクラス
 /// </summary>
+namespace Engine {
 class DebugCamera
 {
 public:
@@ -56,3 +57,4 @@ private:
 	bool isActive_ = false;
 };
 
+} // namespace Engine

@@ -8,6 +8,7 @@
 #include "imgui.h"
 #endif // _DEBUG
 
+namespace Engine {
 void GlobalVariables::Update() {
 #ifdef _DEBUG
 	if (!ImGui::Begin("Global Variables", nullptr, ImGuiWindowFlags_MenuBar)) {
@@ -474,3 +475,4 @@ bool GlobalVariables::GetBoolValue(const std::string& groupName, const std::stri
 bool GlobalVariables::GroupExists(const std::string& groupName) const {
 	return datas_.find(groupName) != datas_.end();
 }
+} // namespace Engine

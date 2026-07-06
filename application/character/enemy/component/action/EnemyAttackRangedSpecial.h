@@ -5,9 +5,10 @@
 #include <vector>
 #include <memory>
 
+using namespace Engine;
 class Enemy;
 class Player;
-class ViewProjection;
+namespace Engine { class ViewProjection; }
 
 /// <summary>
 /// 敵の特殊遠距離攻撃クラス (背後からトゲをホーミング射出)

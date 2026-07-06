@@ -5,6 +5,7 @@
 /// <summary>
 /// 地面クラス
 /// </summary>
+using namespace Engine;
 class Ground :public BaseObject
 {
 public:

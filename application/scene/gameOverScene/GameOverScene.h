@@ -20,6 +20,7 @@
 /// <summary>
 /// ゲームオーバーシーンクラス
 /// </summary>
+using namespace Engine;
 class GameOverScene :public BaseScene
 {
 public: // メンバ関数

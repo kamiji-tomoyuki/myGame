@@ -2,6 +2,7 @@
 #include "Enemy.h"
 #include <cmath>
 
+using namespace Engine;
 void EnemyStateGameOver::Enter(Enemy* enemy)
 {
 	timer_ = 0.0f;

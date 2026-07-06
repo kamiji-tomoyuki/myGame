@@ -7,7 +7,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 
 #pragma comment(lib,"winmm.lib")
 
-WinApp* WinApp::instance = nullptr;
+namespace Engine {
+std::unique_ptr<WinApp> WinApp::instance = nullptr;
 
 LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 #ifdef _DEBUG
@@ -29,9 +30,9 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 WinApp* WinApp::GetInstance()
 {
 	if (instance == nullptr) {
-		instance = new WinApp();
+		instance = std::unique_ptr<WinApp>(new WinApp());
 	}
-	return instance;
+	return instance.get();
 }
 
 void WinApp::Initialize()
@@ -86,8 +87,7 @@ void WinApp::Finalize()
 {
 	CoUninitialize();
 	CloseWindow(hwnd);
-	delete instance;
-	instance = nullptr;
+	instance.reset();
 }
 
 bool WinApp::ProcessMessage()
@@ -105,3 +105,4 @@ bool WinApp::ProcessMessage()
 
 	return false;
 }
+} // namespace Engine

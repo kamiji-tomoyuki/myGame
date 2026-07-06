@@ -8,6 +8,7 @@
 /// ゲームオーバー状態
 /// ジャンプし続ける演出を担う
 /// </summary>
+using namespace Engine;
 class EnemyStateGameOver : public IEnemyState
 {
 public:

@@ -2,9 +2,10 @@
 #include "Vector3.h"
 #include <numbers>
 
+using namespace Engine;
 class Enemy;
 class Player;
-class ParticleEmitter;
+namespace Engine { class ParticleEmitter; }
 
 /// <summary>
 /// 敵の移動・向き計算を担うコンポーネント

@@ -5,6 +5,7 @@
 /// <summary>
 /// ライン描画クラス
 /// </summary>
+namespace Engine {
 class Liner
 {
 public:
@@ -30,3 +31,4 @@ private:
 
 };
 
+} // namespace Engine

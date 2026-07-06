@@ -2,6 +2,7 @@
 #include <cassert>
 #include <fstream>
 
+namespace Engine {
 std::unique_ptr<Audio> Audio::instance = nullptr;
 
 void Audio::Initialize(const std::string& directoryPath)
@@ -205,3 +206,4 @@ void Audio::Finalize()
 	voices_.clear();
 	instance.reset();
 }
+} // namespace Engine

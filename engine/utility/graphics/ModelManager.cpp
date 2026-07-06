@@ -3,14 +3,15 @@
 #include <sstream>
 #include <functional>
 
-ModelManager* ModelManager::instance = nullptr;
+namespace Engine {
+std::unique_ptr<ModelManager> ModelManager::instance = nullptr;
 
 ModelManager* ModelManager::GetInstance()
 {
 	if (instance == nullptr) {
-		instance = new ModelManager;
+		instance = std::unique_ptr<ModelManager>(new ModelManager);
 	}
-	return instance;
+	return instance.get();
 }
 
 void ModelManager::LoadModel(const std::string& filePath)
@@ -23,7 +24,7 @@ void ModelManager::LoadModel(const std::string& filePath)
 
         // モデルの生成とファイル読み込み、初期化
         model_ = std::make_unique<Model>();
-        model_->Initialize(modelCommon, "resources/models/", filePath);
+        model_->Initialize(modelCommon.get(), "resources/models/", filePath);
         model_->SetSrv(srvManager);
 
         // モデルをmapコンテナに格納する
@@ -37,7 +38,7 @@ void ModelManager::LoadModel(const std::string& filePath)
     }
 
     std::unique_ptr<Model> model = std::make_unique<Model>();
-    model->Initialize(modelCommon, "resources/models/", filePath);
+    model->Initialize(modelCommon.get(), "resources/models/", filePath);
     model->SetSrv(srvManager);
     models.insert(std::make_pair(filePath, std::move(model)));
 }
@@ -79,31 +80,24 @@ Model* ModelManager::FindModel(const std::string& filePath)
 
 void ModelManager::Initialize(SrvManager* srvManager)
 {
-    // 既に初期化されている場合は一旦クリア
-    if (modelCommon != nullptr) {
-        delete modelCommon;
-        modelCommon = nullptr;
-    }
-
+    // 既に初期化されている場合は一旦クリア（再代入で旧インスタンスは自動解放）
     models.clear();
 
-    modelCommon = new ModelCommon;
+    modelCommon = std::make_unique<ModelCommon>();
     modelCommon->Initialize();
     this->srvManager = srvManager;
 }
 
 void ModelManager::Finalize()
 {
-	delete instance;
-	instance = nullptr;
+	instance.reset();
 }
 
 void ModelManager::Destroy()
 {
     if (instance != nullptr) {
-        instance->Finalize();
-        delete instance;
-        instance = nullptr;
+        instance.reset();
         OutputDebugStringA("[ModelManager] Instance destroyed\n");
     }
 }
+} // namespace Engine

@@ -3,6 +3,7 @@
 /// <summary>
 /// リソースリークチェッククラス
 /// </summary>
+namespace Engine {
 class D3DResourceLeakChecker
 {
 public:
@@ -12,3 +13,4 @@ public:
 	~D3DResourceLeakChecker();
 };
 
+} // namespace Engine

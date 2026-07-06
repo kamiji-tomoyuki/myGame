@@ -4,6 +4,7 @@
 #include "myMath.h"   // MakeRotateYMatrix, TransformNormal
 #include <cmath>      // std::abs
 
+using namespace Engine;
 PlayerDodge::PlayerDodge(Player* player, StageManager* stageManager)
 	: player_(player)
 	, stageManager_(stageManager)
@@ -124,9 +125,9 @@ void PlayerDodge::CalcTiltRotation(const Vector3& worldDirection)
 	}
 
 	// 斜め方向の場合は両軸に傾き
-	if (absX > 0.3f && absZ > 0.3f) {
-		float xTilt = worldZ > 0.0f ? kTiltAngle_ * 0.7f : -kTiltAngle_ * 0.7f;
-		float zTilt = worldX > 0.0f ? -kTiltAngle_ * 0.7f : kTiltAngle_ * 0.7f;
+	if (absX > kDiagonalThreshold_ && absZ > kDiagonalThreshold_) {
+		float xTilt = worldZ > 0.0f ? kTiltAngle_ * kDiagonalTiltScale_ : -kTiltAngle_ * kDiagonalTiltScale_;
+		float zTilt = worldX > 0.0f ? -kTiltAngle_ * kDiagonalTiltScale_ : kTiltAngle_ * kDiagonalTiltScale_;
 		tiltRotation_ = Vector3(xTilt, 0.0f, zTilt);
 	}
 }

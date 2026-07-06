@@ -1,23 +1,26 @@
 #pragma once
+#include <memory>
 #include"WinApp.h"
 #include"DirectXCommon.h"
 
 /// <summary>
 /// ImGui管理クラス
 /// </summary>
+namespace Engine {
 class ImGuiManager
 {
 private:
 
-	static ImGuiManager* instance;
+	static std::unique_ptr<ImGuiManager> instance;
 
 	ImGuiManager() = default;
-	~ImGuiManager() = default;
 	ImGuiManager(ImGuiManager&) = delete;
 	ImGuiManager& operator=(ImGuiManager&) = delete;
 
 
 public:
+	~ImGuiManager() = default;
+
 	/// <summary>
 	/// 初期化
 	/// </summary>
@@ -62,3 +65,4 @@ private:
 
 };
 
+} // namespace Engine

@@ -10,6 +10,7 @@
 /// <summary>
 /// オブジェクト基底クラス
 /// </summary>
+using namespace Engine;
 class BaseObject : public Collider {
 protected:
 
@@ -75,13 +76,13 @@ public:
 	/// ===================================================
 	///setter 
 	/// ===================================================
-	void SetObjColor(Vector4 c) { objColor_.SetColor(c); }
-	void SetWorldPosition(Vector3 pos) { transform_.translation_ = pos; }
+	void SetObjColor(const Vector4& c) { objColor_.SetColor(c); }
+	void SetWorldPosition(const Vector3& pos) { transform_.translation_ = pos; }
 	void SetWorldPositionY(float pos) { transform_.translation_.y = pos; }
 	void SetWorldPositionX(float pos) { transform_.translation_.x = pos; }
 	void SetWorldPositionZ(float pos) { transform_.translation_.z = pos; }
-	void AddPosition(Vector3 pos) { transform_.translation_ += pos; }
-	void SetRotation(Vector3 rotate) { transform_.rotation_ = rotate; }
+	void AddPosition(const Vector3& pos) { transform_.translation_ += pos; }
+	void SetRotation(const Vector3& rotate) { transform_.rotation_ = rotate; }
 	void SetRotationY(float rotate) { transform_.rotation_.y = rotate; }
-	void SetScale(Vector3 scale) { transform_.scale_ = scale; }
+	void SetScale(const Vector3& scale) { transform_.scale_ = scale; }
 };

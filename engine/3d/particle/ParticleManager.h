@@ -14,6 +14,7 @@
 /// <summary>
 /// パーティクル管理クラス
 /// </summary>
+namespace Engine {
 class ParticleManager {
   public:
     /// <summary>
@@ -213,3 +214,4 @@ class ParticleManager {
                              const Vector3 &allScaleMax, const Vector3 &allScaleMin,
                              const float &scaleMin, const float &scaleMax);
 };
+} // namespace Engine

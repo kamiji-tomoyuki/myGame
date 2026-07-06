@@ -8,6 +8,7 @@
 /// <summary>
 /// オブジェクトカラー用の定数バッファデータ
 /// </summary>
+namespace Engine {
 struct ConstBufferDataObjColor {
 	Vector4 color_;
 };
@@ -65,3 +66,4 @@ private:
 	ConstBufferDataObjColor* constMap_ = nullptr;
 };
 
+} // namespace Engine

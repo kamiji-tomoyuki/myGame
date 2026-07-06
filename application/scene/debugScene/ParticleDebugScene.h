@@ -16,6 +16,7 @@
 /// <summary>
 /// パーティクル調整用デモシーン
 /// </summary>
+using namespace Engine;
 class ParticleDebugScene : public BaseScene {
 public:
     void Initialize() override;

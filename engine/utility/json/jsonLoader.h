@@ -13,6 +13,7 @@
 /// <summary>
 /// json読込クラス
 /// </summary>
+namespace Engine {
 class JsonLoader {
 private:
 
@@ -143,3 +144,4 @@ private:
 	std::map<std::string, Model*> models_;
 	std::vector<std::unique_ptr<WorldTransform>> worldTransforms_;
 };
+} // namespace Engine

@@ -2,6 +2,7 @@
 #include"CollisionManager.h"
 #include <line/DrawLine3D.h>
 
+namespace Engine {
 int Collider::counter = -1;  // 初期値を-1に変更
 
 Collider::Collider() {
@@ -17,11 +18,12 @@ Collider::Collider() {
 	OBB_->Initialize("debug/AABB.obj");
 	variables_ = GlobalVariables::GetInstance();
 
-	// 派生クラス名を取得して整形
+	// 派生クラス名を取得して整形（"Collider" という接尾辞を取り除く）
+	const std::string kColliderSuffix = "Collider";
 	std::string className = typeid(*this).name();
-	size_t pos = className.find("Collider");
+	size_t pos = className.find(kColliderSuffix);
 	if (pos != std::string::npos) {
-		className.replace(pos, 8, ""); // "Collider"部分を削除
+		className.replace(pos, kColliderSuffix.size(), "");
 	}
 
 	counter++;
@@ -228,3 +230,4 @@ void Collider::MakeOBBOrientations(OBB& obb, const Vector3& rotate) {
 	obb.orientations[2].y = rotateMatrix.m[2][1];
 	obb.orientations[2].z = rotateMatrix.m[2][2];
 }
+} // namespace Engine

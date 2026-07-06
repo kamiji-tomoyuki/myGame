@@ -5,6 +5,7 @@
 #include "myMath.h"
 #include "Easing.h"
 
+using namespace Engine;
 void FollowCamera::Initialize()
 {
 	vp_.Initialize();

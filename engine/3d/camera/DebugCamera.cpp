@@ -8,6 +8,7 @@
 #include "imgui.h"
 #endif // _DEBUG
 
+namespace Engine {
 void DebugCamera::Initialize(ViewProjection* viewProjection)
 {
 	// --- 引数で受け取りメンバ変数に記録 ---
@@ -155,3 +156,4 @@ void DebugCamera::CameraMove(Vector3& cameraRotate, Vector3& cameraTranslate, Ve
 	// マウスホイールの移動量に応じてカメラの移動を更新
 	cameraTranslate.z += rotatedZ.z * float(wheelDelta) * moveZspeed;
 }
+} // namespace Engine

@@ -16,6 +16,7 @@
 /// <summary>
 /// 入力管理クラス
 /// </summary>
+namespace Engine {
 class Input {
 private:
 	enum class PadType {
@@ -156,3 +157,4 @@ public:
 	const BYTE* GetKeyState() const { return key_.data(); }
 	const BYTE* GetPreviousKeyState() const { return keyPre_.data(); }
 };
+} // namespace Engine

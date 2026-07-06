@@ -1,6 +1,7 @@
 #include "SkyboxGeometry.h"
 #include <cassert>
 
+namespace Engine {
 void SkyboxGeometry::Initialize(DirectXCommon *dxCommon) {
     dxCommon_ = dxCommon;
     CreateVertexData();
@@ -87,3 +88,4 @@ void SkyboxGeometry::CreateIndexData() {
     indexResource_->Map(0, nullptr, reinterpret_cast<void **>(&indexData_));
     std::memcpy(indexData_, indices_.data(), sizeof(uint32_t) * indices_.size());
 }
+} // namespace Engine

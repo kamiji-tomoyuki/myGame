@@ -2,6 +2,7 @@
 #include "SceneTransition.h"
 
 // --- SceneTransitionStateNone ---
+namespace Engine {
 void SceneTransitionStateNone::Update(SceneTransition* context) {
     // 何もしない
 }
@@ -47,3 +48,4 @@ void SceneTransitionStateFadeOut::Update(SceneTransition* context) {
 void SceneTransitionStateFadeOut::Draw(SceneTransition* context) {
     context->DrawGrid();
 }
+} // namespace Engine

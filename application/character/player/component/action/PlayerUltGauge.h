@@ -6,6 +6,7 @@
 /// 必殺技ゲージ管理クラス
 /// PlayerAttack が保持し、攻撃命中種別ごとに AddGauge() を呼ぶ。
 /// </summary>
+using namespace Engine;
 class PlayerUltGauge
 {
 public:

@@ -7,6 +7,7 @@
 /// <summary>
 /// スカイボックス用ジオメトリ管理クラス
 /// </summary>
+namespace Engine {
 class SkyboxGeometry {
   public:
     /// <summary>
@@ -69,3 +70,4 @@ class SkyboxGeometry {
         {1.0f, 0.0f}  // 右上
     };
 };
+} // namespace Engine

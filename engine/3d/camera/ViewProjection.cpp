@@ -4,6 +4,7 @@
 
 #include "myMath.h"
 
+namespace Engine {
 void ViewProjection::Initialize()
 {
 	matView_ = MakeIdentity4x4();
@@ -85,3 +86,4 @@ bool ViewProjection::IsOutsideViewFrustum(const WorldTransform& worldTransform) 
 	return isOutside; // 視野外であればtrue
 }
 
+} // namespace Engine

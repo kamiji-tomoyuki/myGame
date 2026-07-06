@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
+namespace Engine {
 GridTransition::GridTransition() {}
 
 GridTransition::~GridTransition() {}
@@ -134,3 +135,4 @@ void GridTransition::Reset() {
         rect.sprite->SetAlpha(0.0f);
     }
 }
+} // namespace Engine

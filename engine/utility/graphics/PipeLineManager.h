@@ -6,6 +6,7 @@
 /// <summary>
 /// ブレンドモード
 /// </summary>
+namespace Engine {
 enum class BlendMode {
     // ブレンドなし
     kNone,
@@ -140,3 +141,4 @@ class PipeLineManager {
   private:
     DirectXCommon *dxCommon_;
 };
+} // namespace Engine

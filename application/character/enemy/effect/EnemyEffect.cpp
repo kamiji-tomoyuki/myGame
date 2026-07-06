@@ -2,6 +2,7 @@
 #include "Enemy.h"
 #include <Easing.h>
 
+using namespace Engine;
 void EnemyEffect::UpdateStartEffect(Enemy* enemy)
 {
 	enemy->UpdateBaseObject();

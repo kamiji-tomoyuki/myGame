@@ -7,6 +7,7 @@
 #include "ViewProjection.h"
 #include "Vector3.h"
 
+namespace Engine {
 using json = nlohmann::json;
 
 /// <summary>
@@ -33,3 +34,4 @@ public:
     // Draw関数
     void Draw(const ViewProjection& viewProjection);
 };
+} // namespace Engine

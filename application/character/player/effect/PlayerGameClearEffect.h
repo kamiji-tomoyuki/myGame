@@ -1,6 +1,7 @@
 #pragma once
 #include "Vector3.h"
 
+using namespace Engine;
 class Player;
 
 /// <summary>

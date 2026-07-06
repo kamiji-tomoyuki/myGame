@@ -15,6 +15,7 @@
 #include "Vector3.h"
 #include "Vector4.h"
 
+namespace Engine {
 class ModelCommon;
 class Object3dCommon;
 
@@ -147,3 +148,4 @@ private:
 	bool hasBone_ = false;
 	bool isReflect_ = false;
 };
+} // namespace Engine

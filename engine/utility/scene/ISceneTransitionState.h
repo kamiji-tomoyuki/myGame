@@ -1,5 +1,6 @@
 #pragma once
 
+namespace Engine {
 class SceneTransition;
 
 /// <summary>
@@ -11,3 +12,4 @@ class ISceneTransitionState {
     virtual void Update(SceneTransition *context) = 0;
     virtual void Draw(SceneTransition *context) = 0;
 };
+} // namespace Engine

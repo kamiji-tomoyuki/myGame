@@ -7,6 +7,7 @@
 
 #include "myMath.h"
 
+namespace Engine {
 bool Model::isGltf = false;
 std::unordered_set<std::string> Model::jointNames = {};
 
@@ -308,3 +309,4 @@ Node Model::ReadNode(aiNode* node) {
     }
     return result;
 }
+} // namespace Engine

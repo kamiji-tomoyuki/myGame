@@ -17,6 +17,7 @@ using namespace Microsoft::WRL;
 /// <summary>
 /// ライン描画クラス
 /// </summary>
+namespace Engine {
 class DrawLine3D
 {
 #pragma region シングルトンインスタンス
@@ -112,3 +113,4 @@ private:
 	CBuffer* cBufferData_ = nullptr;
 	ComPtr<ID3D12Resource> cBufferResource_ = nullptr;
 };
+} // namespace Engine

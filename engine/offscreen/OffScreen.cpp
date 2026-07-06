@@ -5,6 +5,7 @@
 #include "imgui.h"
 #endif // _DEBUG
 
+namespace Engine {
 void OffScreen::Initialize()
 {
 	dxCommon = DirectXCommon::GetInstance();
@@ -173,3 +174,4 @@ void OffScreen::CreateRadial()
 	radialData->kBlurWidth = 0.01f;
 	radialData->kCenter = { 0.5f,0.5f };
 }
+} // namespace Engine

@@ -3,21 +3,22 @@
 #include "PlayerBehaviorHitReact.h"
 #include "Player.h"
 
+using namespace Engine;
 void PlayerBehaviorRoot::Enter(Player* player)
 {
 	// 通常状態に入ったとき特別な処理は不要
 }
 
-IPlayerBehavior* PlayerBehaviorRoot::Update(Player* player)
+std::unique_ptr<IPlayerBehavior> PlayerBehaviorRoot::Update(Player* player)
 {
 	// 被弾リアクションへの遷移チェック
 	if (player->hitReaction_->IsHitReacting()) {
-		return new PlayerBehaviorHitReact();
+		return std::make_unique<PlayerBehaviorHitReact>();
 	}
 
 	// 回避への遷移チェック
 	if (player->dodge_->IsDodging()) {
-		return new PlayerBehaviorDodge();
+		return std::make_unique<PlayerBehaviorDodge>();
 	}
 
 	// 通常処理

@@ -13,6 +13,7 @@
 /// <summary>
 /// パーティクルエミッタクラス
 /// </summary>
+namespace Engine {
 class ParticleEmitter {
 public:
     ParticleEmitter();
@@ -108,3 +109,4 @@ private:
     GlobalVariables* globalVariables = nullptr;
     const char* groupName = nullptr;
 };
+} // namespace Engine

@@ -2,6 +2,7 @@
 #include <numbers>
 #include"ViewProjection.h"
 
+namespace Engine {
 float Lerp(float _start, float _end, float _t)
 {
 	return (1.0f - _t) * _start + _end * _t;
@@ -318,8 +319,9 @@ float degreesToRadians(float degrees) {
 	return degrees * (std::numbers::pi_v<float> / 180.0f);
 }
 
-Quaternion Slerp(Quaternion q0, Quaternion q1, float t)
+Quaternion Slerp(const Quaternion& q0In, const Quaternion& q1, float t)
 {
+	Quaternion q0 = q0In; // dot が負のとき符号反転するためローカルにコピー
 	float dot = q0.Dot(q1);
 	if (dot < 0.0f) {
 		q0 = { -q0.x, -q0.y, -q0.z, -q0.w }; // 反対方向に補間
@@ -361,7 +363,7 @@ Quaternion Slerp(Quaternion q0, Quaternion q1, float t)
 //	}
 //}
 
-Vector3 ScreenTransform(Vector3 worldPos, const ViewProjection& viewProjection) {
+Vector3 ScreenTransform(const Vector3& worldPos, const ViewProjection& viewProjection) {
 	//ビューポート行列
 	Matrix4x4 matViewport = MakeViewPortMatrix(0, 0, float(WinApp::kClientWidth), float(WinApp::kClientHeight), 0, 1);
 	//ビュー行列とプロジェクション行列、ビューポート行列を合成する
@@ -370,3 +372,4 @@ Vector3 ScreenTransform(Vector3 worldPos, const ViewProjection& viewProjection) 
 	return Transformation(worldPos, matViewProjectionViewport);
 }
 
+} // namespace Engine

@@ -2,6 +2,7 @@
 #include "Player.h"
 #include <cmath>   // fmod, sinf
 
+using namespace Engine;
 PlayerGameClearEffect::PlayerGameClearEffect(Player* player)
 	: player_(player)
 {

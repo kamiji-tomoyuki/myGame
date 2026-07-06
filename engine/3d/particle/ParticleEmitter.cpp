@@ -1,6 +1,7 @@
 #include "ParticleEmitter.h"
 #include "line/DrawLine3D.h"
 
+namespace Engine {
 ParticleEmitter::ParticleEmitter() {}
 
 void ParticleEmitter::Initialize(const std::string& name, const std::string& fileName)
@@ -1061,3 +1062,4 @@ void ParticleEmitter::imgui() {
 
 #endif
 }
+} // namespace Engine

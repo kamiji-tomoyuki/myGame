@@ -7,6 +7,7 @@
 /// <summary>
 /// プレイヤー腕 - ラッシュ攻撃ロジック
 /// </summary>
+using namespace Engine;
 class PlayerArmRush
 {
 public:

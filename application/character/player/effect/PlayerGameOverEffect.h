@@ -1,5 +1,7 @@
 #pragma once
 
+namespace Engine {}
+using namespace Engine;
 class Player;
 
 /// <summary>

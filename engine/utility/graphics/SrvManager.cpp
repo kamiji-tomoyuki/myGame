@@ -1,20 +1,20 @@
 #include "SrvManager.h"
 #include "DirectXCommon.h"
 
+namespace Engine {
 const uint32_t SrvManager::kMaxSRVCount = 1024;
 
-SrvManager *SrvManager::instance = nullptr;
+std::unique_ptr<SrvManager> SrvManager::instance = nullptr;
 
 SrvManager *SrvManager::GetInstance() {
     if (instance == nullptr) {
-        instance = new SrvManager();
+        instance = std::unique_ptr<SrvManager>(new SrvManager());
     }
-    return instance;
+    return instance.get();
 }
 
 void SrvManager::Finalize() {
-    delete instance;
-    instance = nullptr;
+    instance.reset();
 }
 
 void SrvManager::Initialize() {
@@ -131,3 +131,4 @@ bool SrvManager::CanAllocate() const {
     // useIndexがkMaxSRVCount未満、もしくは空きインデックスがあればtrueを返す
     return useIndex < kMaxSRVCount || !freeIndices.empty();
 }
+} // namespace Engine

@@ -20,6 +20,7 @@
 /// <summary>
 /// ゲームクリアシーンクラス
 /// </summary>
+using namespace Engine;
 class GameClearScene :public BaseScene
 {
 public: // メンバ関数

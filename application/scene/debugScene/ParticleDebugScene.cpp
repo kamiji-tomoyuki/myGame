@@ -5,6 +5,7 @@
 #include "GlobalVariables.h"
 #include "line/DrawLine3D.h"
 
+using namespace Engine;
 void ParticleDebugScene::Initialize() {
     audio_ = Audio::GetInstance();
     objCommon_ = Object3dCommon::GetInstance();

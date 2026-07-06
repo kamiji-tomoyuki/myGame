@@ -1,5 +1,6 @@
 #include "ModelAnimation.h"
 
+namespace Engine {
 void ModelAnimation::Initialize(const std::string& directorypath, const std::string& filename)
 {
 	// --- その他引数の適応 ---
@@ -37,3 +38,4 @@ void ModelAnimation::UpdateNodeAnimation(bool loop)
 		localMatrix_ = animator_->GetLocalMatrix();
 	}
 }
+} // namespace Engine

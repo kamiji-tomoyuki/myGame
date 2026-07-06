@@ -5,6 +5,7 @@
 #include "myMath.h"
 
 // 静的メンバの定義
+namespace Engine {
 std::list<Collider*>                          CollisionManager::colliders_;
 std::set<CollisionManager::ColliderPair>      CollisionManager::previousCollidingPairs_;
 std::set<CollisionManager::ColliderPair>      CollisionManager::currentCollidingPairs_;
@@ -240,3 +241,4 @@ bool CollisionManager::testAxis(const Vector3& axis, const OBB& obb1, const OBB&
 
 	return sumSpan >= longSpan;
 }
+} // namespace Engine

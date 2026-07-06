@@ -1,6 +1,7 @@
 #include "DrawLine3D.h"
 #include "DirectXCommon.h"
 
+namespace Engine {
 std::unique_ptr<DrawLine3D> DrawLine3D::instance = nullptr;
 
 DrawLine3D* DrawLine3D::GetInstance() {
@@ -97,3 +98,4 @@ void DrawLine3D::CreateResource() {
 	cBufferResource_->Map(0, nullptr, reinterpret_cast<void**>(&cBufferData_));
 	cBufferData_->viewProject = MakeIdentity4x4();
 }
+} // namespace Engine

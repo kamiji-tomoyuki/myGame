@@ -13,6 +13,7 @@
 
 #include <numbers>
 
+using namespace Engine;
 const std::string Player::kGroupName_ = "Player";
 
 Player::Player()
@@ -101,18 +102,18 @@ void Player::Init()
 	// =============================================================
 	// State Pattern — 初期状態を Playing に設定
 	// =============================================================
-	ChangeState(new PlayerStatePlaying());
+	ChangeState(std::make_unique<PlayerStatePlaying>());
 }
 
 // =============================================================
 //  State の切り替え（Enter / Exit を確実に呼ぶ）
 // =============================================================
-void Player::ChangeState(IPlayerState* next)
+void Player::ChangeState(std::unique_ptr<IPlayerState> next)
 {
 	if (currentState_) {
 		currentState_->Exit(this);
 	}
-	currentState_.reset(next);
+	currentState_ = std::move(next);
 	if (currentState_) {
 		currentState_->Enter(this);
 	}
@@ -144,9 +145,9 @@ void Player::Update()
 
 	// 現在の状態を更新し、次状態が返ってきたら遷移する
 	if (currentState_) {
-		IPlayerState* next = currentState_->Update(this);
+		std::unique_ptr<IPlayerState> next = currentState_->Update(this);
 		if (next) {
-			ChangeState(next);
+			ChangeState(std::move(next));
 		}
 	}
 

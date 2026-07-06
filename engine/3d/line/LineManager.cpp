@@ -5,6 +5,7 @@
 
 #include <Quaternion.h>
 
+namespace Engine {
 void LineManager::Initialize(SrvManager* srvManager)
 {
 	particleCommon = ParticleCommon::GetInstance();
@@ -282,3 +283,4 @@ void LineManager::CreateMaterial()
 	// Lightingの設定
 	materialData->uvTransform = MakeIdentity4x4();
 }
+} // namespace Engine

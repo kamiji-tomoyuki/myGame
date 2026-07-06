@@ -1,6 +1,7 @@
 #include "PlayerGameOverEffect.h"
 #include "Player.h"
 
+using namespace Engine;
 PlayerGameOverEffect::PlayerGameOverEffect(Player* player)
 	: player_(player)
 {

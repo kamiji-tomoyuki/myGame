@@ -3,6 +3,7 @@
 /// <summary>
 /// Vector3
 /// </summary>
+namespace Engine {
 struct Vector3 final {
 	float x;
 	float y;
@@ -129,3 +130,4 @@ struct Vector3 final {
 		);
 	}
 };
+} // namespace Engine

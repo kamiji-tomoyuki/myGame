@@ -21,6 +21,7 @@
 // State Pattern
 #include "IPlayerState.h"
 
+using namespace Engine;
 class FollowCamera;
 class Enemy;
 
@@ -125,7 +126,7 @@ private:
 	void MoveInternal();
 	void UpdateLockOn();
 	void TakeDamage(const Vector3& hitPosition);
-	void ChangeState(IPlayerState* next);
+	void ChangeState(std::unique_ptr<IPlayerState> next);
 	void ApplyVariables();
 
 private:

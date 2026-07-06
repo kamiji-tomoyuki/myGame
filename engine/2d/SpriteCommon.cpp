@@ -1,19 +1,19 @@
 #include "SpriteCommon.h"
 
-SpriteCommon* SpriteCommon::instance = nullptr;
+namespace Engine {
+std::unique_ptr<SpriteCommon> SpriteCommon::instance = nullptr;
 
 SpriteCommon* SpriteCommon::GetInstance()
 {
 	if (instance == nullptr) {
-		instance = new SpriteCommon();
+		instance = std::unique_ptr<SpriteCommon>(new SpriteCommon());
 	}
-	return instance;
+	return instance.get();
 }
 
 void SpriteCommon::Finalize()
 {
-	delete instance;
-	instance = nullptr;
+	instance.reset();
 }
 
 void SpriteCommon::Initialize()
@@ -60,3 +60,4 @@ void SpriteCommon::SetBlendMode(BlendMode blendMode)
 		break;
 	}
 }
+} // namespace Engine

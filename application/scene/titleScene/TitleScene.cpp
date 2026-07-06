@@ -10,6 +10,7 @@
 #include <LightGroup.h>
 #include <line/DrawLine3D.h>
 
+using namespace Engine;
 void TitleScene::Initialize() {
     audio_ = Audio::GetInstance();
     objCommon_ = Object3dCommon::GetInstance();

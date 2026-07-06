@@ -1,5 +1,6 @@
 #include "TempObj.h"
 
+using namespace Engine;
 void TempObj::Init()
 {
 	BaseObject::Init();

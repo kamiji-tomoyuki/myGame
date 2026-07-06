@@ -3,6 +3,7 @@
 #include "memory"
 #include "vector"
 
+namespace Engine {
 class GridTransition {
   public:
     GridTransition();
@@ -99,3 +100,4 @@ class GridTransition {
     // 波の総数（チェッカーボードパターンの段階数）
     int totalWaves_ = 0;
 };
+} // namespace Engine
