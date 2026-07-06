@@ -1,5 +1,8 @@
 #pragma once
+#include <memory>
 
+namespace Engine {}
+using namespace Engine;
 class Player;
 
 /// <summary>
@@ -18,7 +21,7 @@ public:
 	/// 毎フレーム呼ばれる。
 	/// 次の行動を返す（nullptr なら自分自身を継続）
 	/// </summary>
-	virtual IPlayerBehavior* Update(Player* player) = 0;
+	virtual std::unique_ptr<IPlayerBehavior> Update(Player* player) = 0;
 
 	/// <summary>行動終了時に1度だけ呼ばれる</summary>
 	virtual void Exit(Player* player) {}

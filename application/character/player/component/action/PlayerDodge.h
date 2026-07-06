@@ -1,6 +1,7 @@
 #pragma once
 #include "Vector3.h"
 
+using namespace Engine;
 class Player;
 class StageManager;
 
@@ -66,6 +67,12 @@ private:
 
 	/// 傾き出フレーム数
 	static constexpr int kTiltOutDuration_ = 10;
+
+	/// 斜め方向と判定する軸成分のしきい値
+	static constexpr float kDiagonalThreshold_ = 0.3f;
+
+	/// 斜め方向時に各軸へ配分する傾き量の割合
+	static constexpr float kDiagonalTiltScale_ = 0.7f;
 
 	// ---------------------------------------------------
 	// 内部ヘルパー

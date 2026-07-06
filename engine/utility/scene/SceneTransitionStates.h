@@ -4,6 +4,7 @@
 /// <summary>
 /// 未遷移状態
 /// </summary>
+namespace Engine {
 class SceneTransitionStateNone : public ISceneTransitionState {
 public:
     void Update(SceneTransition* context) override;
@@ -36,3 +37,4 @@ public:
     void Update(SceneTransition* context) override;
     void Draw(SceneTransition* context) override;
 };
+} // namespace Engine

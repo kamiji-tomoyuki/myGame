@@ -1,6 +1,7 @@
 #include "Skybox.h"
 #include <cassert>
 
+namespace Engine {
 void Skybox::Initialize(const std::string &textureFilePath) {
     // 管理クラスの取得
     skyboxManager_ = SkyboxManager::GetInstance();
@@ -52,3 +53,4 @@ void Skybox::Draw() {
 void Skybox::SetBlendMode(BlendMode blendMode) {
     blendMode_ = blendMode;
 }
+} // namespace Engine

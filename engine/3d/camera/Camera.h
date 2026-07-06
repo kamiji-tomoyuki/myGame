@@ -5,6 +5,7 @@
 /// <summary>
 /// カメラクラス
 /// </summary>
+namespace Engine {
 class Camera
 {
 public: // メンバ関数
@@ -62,3 +63,4 @@ private:
 	float farClip;
 };
 
+} // namespace Engine

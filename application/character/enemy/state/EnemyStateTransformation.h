@@ -6,6 +6,7 @@
 /// <summary>
 /// 敵の強化演出状態
 /// </summary>
+using namespace Engine;
 class EnemyStateTransformation : public IEnemyState
 {
 public:

@@ -5,6 +5,7 @@
 #include "PlayerUltGauge.h"
 #include "PlayerUltimate.h"
 
+using namespace Engine;
 class Player;
 class PlayerArm;
 class Enemy;

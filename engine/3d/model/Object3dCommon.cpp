@@ -1,20 +1,20 @@
 #include "Object3dCommon.h"
 #include "Logger.h"
 
-Object3dCommon* Object3dCommon::instance = nullptr;
+namespace Engine {
+std::unique_ptr<Object3dCommon> Object3dCommon::instance = nullptr;
 
 Object3dCommon* Object3dCommon::GetInstance()
 {
 	if (instance == nullptr) {
-		instance = new Object3dCommon();
+		instance = std::unique_ptr<Object3dCommon>(new Object3dCommon());
 	}
-	return instance;
+	return instance.get();
 }
 
 void Object3dCommon::Finalize()
 {
-	delete instance;
-	instance = nullptr;
+	instance.reset();
 }
 
 void Object3dCommon::Initialize()
@@ -69,3 +69,4 @@ void Object3dCommon::SetBlendMode(BlendMode blendMode)
 		break;
 	}
 }
+} // namespace Engine

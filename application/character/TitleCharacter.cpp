@@ -2,6 +2,7 @@
 #include "myMath.h"
 #include "Easing.h"
 
+using namespace Engine;
 void TitleCharacter::Init() {
     BaseObject::Init();
     BaseObject::SetScale({1.5f, 1.5f, 1.5f});

@@ -8,6 +8,7 @@
 /// <summary>
 /// 当たり判定管理クラス
 /// </summary>
+namespace Engine {
 class CollisionManager {
 private:
 	// コライダー
@@ -77,3 +78,4 @@ private:
 	// 軸に投影するための関数
 	bool testAxis(const Vector3& axis, const OBB& obb1, const OBB& obb2);
 };
+} // namespace Engine

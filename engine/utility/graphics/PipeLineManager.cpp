@@ -2,6 +2,7 @@
 #include "Logger.h"
 #include <d3dx12.h>
 
+namespace Engine {
 void PipeLineManager::Initialize(DirectXCommon *dxCommon) {
     dxCommon_ = dxCommon;
 }
@@ -1862,3 +1863,4 @@ Microsoft::WRL::ComPtr<ID3D12PipelineState> PipeLineManager::CreateBlurGraphicsP
     assert(SUCCEEDED(hr));
     return graphicsPipelineState;
 }
+} // namespace Engine

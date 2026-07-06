@@ -2,7 +2,8 @@
 #include "DirectXCommon.h"
 #include "StringUtility.h"
 
-TextureManager* TextureManager::instance = nullptr;
+namespace Engine {
+std::unique_ptr<TextureManager> TextureManager::instance = nullptr;
 
 // ImGuiで0番を使用するため、1番から使用
 uint32_t TextureManager::kSRVIndexTop = 1;
@@ -148,9 +149,9 @@ void TextureManager::Initialize(SrvManager* srvManager)
 TextureManager* TextureManager::GetInstance()
 {
     if (instance == nullptr) {
-        instance = new TextureManager;
+        instance = std::unique_ptr<TextureManager>(new TextureManager);
     }
-    return instance;
+    return instance.get();
 }
 
 void TextureManager::Finalize()
@@ -161,8 +162,7 @@ void TextureManager::Finalize()
     }
 
     // インスタンスの削除
-    delete instance;
-    instance = nullptr;
+    instance.reset();
 }
 
 uint32_t TextureManager::GetTextureIndexByFilePath(const std::string& filePath)
@@ -198,3 +198,4 @@ const DirectX::TexMetadata& TextureManager::GetMetaData(const std::string& fileP
     TextureData& textureData = textureDatas[filePath];
     return textureData.metadata;
 }
+} // namespace Engine

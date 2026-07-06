@@ -8,6 +8,7 @@
 #include <cmath>
 #include <algorithm>
 
+using namespace Engine;
 const std::string EnemyAttackCircle::kGroupName_ = "EnemyAttackCircle";
 
 EnemyAttackCircle::EnemyAttackCircle()

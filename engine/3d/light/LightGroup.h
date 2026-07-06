@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <memory>
 #include "d3d12.h"
 #include "wrl.h"
 
@@ -14,6 +15,7 @@
 /// <summary>
 /// ライティングの種類
 /// </summary>
+namespace Engine {
 enum class LightType {
 	Directional,
 	Point,
@@ -26,14 +28,14 @@ class LightGroup
 {
 #pragma region シングルトンインスタンス
 private:
-	static LightGroup* instance;
+	static std::unique_ptr<LightGroup> instance;
 
 	LightGroup() = default;
-	~LightGroup() = default;
 	LightGroup(LightGroup&) = delete;
 	LightGroup& operator = (LightGroup&) = delete;
 
 public:
+	~LightGroup() = default;
 	// シングルトンインスタンスの取得
 	static LightGroup* GetInstance();
 	// 終了
@@ -137,3 +139,4 @@ private:
 	bool isPointLight = false;
 };
 
+} // namespace Engine

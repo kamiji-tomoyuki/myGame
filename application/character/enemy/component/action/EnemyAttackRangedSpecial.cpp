@@ -7,6 +7,7 @@
 #include <cmath>
 #include <algorithm>
 
+using namespace Engine;
 const std::string EnemyAttackRangedSpecial::kGroupName_ = "EnemyAttackRangedSpecial";
 
 EnemyAttackRangedSpecial::EnemyAttackRangedSpecial()

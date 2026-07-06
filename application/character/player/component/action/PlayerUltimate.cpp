@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cmath>
 
+using namespace Engine;
 const std::string PlayerUltimate::kGroupName_ = "PlayerUltimate";
 
 PlayerUltimate::PlayerUltimate()

@@ -10,6 +10,7 @@
 #include "Vector4.h"
 #include "Matrix4x4.h"
 
+namespace Engine {
 class SpriteCommon;
 
 /// <summary>
@@ -28,7 +29,7 @@ public: // メンバ関数
 	/// <param name="anchorpoint">: アンカーポイント</param>
 	/// <param name="isFlipX">: 左右反転</param>
 	/// <param name="isFlipY">: 上下反転</param>
-	void Initialize(const std::string& textureFilePath, Vector2 position, Vector4 color = { 1,1,1,1 }, Vector2 anchorpoint = { 0.0f,0.0f }, bool isFlipX = false, bool isFlipY = false);
+	void Initialize(const std::string& textureFilePath, Vector2 position, const Vector4& color = { 1,1,1,1 }, Vector2 anchorpoint = { 0.0f,0.0f }, bool isFlipX = false, bool isFlipY = false);
 
 	/// <summary>
 	/// 描画処理
@@ -61,7 +62,7 @@ public:
 	void SetFlipY(bool isFlipY) { isFlipY_ = isFlipY; }
 	void SetTexLeftTop(const Vector2& textureLeftTop) { this->textureLeftTop = textureLeftTop; }
 	void SetTexSize(const Vector2& textureSize) { this->textureSize = textureSize; }
-	void SetTexturePath(std::string textureFilePath);
+	void SetTexturePath(const std::string& textureFilePath);
 
 private: // メンバ関数
 
@@ -166,3 +167,4 @@ private:
 	// テクスチャ切り出しサイズ
 	Vector2 textureSize = { 512.0f,512.0f };
 };
+} // namespace Engine

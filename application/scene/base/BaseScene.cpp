@@ -1,5 +1,6 @@
 #include "BaseScene.h"
 
+using namespace Engine;
 void BaseScene::Initialize()
 {
 }

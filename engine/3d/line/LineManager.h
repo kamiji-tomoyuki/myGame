@@ -14,6 +14,7 @@
 /// <summary>
 /// ライン描画管理クラス
 /// </summary>
+namespace Engine {
 class LineManager
 {
 public:
@@ -154,3 +155,4 @@ private:
 	void CreateMaterial();
 };
 
+} // namespace Engine

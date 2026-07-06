@@ -5,6 +5,7 @@
 /// 静的メンバ変数の定義
 /// </summary>
 // 静的メンバ変数の定義
+namespace Engine {
 std::chrono::high_resolution_clock::time_point Frame::lastTime_ = std::chrono::high_resolution_clock::now();
 std::chrono::high_resolution_clock::time_point Frame::fpsCalcTime_ = std::chrono::high_resolution_clock::now();
 float Frame::deltaTime_ = 0.0f;
@@ -67,3 +68,4 @@ float Frame::DeltaTime() {
 float Frame::GetFPS() {
     return fps_; // 現在のFPSを返す
 }
+} // namespace Engine

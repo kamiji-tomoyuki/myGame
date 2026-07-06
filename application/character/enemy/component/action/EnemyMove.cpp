@@ -5,6 +5,7 @@
 #include <ParticleEmitter.h>
 #include <cmath>
 
+using namespace Engine;
 void EnemyMove::Update(Enemy* enemy, Player* player)
 {
     if (player == nullptr) { return; }

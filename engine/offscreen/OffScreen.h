@@ -1,103 +1,93 @@
 #pragma once
 #include <d3d12.h>
-#include "wrl.h"
-#include "SrvManager.h"
+#include <wrl.h>
+#include <memory>
+#include <string>
+#include <vector>
 
+#include "SrvManager.h"
 #include <PipeLineManager.h>
 
 #include "myMath.h"
-#include <Vector2.h>
 #include <Matrix4x4.h>
 
+#include "PostEffect.h"
+
+namespace Engine {
 class DirectXCommon;
 
 /// <summary>
-/// オフスクリーンクラス
+/// オフスクリーン(スクリーン演出)管理クラス。
+/// 複数のポストエフェクトをレイヤー順に重ね掛けする。
+/// ImGui/JSON でエフェクトの追加・並び替え・パラメータ調整・保存が行える。
 /// </summary>
-class OffScreen
-{
+class OffScreen {
 public:
-	void Initialize();
+    /// <summary>初期化</summary>
+    void Initialize();
 
-	void Draw();
+    /// <summary>描画(有効な全エフェクトをレイヤー順に適用)</summary>
+    void Draw();
 
-	void DrawCommonSetting();
+    /// <summary>ImGuiによるエフェクト管理UI</summary>
+    void DrawCommonSetting();
 
-	void SetProjection(Matrix4x4 projectionMatrix) { projectionInverse_ = projectionMatrix; }
-
-private:
-
-	void CreateSmooth();
-	void CreateGauss();
-	void CreateVignette();
-	void CreateDepth();
-	void CreateRadial();
+    /// <summary>プロジェクション行列のセット(深度系エフェクト用)</summary>
+    void SetProjection(const Matrix4x4& projectionMatrix) { projection_ = projectionMatrix; }
 
 private:
-	DirectXCommon* dxCommon;
-	SrvManager* srvManager_;
-	std::unique_ptr<PipeLineManager> psoManager_ = nullptr;
+    /// <summary>シェーダーモードごとのPSO/RootSignature生成</summary>
+    void CreatePipelines();
 
-	// ルートシグネチャ
-	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature[6];
+    /// <summary>ピンポン用レンダーテクスチャの生成</summary>
+    void CreatePingPongTextures();
 
-	// グラフィックスパイプライン
-	Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState[8];
-	ShaderMode shaderMode_ = ShaderMode::kNone;
+    /// <summary>エフェクトの追加</summary>
+    void AddEffect(const std::string& typeName);
 
-	struct KernelSettings {
-		int kernelSize;
-	};
+    /// <summary>1パス描画(source SRV -> 現在バインド中のRTV)</summary>
+    void DrawPass(IPostEffect* effect, D3D12_GPU_DESCRIPTOR_HANDLE srcSrv);
 
-	struct GaussianParams {
-		int kernelSize;
-		float sigma;
-	};
+    /// <summary>リソースバリア</summary>
+    void Barrier(ID3D12Resource* resource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after);
 
-	struct VignetteParameter {
-		float vignetteStrength;
-		float vignetteRadius;
-		float vignetteExponent;
-		float padding;
-		Vector2 vignetteCenter;
-	};
+    /// <summary>JSONへ保存</summary>
+    void SaveToJson();
 
-	struct Depth
-	{
-		Matrix4x4 projectionInverse;
-		int kernelSize;
-	};
+    /// <summary>JSONから読み込み</summary>
+    void LoadFromJson();
 
-	struct RadialBlur {
-		Vector2 kCenter;
-		float kBlurWidth;
-	};
+private:
+    DirectXCommon* dxCommon_ = nullptr;
+    SrvManager* srvManager_ = nullptr;
+    std::unique_ptr<PipeLineManager> psoManager_ = nullptr;
 
-	// バッファリソース
-	Microsoft::WRL::ComPtr<ID3D12Resource> vignetteResource;
-	// バッファリソース内のデータを指すポインタ
-	VignetteParameter* vignetteData = nullptr;
+    // シェーダーモードごとのPSO/RootSignature(添字 = ShaderModeの値)
+    static const int kShaderModeCount = 8;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignatures_[kShaderModeCount];
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineStates_[kShaderModeCount];
 
-	// バッファリソース
-	Microsoft::WRL::ComPtr<ID3D12Resource> smoothResource;
-	// バッファリソース内のデータを指すポインタ
-	KernelSettings* smoothData = nullptr;
+    // ピンポン用レンダーテクスチャ
+    struct RenderTexture {
+        Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+        D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle{};
+        uint32_t srvIndex = 0;
+        D3D12_GPU_DESCRIPTOR_HANDLE srvGpuHandle{};
+    };
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvHeap_;
+    RenderTexture pingPong_[2];
 
-	// バッファリソース
-	Microsoft::WRL::ComPtr<ID3D12Resource> gaussianResouce;
-	// バッファリソース内のデータを指すポインタ
-	GaussianParams* gaussianData = nullptr;
+    // エフェクト(格納順 = レイヤー順 = 適用順)
+    std::vector<std::unique_ptr<IPostEffect>> effects_;
 
-	// バッファリソース
-	Microsoft::WRL::ComPtr<ID3D12Resource> depthResouce;
-	// バッファリソース内のデータを指すポインタ
-	Depth* depthData = nullptr;
+    // 深度系エフェクトへ渡すプロジェクション行列
+    Matrix4x4 projection_;
 
-	Matrix4x4 projectionInverse_;
+    // 保存先ファイルパス
+    const std::string kJsonPath = "resources/jsons/offscreen/effects.json";
 
-	// バッファリソース
-	Microsoft::WRL::ComPtr<ID3D12Resource> radialResource;
-	// バッファリソース内のデータを指すポインタ
-	RadialBlur* radialData = nullptr;
+    // ImGuiの追加メニューで選択中のインデックス
+    int addTypeIndex_ = 0;
 };
 
+} // namespace Engine

@@ -1,7 +1,8 @@
 #pragma once
 #include"ViewProjection.h"
 
-class SceneManager;
+using namespace Engine;
+namespace Engine { class SceneManager; }
 
 /// <summary>
 /// シーン基底クラス

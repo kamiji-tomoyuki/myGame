@@ -21,6 +21,7 @@
 #include <ParticleEmitter.h>
 #include <Skybox.h>
 
+using namespace Engine;
 enum class GamePhase {
 	EnemyAppear,  // 敵出現演出
 	Battle,       // 戦闘パート

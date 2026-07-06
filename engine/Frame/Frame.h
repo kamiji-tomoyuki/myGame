@@ -4,6 +4,7 @@
 /// <summary>
 /// フレームクラス
 /// </summary>
+namespace Engine {
 class Frame {
   private:
     /// ========================================================
@@ -24,3 +25,4 @@ class Frame {
     static float DeltaTime(); ///< 前回の更新からの経過時間を取得
     static float GetFPS();    ///< 現在のFPSを取得
 };
+} // namespace Engine

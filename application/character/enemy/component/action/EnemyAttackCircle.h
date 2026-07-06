@@ -4,9 +4,10 @@
 #include "GlobalVariables.h"
 #include <memory>
 
+using namespace Engine;
 class Enemy;
 class Player;
-class ViewProjection;
+namespace Engine { class ViewProjection; }
 
 /// <summary>
 /// 敵の円形範囲攻撃クラス

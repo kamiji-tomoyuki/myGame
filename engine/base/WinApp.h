@@ -1,6 +1,7 @@
 #pragma once
 #include "Windows.h"
 #include <cstdint>
+#include <memory>
 
 #include "imgui.h"
 
@@ -9,18 +10,19 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 /// <summary>
 /// WindowsAPIクラス
 /// </summary>
+namespace Engine {
 class WinApp
 {
 #pragma region シングルトンインスタンス
 private:
-	static WinApp* instance;
+	static std::unique_ptr<WinApp> instance;
 
 	WinApp() = default;
-	~WinApp() = default;
 	WinApp(WinApp&) = delete;
 	WinApp& operator = (WinApp&) = delete;
 
 public:
+	~WinApp() = default;
 	// シングルトンインスタンスの取得
 	static WinApp* GetInstance();
 	// 終了
@@ -67,3 +69,4 @@ private: // メンバ変数
 	WNDCLASS wc{}; // ウィンドウクラスの設定
 };
 
+} // namespace Engine

@@ -3,9 +3,10 @@
 #include "GlobalVariables.h"
 #include <memory>
 
+using namespace Engine;
 class Enemy;
 class Player;
-class ParticleEmitter;
+namespace Engine { class ParticleEmitter; }
 
 class EnemyAttackMelee
 {

@@ -6,6 +6,7 @@
 #include "StageManager.h"
 #include <cmath>
 
+using namespace Engine;
 void EnemyHitReaction::CheckPlayerRushStatus(Enemy* enemy)
 {
 	if (enemy == nullptr) { return; }

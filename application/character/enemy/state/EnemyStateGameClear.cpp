@@ -1,6 +1,7 @@
 #include "EnemyStateGameClear.h"
 #include "Enemy.h"
 
+using namespace Engine;
 void EnemyStateGameClear::Enter(Enemy* enemy)
 {
 	timer_ = 0.0f;

@@ -4,7 +4,14 @@
 
 #include "myMath.h"
 
-void Sprite::Initialize(const std::string& textureFilePath, Vector2 position, Vector4 color, Vector2 anchorpoint, bool isFlipX, bool isFlipY)
+namespace Engine {
+namespace {
+	// スプライトは 2 枚の三角形で構成される矩形（頂点・インデックスともに 6 個）
+	constexpr uint32_t kSpriteVertexCount = 6;
+	constexpr uint32_t kSpriteIndexCount = 6;
+}
+
+void Sprite::Initialize(const std::string& textureFilePath, Vector2 position, const Vector4& color, Vector2 anchorpoint, bool isFlipX, bool isFlipY)
 {
 	// --- 引数で受け取りメンバ変数に記録 ---
 	this->spriteCommon_ = SpriteCommon::GetInstance();
@@ -113,10 +120,10 @@ void Sprite::Draw()
 	srvManager_->SetGraphicsRootDescriptorTable(2, TextureManager::GetInstance()->GetTextureIndexByFilePath(fullpath));
 
 	// --- 描画(DrawCall/ドローコール) ---
-	spriteCommon_->GetDxCommon()->GetCommandList()->DrawIndexedInstanced(6, 1, 0, 0, 0);
+	spriteCommon_->GetDxCommon()->GetCommandList()->DrawIndexedInstanced(kSpriteIndexCount, 1, 0, 0, 0);
 }
 
-void Sprite::SetTexturePath(std::string textureFilePath)
+void Sprite::SetTexturePath(const std::string& textureFilePath)
 {
 	fullpath = basePath_ + textureFilePath;
 	TextureManager::GetInstance()->GetTextureIndexByFilePath(fullpath);
@@ -125,19 +132,19 @@ void Sprite::SetTexturePath(std::string textureFilePath)
 void Sprite::CreateVartexData()
 {
 	// --- vertexResourceの作成 ---
-	vertexResource = spriteCommon_->GetDxCommon()->CreateBufferResource(sizeof(VertexData) * 6);
+	vertexResource = spriteCommon_->GetDxCommon()->CreateBufferResource(sizeof(VertexData) * kSpriteVertexCount);
 	// --- vertexBufferViewの作成 ---
 	vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();
-	vertexBufferView.SizeInBytes = sizeof(VertexData) * 6;
+	vertexBufferView.SizeInBytes = sizeof(VertexData) * kSpriteVertexCount;
 	vertexBufferView.StrideInBytes = sizeof(VertexData);
 	// --- vertexDataの設定 ---
 	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
 
 	// --- indexResourceの作成 ---
-	indexResource = spriteCommon_->GetDxCommon()->CreateBufferResource(sizeof(uint32_t) * 6);
+	indexResource = spriteCommon_->GetDxCommon()->CreateBufferResource(sizeof(uint32_t) * kSpriteIndexCount);
 	// --- indexBufferViewの作成 ---
 	indexBufferView.BufferLocation = indexResource->GetGPUVirtualAddress();
-	indexBufferView.SizeInBytes = sizeof(uint32_t) * 6;
+	indexBufferView.SizeInBytes = sizeof(uint32_t) * kSpriteIndexCount;
 	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
 	// --- indexDataの設定 ---
 	indexResource->Map(0, nullptr, reinterpret_cast<void**>(&indexData));
@@ -173,3 +180,4 @@ void Sprite::AdjustTextureSize()
 	// 画像サイズをテクスチャサイズに合わせる
 	size = textureSize;
 }
+} // namespace Engine

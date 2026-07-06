@@ -11,6 +11,7 @@
 #include <LightGroup.h>
 #include <line/DrawLine3D.h>
 
+using namespace Engine;
 void GameClearScene::Initialize()
 {
 	audio_ = Audio::GetInstance();

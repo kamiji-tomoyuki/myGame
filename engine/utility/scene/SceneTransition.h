@@ -4,6 +4,7 @@
 #include "vector"
 #include "ISceneTransitionState.h"
 
+namespace Engine {
 class SceneTransition {
   public:
     SceneTransition();
@@ -122,3 +123,4 @@ class SceneTransition {
     bool fadeOutFinish = false;
     bool isEnd = false;
 };
+} // namespace Engine

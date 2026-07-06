@@ -1,6 +1,7 @@
 #include "Pause.h"
 #include <cmath>
 
+using namespace Engine;
 void Pause::Initialize()
 {
 	input_ = Input::GetInstance();

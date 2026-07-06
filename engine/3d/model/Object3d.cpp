@@ -8,6 +8,7 @@
 
 #include "myMath.h"
 
+namespace Engine {
 void Object3d::Initialize(const std::string &filePath) {
     this->obj3dCommon = Object3dCommon::GetInstance();
     lightGroup = LightGroup::GetInstance();
@@ -166,3 +167,4 @@ void Object3d::CreateMaterial() {
     materialData->uvTransform = MakeIdentity4x4();
     materialData->shininess = 20.0f;
 }
+} // namespace Engine

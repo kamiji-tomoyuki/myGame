@@ -7,6 +7,7 @@
 /// <summary>
 /// スカイボックス描画共通管理クラス
 /// </summary>
+namespace Engine {
 class SkyboxManager {
   public:
     /// <summary>
@@ -44,13 +45,15 @@ class SkyboxManager {
     /// </summary>
     SrvManager *GetSrvManager() const { return srvManager_; }
 
+  public:
+    ~SkyboxManager() = default;
+
   private:
     SkyboxManager() = default;
-    ~SkyboxManager() = default;
     SkyboxManager(const SkyboxManager &) = delete;
     SkyboxManager &operator=(const SkyboxManager &) = delete;
 
-    static SkyboxManager *instance_;
+    static std::unique_ptr<SkyboxManager> instance_;
 
     // --- 基盤 ---
     DirectXCommon *dxCommon_ = nullptr;
@@ -61,3 +64,4 @@ class SkyboxManager {
     Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_ = nullptr;
     Microsoft::WRL::ComPtr<ID3D12PipelineState> graphicsPipelineState_[5];
 };
+} // namespace Engine

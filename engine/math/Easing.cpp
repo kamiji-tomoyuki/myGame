@@ -3,6 +3,7 @@
 #include<numbers>
 #include <cmath>
 
+namespace Engine {
 float LerpE(const float& start, const float& end, float t) { return (1.0f - t) * start + end * t; }
 
 Vector3 LerpE(const Vector3& start, const Vector3& end, float t) {
@@ -581,3 +582,4 @@ template float EaseOutElastic<float>(const float& start, const float& end, float
 template Vector3 EaseInOutElastic<Vector3>(const Vector3& start, const Vector3& end, float x, float totalX);
 template Vector2 EaseInOutElastic<Vector2>(const Vector2& start, const Vector2& end, float x, float totalX);
 template float EaseInOutElastic<float>(const float& start, const float& end, float x, float totalX);
+} // namespace Engine

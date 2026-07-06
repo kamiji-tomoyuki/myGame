@@ -8,6 +8,7 @@
 #include "EnemyAttackManager.h"
 #include <memory>
 
+using namespace Engine;
 void EnemyStatePlaying::Enter(Enemy* enemy)
 {
 	// 特に初期化なし

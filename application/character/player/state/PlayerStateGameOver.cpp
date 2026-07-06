@@ -1,12 +1,13 @@
 #include "PlayerStateGameOver.h"
 #include "Player.h"
 
+using namespace Engine;
 void PlayerStateGameOver::Enter(Player* player)
 {
 	// ゲームオーバー演出は gameOverEffect_ が自律動作するため特別な開始処理は不要
 }
 
-IPlayerState* PlayerStateGameOver::Update(Player* player)
+std::unique_ptr<IPlayerState> PlayerStateGameOver::Update(Player* player)
 {
 	player->gameOverEffect_->Update();
 	player->isAlive_ = player->gameOverEffect_->IsAlive();

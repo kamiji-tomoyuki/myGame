@@ -4,7 +4,9 @@
 #include"imgui_impl_win32.h"
 #include <imgui_impl_dx12.h>
 
-ImGuiManager* ImGuiManager::instance = nullptr;
+namespace Engine {
+
+std::unique_ptr<ImGuiManager> ImGuiManager::instance = nullptr;
 
 void ImGuiManager::Initialize(WinApp* winApp)
 {
@@ -59,9 +61,9 @@ void ImGuiManager::CreateDescriptorHeap()
 ImGuiManager* ImGuiManager::GetInstance()
 {
 	if (instance == nullptr) {
-		instance = new ImGuiManager;
+		instance = std::unique_ptr<ImGuiManager>(new ImGuiManager);
 	}
-	return instance;
+	return instance.get();
 }
 
 void ImGuiManager::Finalize()
@@ -74,8 +76,7 @@ void ImGuiManager::Finalize()
 	// デスクリプタヒープを解放
 	srvHeap_.Reset();
 
-	delete instance;
-	instance = nullptr;
+	instance.reset();
 }
 
 void ImGuiManager::Begin()
@@ -103,5 +104,6 @@ void ImGuiManager::Draw()
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 }
 
+} // namespace Engine
 
 #endif //_DEBUG

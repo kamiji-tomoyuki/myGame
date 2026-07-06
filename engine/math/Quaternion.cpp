@@ -1,6 +1,7 @@
 #include "Quaternion.h"
 #include"numbers"
 
+namespace Engine {
 void Quaternion::SetFromTo(const Vector3& from, const Vector3& to)
 {
 	Vector3 f = from.Normalize(); // 正規化したfromベクトル
@@ -144,8 +145,9 @@ Quaternion Quaternion::Inverse() const
 	return { conjugate.x / normSquared, conjugate.y / normSquared, conjugate.z / normSquared, conjugate.w / normSquared };
 }
 
-Quaternion Quaternion::Sleap(Quaternion q1, Quaternion q2, float t)
+Quaternion Quaternion::Sleap(const Quaternion& q1, const Quaternion& q2In, float t)
 {
+	Quaternion q2 = q2In; // dot が負のとき符号反転するためローカルにコピー
 	// クォータニオンの内積を計算
 	float dot = q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w;
 
@@ -208,3 +210,4 @@ Quaternion Quaternion::MakeRotateAxisAngleQuaternion(const Vector3& axis, float 
 	result.w = cosf(halfAngle);
 	return result;
 }
+} // namespace Engine

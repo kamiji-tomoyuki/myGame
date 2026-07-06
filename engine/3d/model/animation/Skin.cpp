@@ -7,6 +7,7 @@
 
 #include <myMath.h>
 
+namespace Engine {
 void Skin::Initialize(const Skeleton& skeleton, const ModelData& modelData)
 {
 	// --- スキンクラスター生成 ---
@@ -104,3 +105,4 @@ SkinCluster Skin::CreateSkinCluster(const Skeleton& skeleton, const ModelData& m
 
 	return skinCluster;
 }
+} // namespace Engine

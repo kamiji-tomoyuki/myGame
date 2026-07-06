@@ -8,6 +8,7 @@
 // =============================================================
 //  関数ポインタテーブルの定義
 // =============================================================
+using namespace Engine;
 const std::unordered_map<PlayerArm::Behavior, PlayerArm::BehaviorFunc>
 PlayerArm::kBehaviorTable_ = {
     { Behavior::kAttack, &PlayerArm::UpdateAttackBehavior },
@@ -20,7 +21,7 @@ PlayerArm::PlayerArm()
     nextSerialNumber_++;
 }
 
-void PlayerArm::Init(std::string filePath)
+void PlayerArm::Init(const std::string& filePath)
 {
     BaseObject::Init();
     Collider::Initialize();

@@ -5,6 +5,7 @@
 #include <ParticleEmitter.h>
 #include <cmath>
 
+using namespace Engine;
 const std::string EnemyAttackMelee::kGroupName_ = "EnemyAttackMelee";
 
 EnemyAttackMelee::EnemyAttackMelee()

@@ -8,6 +8,7 @@
 /// <summary>
 /// アニメーション管理クラス
 /// </summary>
+namespace Engine {
 class AnimationManager
 {
 private:
@@ -51,3 +52,4 @@ public:
 	// モデルデータ
 	std::map<std::string, std::unique_ptr<ModelAnimation>> animations;
 };
+} // namespace Engine

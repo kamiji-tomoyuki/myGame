@@ -5,6 +5,7 @@
 /// <summary>
 /// イージング
 /// </summary>
+namespace Engine {
 struct Easing {
 	float time;
 	float maxTime;
@@ -403,3 +404,4 @@ T EaseInOutElastic(const T& start, const T& end, float x, float totalX);
 ///// <param name="start"></param>
 ///// <param name="end"></param>
 // template<typename T> T EaseTimeControl(float& t, const float& totalTime, const T& start, const T& end);
+} // namespace Engine

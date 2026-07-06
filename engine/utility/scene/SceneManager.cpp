@@ -7,14 +7,15 @@
 #include <Player.h>
 #include <Enemy.h>
 
-SceneManager* SceneManager::instance = nullptr;
+namespace Engine {
+std::unique_ptr<SceneManager> SceneManager::instance = nullptr;
 
 SceneManager* SceneManager::GetInstance()
 {
 	if (instance == nullptr) {
-		instance = new SceneManager;
+		instance = std::unique_ptr<SceneManager>(new SceneManager);
 	}
-	return instance;
+	return instance.get();
 }
 
 void SceneManager::Initialize()
@@ -32,9 +33,8 @@ void SceneManager::Finalize()
 		firstChange = false;
 		scene_->Finalize();
 	}
-	delete scene_;
-	delete instance;
-	instance = nullptr;
+	scene_.reset();
+	instance.reset();
 }
 
 void SceneManager::Update()
@@ -123,8 +123,7 @@ void SceneManager::SceneChange()
 		// 旧シーンの終了
 		if (scene_) {
 			scene_->Finalize();
-			delete scene_;
-			scene_ = nullptr;
+			scene_.reset();
 		}
 
 		// シーン切り替え時にシリアルナンバーをリセット
@@ -135,8 +134,7 @@ void SceneManager::SceneChange()
 		ModelManager::GetInstance()->ClearModels();
 
 		// シーンの切り替え
-		scene_ = nextScene_;
-		nextScene_ = nullptr;
+		scene_ = std::move(nextScene_);
 
 		// シーンマネージャをセット
 		scene_->SetSceneManager(this);
@@ -163,3 +161,4 @@ void SceneManager::UpdateTransition()
 		transition_->Update();
 	}
 }
+} // namespace Engine

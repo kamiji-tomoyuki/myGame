@@ -4,6 +4,7 @@
 #include <StageManager.h>
 #include <ParticleEmitter.h>
 
+using namespace Engine;
 void PlayerMove::Init(StageManager* stageManager)
 {
 	stageManager_ = stageManager;

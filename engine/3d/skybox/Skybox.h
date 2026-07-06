@@ -10,6 +10,7 @@
 /// <summary>
 /// スカイボックスクラス
 /// </summary>
+namespace Engine {
 class Skybox {
   public:
     /// <summary>
@@ -60,3 +61,4 @@ class Skybox {
     float scale_ = 1000.0f; // スカイボックスのスケール（非常に大きく設定）
     BlendMode blendMode_ = BlendMode::kNormal;
 };
+} // namespace Engine

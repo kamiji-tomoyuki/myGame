@@ -19,6 +19,7 @@
 /// <summary>
 /// クォータニオン変換
 /// </summary>
+namespace Engine {
 struct QuaternionTransform {
 	Vector3 scale;
 	Quaternion rotate;
@@ -187,3 +188,4 @@ struct Animation {
 	float duration;
 	std::map<std::string, NodeAnimation>nodeAnimations;
 };
+} // namespace Engine

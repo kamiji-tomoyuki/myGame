@@ -4,6 +4,7 @@
 /// <summary>
 /// デバッグ用オブジェクトクラス
 /// </summary>
+using namespace Engine;
 class TempObj :public BaseObject
 {
 public:

@@ -10,6 +10,7 @@
 /// <summary>
 /// マウス移動
 /// </summary>
+namespace Engine {
 struct MouseMove {
 	LONG lX;
 	LONG lY;
@@ -81,3 +82,4 @@ public:
 	Vector3 GetMousePos3D(const ViewProjection& viewprojection, float depthFactor, float blockSpacing=1.0f) const;
 
 };
+} // namespace Engine

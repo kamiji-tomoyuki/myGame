@@ -1,5 +1,6 @@
 #pragma once
 
+namespace Engine {
 class SceneManager;
 
 /// <summary>
@@ -10,3 +11,4 @@ public:
     virtual ~ISceneManagerState() = default;
     virtual void Update(SceneManager* manager) = 0;
 };
+} // namespace Engine

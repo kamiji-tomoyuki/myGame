@@ -1,5 +1,6 @@
 #include "StageManager.h"
 
+using namespace Engine;
 StageManager* StageManager::GetInstance()
 {
     static StageManager instance;

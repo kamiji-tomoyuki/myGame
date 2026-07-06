@@ -1,22 +1,24 @@
 #pragma once
+#include <memory>
 #include "DirectXCommon.h"
 #include "PipeLineManager.h"
 
 /// <summary>
 /// スプライト共通部クラス
 /// </summary>
+namespace Engine {
 class SpriteCommon
 {
 #pragma region シングルトンインスタンス
 private:
-	static SpriteCommon* instance;
+	static std::unique_ptr<SpriteCommon> instance;
 
 	SpriteCommon() = default;
-	~SpriteCommon() = default;
 	SpriteCommon(SpriteCommon&) = delete;
 	SpriteCommon& operator = (SpriteCommon&) = delete;
 
 public:
+	~SpriteCommon() = default;
 	// シングルトンインスタンスの取得
 	static SpriteCommon* GetInstance();
 	// 終了
@@ -57,3 +59,4 @@ private:
 	BlendMode blendMode_ = BlendMode::kNormal;
 };
 
+} // namespace Engine

@@ -4,6 +4,7 @@
 /// <summary>
 /// シーン生成クラス
 /// </summary>
+namespace Engine {
 class SceneFactory :public AbstractSceneFactory
 {
 public:
@@ -13,7 +14,8 @@ public:
     /// </summary>
     /// <param name="sceneName"></param>
     /// <returns></returns>
-    BaseScene* CreateScene(const std::string& sceneName) override;
+    std::unique_ptr<BaseScene> CreateScene(const std::string& sceneName) override;
 
 };
 
+} // namespace Engine

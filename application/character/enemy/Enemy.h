@@ -16,6 +16,7 @@
 // State Pattern
 #include "IEnemyState.h"
 
+using namespace Engine;
 class Player;
 class EnemyAttackManager;
 

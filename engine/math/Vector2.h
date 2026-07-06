@@ -3,6 +3,7 @@
 /// <summary>
 /// Vector2
 /// </summary>
+namespace Engine {
 struct Vector2 final {
     float x;
     float y;
@@ -55,3 +56,4 @@ struct Vector2 final {
         return *this;
     }
 };
+} // namespace Engine

@@ -6,6 +6,7 @@
 #include "ObjColor.h"
 #include <cmath>
 
+using namespace Engine;
 const std::string EnemyAttackRanged::kGroupName_ = "EnemyAttackRanged";
 
 EnemyAttackRanged::EnemyAttackRanged()

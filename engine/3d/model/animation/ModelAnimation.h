@@ -8,6 +8,7 @@
 /// <summary>
 /// アニメーションモデルクラス
 /// </summary>
+namespace Engine {
 class ModelAnimation
 {
 public:
@@ -54,3 +55,4 @@ private:
 	bool HaveBone_;
 };
 
+} // namespace Engine

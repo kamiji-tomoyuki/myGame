@@ -4,6 +4,7 @@
 #include <memory>
 
 // ポーズメニューの選択項目
+using namespace Engine;
 enum class PauseMenuSelection {
 	Resume,      // 再開
 	Retry,       // 再挑戦

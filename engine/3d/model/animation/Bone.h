@@ -4,6 +4,7 @@
 /// <summary>
 /// ボーンクラス
 /// </summary>
+namespace Engine {
 class Bone
 {
 public:
@@ -60,3 +61,4 @@ private:
 	Skeleton skeleton_;
 };
 
+} // namespace Engine

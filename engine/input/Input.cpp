@@ -5,6 +5,7 @@
 #pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "xinput.lib")
 
+namespace Engine {
 std::unique_ptr<Mouse>Input::mouse_ = nullptr;
 
 template bool Input::GetJoystickState<DIJOYSTATE2>(int32_t stickNo, DIJOYSTATE2& out) const;
@@ -184,3 +185,4 @@ int32_t Input::GetWheel() {
 Vector2 Input::GetMousePos() {
 	return mouse_->GetMousePos();
 }
+} // namespace Engine

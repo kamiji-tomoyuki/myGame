@@ -21,20 +21,25 @@ using namespace Logger;
 
 using namespace StringUtility;
 
-DirectXCommon* DirectXCommon::instance = nullptr;
+namespace Engine {
+namespace {
+	// スワップチェーンのバッファ数（ダブルバッファリング）
+	constexpr UINT kFrameBufferCount = 2;
+}
+
+std::unique_ptr<DirectXCommon> DirectXCommon::instance = nullptr;
 
 DirectXCommon* DirectXCommon::GetInstance()
 {
 	if (instance == nullptr) {
-		instance = new DirectXCommon();
+		instance = std::unique_ptr<DirectXCommon>(new DirectXCommon());
 	}
-	return instance;
+	return instance.get();
 }
 
 void DirectXCommon::Finalize()
 {
-	delete instance;
-	instance = nullptr;
+	instance.reset();
 }
 
 void DirectXCommon::Initialize(WinApp* winApp) {
@@ -246,7 +251,7 @@ void DirectXCommon::CreateSwapChain()
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc.BufferCount = 2;
+	swapChainDesc.BufferCount = kFrameBufferCount;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	
 	hr = dxgiFactory->CreateSwapChainForHwnd(commandQueue.Get(), winApp_->GetHwnd(), &swapChainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(swapChain.GetAddressOf()));
@@ -271,7 +276,7 @@ void DirectXCommon::RenderTargetViewInitialize()
 {
 	HRESULT hr;
 
-	backBuffers.resize(2);
+	backBuffers.resize(kFrameBufferCount);
 
 	hr = swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffers[0]));
 	assert(SUCCEEDED(hr));
@@ -651,3 +656,4 @@ Microsoft::WRL::ComPtr<ID3D12Resource> DirectXCommon::UploadTextureData(
 
 
 #pragma endregion
+} // namespace Engine

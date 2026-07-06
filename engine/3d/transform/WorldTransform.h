@@ -8,6 +8,7 @@
 /// <summary>
 /// ワールド変換用定数バッファデータ
 /// </summary>
+namespace Engine {
 struct ConstBufferDataWorldTransform {
 	Matrix4x4 matWorld;
 };
@@ -73,3 +74,4 @@ private:
 	// マッピング済み
 	ConstBufferDataWorldTransform* constMap = nullptr;
 };
+} // namespace Engine

@@ -9,6 +9,7 @@
 #include <numbers>
 
 // 手動補間用のヘルパー
+using namespace Engine;
 static float ManualLerp(float start, float end, float t) {
 	return start + (end - start) * t;
 }

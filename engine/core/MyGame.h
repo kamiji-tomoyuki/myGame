@@ -10,6 +10,7 @@
 /// <summary>
 ///	ゲーム管理クラス
 /// </summary>
+namespace Engine {
 class MyGame : public Framework
 {
 public: // メンバ関数
@@ -34,3 +35,4 @@ public: // メンバ関数
 	/// </summary>
 	void Draw()override;
 };
+} // namespace Engine

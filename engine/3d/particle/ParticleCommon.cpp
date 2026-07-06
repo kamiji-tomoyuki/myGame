@@ -1,19 +1,19 @@
 #include "ParticleCommon.h"
 
-ParticleCommon* ParticleCommon::instance = nullptr;
+namespace Engine {
+std::unique_ptr<ParticleCommon> ParticleCommon::instance = nullptr;
 
 ParticleCommon* ParticleCommon::GetInstance()
 {
 	if (instance == nullptr) {
-		instance = new ParticleCommon();
+		instance = std::unique_ptr<ParticleCommon>(new ParticleCommon());
 	}
-	return instance;
+	return instance.get();
 }
 
 void ParticleCommon::Finalize()
 {
-	delete instance;
-	instance = nullptr;
+	instance.reset();
 }
 
 void ParticleCommon::Initialize(DirectXCommon* dxCommon)
@@ -57,3 +57,4 @@ void ParticleCommon::SetBlendMode(BlendMode blendMode)
 		break;
 	}
 }
+} // namespace Engine

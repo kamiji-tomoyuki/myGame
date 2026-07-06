@@ -1,6 +1,7 @@
 #pragma once
 #include "BaseObject.h"
 
+using namespace Engine;
 class TitleCharacter : public BaseObject {
   public:
     /// <summary>

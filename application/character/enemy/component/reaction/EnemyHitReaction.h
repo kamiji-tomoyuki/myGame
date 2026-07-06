@@ -2,6 +2,7 @@
 #include "Vector3.h"
 #include <cstdint>
 
+using namespace Engine;
 class Enemy;
 class Player;
 

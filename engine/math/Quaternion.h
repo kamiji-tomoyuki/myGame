@@ -6,6 +6,7 @@
 /// <summary>
 /// Quaternion
 /// </summary>
+namespace Engine {
 class Quaternion final {
 public:
     float x, y, z, w;
@@ -55,9 +56,10 @@ public:
     Quaternion Inverse() const;
 
     // Sleap補間（Slerp）を計算
-    static Quaternion Sleap(Quaternion q1, Quaternion q2, float t);
+    static Quaternion Sleap(const Quaternion& q1, const Quaternion& q2, float t);
 
     static Quaternion MakeRotateAxisAngleQuaternion(const Vector3& axis, float angle);
 
 };
 
+} // namespace Engine

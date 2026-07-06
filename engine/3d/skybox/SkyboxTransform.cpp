@@ -1,6 +1,7 @@
 #include "SkyboxTransform.h"
 #include "myMath.h"
 
+namespace Engine {
 void SkyboxTransform::Initialize(DirectXCommon *dxCommon) {
     dxCommon_ = dxCommon;
     CreateMaterial();
@@ -52,3 +53,4 @@ void SkyboxTransform::CreateTransformationMatrix() {
     transformationMatrixData_->World = MakeIdentity4x4();
     transformationMatrixData_->WorldInverseTranspose = MakeIdentity4x4();
 }
+} // namespace Engine

@@ -9,6 +9,7 @@
 // =============================================================
 //  関数ポインタテーブルの定義
 // =============================================================
+using namespace Engine;
 const std::unordered_map<EnemyAttackManager::AttackType, EnemyAttackManager::UpdateFunc>
 EnemyAttackManager::kUpdateTable_ = {
 	{ AttackType::kMelee,         &EnemyAttackManager::UpdateMelee         },

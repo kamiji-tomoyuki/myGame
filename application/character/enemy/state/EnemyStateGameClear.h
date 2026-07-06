@@ -7,6 +7,7 @@
 /// ゲームクリア状態
 /// 待機後、回転しながら縮小して消滅する演出を担う
 /// </summary>
+using namespace Engine;
 class EnemyStateGameClear : public IEnemyState
 {
 public:

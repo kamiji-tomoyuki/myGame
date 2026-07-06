@@ -2,6 +2,7 @@
 #include "Player.h"
 #include "myMath.h"   // Lerp
 
+using namespace Engine;
 PlayerStartEffect::PlayerStartEffect(Player* player)
 	: player_(player)
 {

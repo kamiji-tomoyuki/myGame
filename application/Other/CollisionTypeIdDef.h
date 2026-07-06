@@ -5,6 +5,7 @@
 /// <summary>
 /// コリジョンID定義
 /// </summary>
+using namespace Engine;
 enum class CollisionTypeIdDef : uint32_t {
 	kNone,
 	kDefault,

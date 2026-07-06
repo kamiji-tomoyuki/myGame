@@ -4,6 +4,7 @@
 
 #include <myMath.h>
 
+namespace Engine {
 void Bone::Initialize(ModelData modelData)
 {
 	// --- ボーン生成 ---
@@ -71,3 +72,4 @@ void Bone::ApplyAnimation(const Animation& animation, float animationTime)
 		}
 	}
 }
+} // namespace Engine

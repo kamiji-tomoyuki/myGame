@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include "chrono"
 #include "d3d12.h"
 #include "dxcapi.h"
@@ -14,17 +15,18 @@
 /// <summary>
 /// DirectX基盤クラス
 /// </summary>
+namespace Engine {
 class DirectXCommon {
 #pragma region シングルトンインスタンス
 private:
-    static DirectXCommon* instance;
+    static std::unique_ptr<DirectXCommon> instance;
 
     DirectXCommon() = default;
-    ~DirectXCommon() = default;
     DirectXCommon(DirectXCommon&) = delete;
     DirectXCommon& operator=(DirectXCommon&) = delete;
 
 public:
+    ~DirectXCommon() = default;
     // シングルトンインスタンスの取得
     static DirectXCommon* GetInstance();
     // 終了
@@ -133,6 +135,11 @@ public:
     D3D12_GPU_DESCRIPTOR_HANDLE GetDepthGPUHandle() { return depthSrvHandleGPU; }
     D3D12_CPU_DESCRIPTOR_HANDLE GetDepthCPUHandle() { return depthSrvHandleCPU; }
     uint32_t GetDepthSrvIndex() { return depthSrvIndex; }
+
+    /// <summary>
+    /// 現在のバックバッファのRTV CPUデスクリプタハンドルを取得する
+    /// </summary>
+    D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentBackBufferRTVHandle() { return rtvHandles[swapChain->GetCurrentBackBufferIndex()]; }
 #pragma endregion
 
 private: // メンバ関数
@@ -289,3 +296,4 @@ private:
     const double targetFPS = 60.0;
     const std::chrono::microseconds frameTime{ static_cast<uint64_t>(1000000.0 / targetFPS) };
 };
+} // namespace Engine

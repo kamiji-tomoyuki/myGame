@@ -1,6 +1,8 @@
 #pragma once
 #include "ViewProjection.h"
+#include <memory>
 
+using namespace Engine;
 class Player;
 
 /// <summary>
@@ -15,8 +17,8 @@ public:
 	/// <summary>状態に入ったときに1度だけ呼ばれる</summary>
 	virtual void Enter(Player* player) = 0;
 
-	/// <summary>毎フレーム呼ばれる。次の状態を返す（自分自身なら遷移なし）</summary>
-	virtual IPlayerState* Update(Player* player) = 0;
+	/// <summary>毎フレーム呼ばれる。次の状態を返す（nullptr なら遷移なし）</summary>
+	virtual std::unique_ptr<IPlayerState> Update(Player* player) = 0;
 
 	/// <summary>状態から出るときに1度だけ呼ばれる</summary>
 	virtual void Exit(Player* player) {}

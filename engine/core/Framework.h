@@ -21,6 +21,7 @@
 /// <summary>
 /// 基盤構造クラス
 /// </summary>
+namespace Engine {
 class Framework {
 public: // メンバ関数
     virtual ~Framework() = default;
@@ -94,3 +95,4 @@ protected:
 
     bool endRequest_;
 };
+} // namespace Engine

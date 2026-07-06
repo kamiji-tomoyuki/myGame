@@ -4,6 +4,7 @@
 #include "BaseScene.h"
 #include "ViewProjection.h"
 
+namespace Engine {
 void MyGame::Initialize()
 {
 	Framework::Initialize();
@@ -12,7 +13,7 @@ void MyGame::Initialize()
 
 	// --- ゲーム固有の処理 ---
 	// 最初のシーンの生成
-	sceneFactory_ = std::unique_ptr<SceneFactory>(new SceneFactory());
+	sceneFactory_ = std::make_unique<SceneFactory>();
 
 	// シーンマネージャに最初のシーンをセット
 	sceneManager_->SetSceneFactory(sceneFactory_.get());
@@ -58,3 +59,4 @@ void MyGame::Draw()
 	// --- 描画終了 ---
 	dxCommon->PostDraw();
 }
+} // namespace Engine

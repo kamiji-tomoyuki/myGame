@@ -4,6 +4,7 @@
 /// <summary>
 /// モデル共通部クラス
 /// </summary>
+namespace Engine {
 class ModelCommon
 {
 public:
@@ -23,3 +24,4 @@ private:
 	DirectXCommon* dxCommon_;
 };
 
+} // namespace Engine

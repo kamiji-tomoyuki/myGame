@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <imgui.h>
 
+using namespace Engine;
 const std::string PlayerUltGauge::kGroupName_ = "PlayerUltGauge";
 
 // =============================================================

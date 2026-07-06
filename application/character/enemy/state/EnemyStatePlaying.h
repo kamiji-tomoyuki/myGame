@@ -6,6 +6,8 @@
 /// ゲームプレイ中の状態
 /// Approach・攻撃管理・ラッシュ被弾処理を担う
 /// </summary>
+namespace Engine {}
+using namespace Engine;
 class EnemyStatePlaying : public IEnemyState
 {
 public:

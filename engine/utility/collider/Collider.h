@@ -8,6 +8,7 @@
 /// <summary>
 /// AABB
 /// </summary>
+namespace Engine {
 struct AABB {
 	Vector3 min; //!< 最小点
 	Vector3 max; //!< 最大点
@@ -102,10 +103,10 @@ public:
 	void SetRadius(float radius) { radius_ = radius; }
 	void SetTypeID(uint32_t typeID) { typeID_ = typeID; }
 	void SetCollisionEnabled(bool enabled) { isCollisionEnabled_ = enabled; }
-	void SetAABBScale(Vector3 scale) { scale_ = scale; }
+	void SetAABBScale(const Vector3& scale) { scale_ = scale; }
 	void SetHitColor() { color_ = { 1.0f,0.0f,0.0f,1.0f }; }
 	void SetDefaultColor() { color_ = { 1.0f,1.0f,1.0f,1.0f }; }
-	void SetWorldTransform(WorldTransform worldTransform) { Cubewt_ = worldTransform; }
+	void SetWorldTransform(const WorldTransform& worldTransform) { Cubewt_ = worldTransform; }
 
 private:
 	void ApplyVariables();
@@ -148,3 +149,4 @@ private:
 
 	bool isCollisionEnabled_ = true;  // デフォルトではコリジョンを有効化
 };
+} // namespace Engine

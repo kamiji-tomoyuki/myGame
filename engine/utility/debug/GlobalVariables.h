@@ -12,6 +12,7 @@
 /// <summary>
 /// json管理クラス
 /// </summary>
+namespace Engine {
 class GlobalVariables {
 public:
 	/// <summary>
@@ -198,3 +199,4 @@ private:
 	GlobalVariables(const GlobalVariables&) = default;            // コピーコンストラクタ
 	GlobalVariables& operator=(const GlobalVariables&) = default; // コピー代入演算子
 };
+} // namespace Engine

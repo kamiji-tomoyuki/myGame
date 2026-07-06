@@ -1,17 +1,17 @@
 #include "SkyboxManager.h"
 
-SkyboxManager *SkyboxManager::instance_ = nullptr;
+namespace Engine {
+std::unique_ptr<SkyboxManager> SkyboxManager::instance_ = nullptr;
 
 SkyboxManager *SkyboxManager::GetInstance() {
     if (instance_ == nullptr) {
-        instance_ = new SkyboxManager();
+        instance_ = std::unique_ptr<SkyboxManager>(new SkyboxManager());
     }
-    return instance_;
+    return instance_.get();
 }
 
 void SkyboxManager::Finalize() {
-    delete instance_;
-    instance_ = nullptr;
+    instance_.reset();
 }
 
 void SkyboxManager::Initialize() {
@@ -57,3 +57,4 @@ void SkyboxManager::SetBlendMode(BlendMode blendMode) {
         break;
     }
 }
+} // namespace Engine

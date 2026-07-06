@@ -5,6 +5,7 @@
 /// <summary>
 /// Matrix4x4
 /// </summary>
+namespace Engine {
 struct Matrix4x4 {
 public:
 	float m[4][4];
@@ -100,3 +101,4 @@ public:
 		return Vector3(m[0][col], m[1][col], m[2][col]);
 	}
 };
+} // namespace Engine

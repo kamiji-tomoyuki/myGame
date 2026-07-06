@@ -5,6 +5,7 @@
 /// <summary>
 /// 追従カメラクラス
 /// </summary>
+using namespace Engine;
 class FollowCamera
 {
 public:

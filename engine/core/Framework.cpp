@@ -4,6 +4,7 @@
 #include "engine/Frame/Frame.h"
 #include <D3DResourceLeakChecker.h>
 
+namespace Engine {
 void Framework::Run() {
     // ゲームの初期化
     Initialize();
@@ -227,3 +228,4 @@ void Framework::DisplayFPS() {
     }
 #endif // _DEBUG
 }
+} // namespace Engine

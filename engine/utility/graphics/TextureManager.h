@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include "d3d12.h"
 #include "DirectXCommon.h"
 #include "externals/DirectXTex/DirectXTex.h"
@@ -10,13 +11,16 @@
 /// <summary>
 /// テクスチャ管理クラス
 /// </summary>
+namespace Engine {
 class TextureManager
 {
+public:
+	~TextureManager() = default;
+
 private:
-	static TextureManager* instance;
+	static std::unique_ptr<TextureManager> instance;
 
 	TextureManager() = default;
-	~TextureManager() = default;
 	TextureManager(TextureManager&) = delete;
 	TextureManager& operator=(TextureManager&) = delete;
 
@@ -102,3 +106,4 @@ private:
 	static uint32_t kSRVIndexTop;
 };
 
+} // namespace Engine

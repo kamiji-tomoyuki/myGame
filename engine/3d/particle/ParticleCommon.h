@@ -1,22 +1,24 @@
 #pragma once
+#include <memory>
 #include "PipeLineManager.h"
 #include "DirectXCommon.h"
 
 /// <summary>
 /// パーティクルクラス
 /// </summary>
+namespace Engine {
 class ParticleCommon
 {
 #pragma region シングルトンインスタンス
 private:
-	static ParticleCommon* instance;
+	static std::unique_ptr<ParticleCommon> instance;
 
 	ParticleCommon() = default;
-	~ParticleCommon() = default;
 	ParticleCommon(ParticleCommon&) = delete;
 	ParticleCommon& operator = (ParticleCommon&) = delete;
 
 public:
+	~ParticleCommon() = default;
 	// シングルトンインスタンスの取得
 	static ParticleCommon* GetInstance();
 	// 終了
@@ -56,3 +58,4 @@ private:
 	BlendMode blendMode_ = BlendMode::kAdd;
 };
 
+} // namespace Engine

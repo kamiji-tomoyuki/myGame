@@ -3,6 +3,7 @@
 #include <memory>
 #include <unordered_map>
 
+using namespace Engine;
 class Player;
 class Enemy;
 class EnemyAttackMelee;

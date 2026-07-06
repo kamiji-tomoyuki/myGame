@@ -1,6 +1,7 @@
 #include "PlayerArmAttack.h"
 #include <cmath>
 
+using namespace Engine;
 const std::string PlayerArmAttack::kGroupName_ = "PlayerArmAttack";
 
 // =============================================================

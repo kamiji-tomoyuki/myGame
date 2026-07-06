@@ -7,18 +7,19 @@
 /// <summary>
 /// モデル管理クラス
 /// </summary>
+namespace Engine {
 class ModelManager
 {
 private:
 
-	static ModelManager* instance;
+	static std::unique_ptr<ModelManager> instance;
 
 	ModelManager() = default;
-	~ModelManager() = default;
-	ModelManager(ModelManager&) = default;
-	ModelManager& operator=(ModelManager&) = default;
+	ModelManager(ModelManager&) = delete;
+	ModelManager& operator=(ModelManager&) = delete;
 
 public:
+	~ModelManager() = default;
 
 	/// <summary>
 	/// 初期化
@@ -66,9 +67,10 @@ public:
 
 private:
 
-	ModelCommon* modelCommon = nullptr;
+	std::unique_ptr<ModelCommon> modelCommon = nullptr;
 	SrvManager* srvManager = nullptr;
 
 	std::unique_ptr<Model> model_;
 };
 
+} // namespace Engine
