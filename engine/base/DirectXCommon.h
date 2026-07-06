@@ -135,6 +135,11 @@ public:
     D3D12_GPU_DESCRIPTOR_HANDLE GetDepthGPUHandle() { return depthSrvHandleGPU; }
     D3D12_CPU_DESCRIPTOR_HANDLE GetDepthCPUHandle() { return depthSrvHandleCPU; }
     uint32_t GetDepthSrvIndex() { return depthSrvIndex; }
+
+    /// <summary>
+    /// 現在のバックバッファのRTV CPUデスクリプタハンドルを取得する
+    /// </summary>
+    D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentBackBufferRTVHandle() { return rtvHandles[swapChain->GetCurrentBackBufferIndex()]; }
 #pragma endregion
 
 private: // メンバ関数

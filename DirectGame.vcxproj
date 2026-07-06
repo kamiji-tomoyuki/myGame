@@ -219,6 +219,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\utility\scene\SceneTransitionStates.cpp" />
     <ClCompile Include="engine\utility\scene\SceneManagerStates.cpp" />
     <ClCompile Include="engine\offscreen\OffScreen.cpp" />
+    <ClCompile Include="engine\offscreen\PostEffect.cpp" />
     <ClCompile Include="application\scene\base\BaseScene.cpp" />
     <ClCompile Include="application\scene\gameClearScene\GameClearScene.cpp" />
     <ClCompile Include="application\scene\gameScene\GameScene.cpp" />
@@ -369,6 +370,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\3d\line\LineManager.h" />
     <ClInclude Include="engine\utility\scene\SceneTransition.h" />
     <ClInclude Include="engine\offscreen\OffScreen.h" />
+    <ClInclude Include="engine\offscreen\PostEffect.h" />
     <ClInclude Include="application\scene\base\BaseScene.h" />
     <ClInclude Include="application\scene\gameClearScene\GameClearScene.h" />
     <ClInclude Include="application\scene\gameOverScene\GameOverScene.h" />

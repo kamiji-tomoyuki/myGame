@@ -1,177 +1,300 @@
 #include "OffScreen.h"
 #include "DirectXCommon.h"
+#include "WinApp.h"
+
+#include <filesystem>
+#include <fstream>
 
 #ifdef _DEBUG
 #include "imgui.h"
 #endif // _DEBUG
 
 namespace Engine {
-void OffScreen::Initialize()
-{
-	dxCommon = DirectXCommon::GetInstance();
-	psoManager_ = std::make_unique<PipeLineManager>();
-	psoManager_->Initialize(dxCommon);
-	rootSignature[0] = psoManager_->CreateRenderRootSignature(rootSignature[0], ShaderMode::kNone);
-	rootSignature[1] = psoManager_->CreateRenderRootSignature(rootSignature[1], ShaderMode::kVignette);
-	rootSignature[2] = psoManager_->CreateRenderRootSignature(rootSignature[2], ShaderMode::kSmooth);
-	rootSignature[3] = psoManager_->CreateRenderRootSignature(rootSignature[3], ShaderMode::kGauss);
-	rootSignature[4] = psoManager_->CreateRenderRootSignature(rootSignature[4], ShaderMode::kDepth);
-	rootSignature[5] = psoManager_->CreateRenderRootSignature(rootSignature[5], ShaderMode::kBlur);
-	graphicsPipelineState[0] = psoManager_->CreateRenderGraphicsPipeLine(graphicsPipelineState[0], rootSignature[0], ShaderMode::kNone);
-	graphicsPipelineState[1] = psoManager_->CreateRenderGraphicsPipeLine(graphicsPipelineState[1], rootSignature[0], ShaderMode::kGray);
-	graphicsPipelineState[2] = psoManager_->CreateRenderGraphicsPipeLine(graphicsPipelineState[2], rootSignature[1], ShaderMode::kVignette);
-	graphicsPipelineState[3] = psoManager_->CreateRenderGraphicsPipeLine(graphicsPipelineState[3], rootSignature[2], ShaderMode::kSmooth);
-	graphicsPipelineState[4] = psoManager_->CreateRenderGraphicsPipeLine(graphicsPipelineState[4], rootSignature[3], ShaderMode::kGauss);
-	graphicsPipelineState[5] = psoManager_->CreateRenderGraphicsPipeLine(graphicsPipelineState[5], rootSignature[0], ShaderMode::kOutLine);
-	graphicsPipelineState[6] = psoManager_->CreateRenderGraphicsPipeLine(graphicsPipelineState[6], rootSignature[4], ShaderMode::kDepth);
-	graphicsPipelineState[7] = psoManager_->CreateRenderGraphicsPipeLine(graphicsPipelineState[7], rootSignature[5], ShaderMode::kBlur);
-	srvManager_ = SrvManager::GetInstance();
-	CreateSmooth();
-	CreateGauss();
-	CreateVignette();
-	CreateDepth();
-	CreateRadial();
+
+void OffScreen::Initialize() {
+    dxCommon_ = DirectXCommon::GetInstance();
+    srvManager_ = SrvManager::GetInstance();
+
+    psoManager_ = std::make_unique<PipeLineManager>();
+    psoManager_->Initialize(dxCommon_);
+
+    CreatePipelines();
+    CreatePingPongTextures();
+
+    // 保存済み設定があれば復元(無ければエフェクトなし=シーンをそのまま表示)
+    LoadFromJson();
 }
 
-void OffScreen::Draw()
-{
-	// 選択されたShaderModeに基づいて描画設定を実行
-	switch (shaderMode_)
-	{
-	case ShaderMode::kNone:
-		psoManager_->DrawCommonSetting(graphicsPipelineState[0], rootSignature[0]);
-		dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(0, dxCommon->GetOffScreenGPUHandle());
-		break;
-	case ShaderMode::kGray:
-		psoManager_->DrawCommonSetting(graphicsPipelineState[1], rootSignature[0]);
-		dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(0, dxCommon->GetOffScreenGPUHandle());
-		break;
-	case ShaderMode::kVignette:
-		psoManager_->DrawCommonSetting(graphicsPipelineState[2], rootSignature[1]);
-		dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(1, vignetteResource->GetGPUVirtualAddress());
-		dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(0, dxCommon->GetOffScreenGPUHandle());
-		break;
-	case ShaderMode::kSmooth:
-		psoManager_->DrawCommonSetting(graphicsPipelineState[3], rootSignature[2]);
-		dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(1, smoothResource->GetGPUVirtualAddress());
-		dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(0, dxCommon->GetOffScreenGPUHandle());
-		break;
-	case ShaderMode::kGauss:
-		psoManager_->DrawCommonSetting(graphicsPipelineState[4], rootSignature[3]);
-		dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(1, gaussianResouce->GetGPUVirtualAddress());
-		dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(0, dxCommon->GetOffScreenGPUHandle());
-		break;
-	case ShaderMode::kOutLine:
-		psoManager_->DrawCommonSetting(graphicsPipelineState[5], rootSignature[0]);
-		dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(0, dxCommon->GetOffScreenGPUHandle());
-		break;
-	case ShaderMode::kDepth:
-		psoManager_->DrawCommonSetting(graphicsPipelineState[6], rootSignature[4]);
-		dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(0, dxCommon->GetOffScreenGPUHandle());
-		dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(1, depthResouce->GetGPUVirtualAddress());
-		dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(2, dxCommon->GetDepthGPUHandle());
-		break;
-	case ShaderMode::kBlur:
-		psoManager_->DrawCommonSetting(graphicsPipelineState[7], rootSignature[5]);
-		dxCommon->GetCommandList()->SetGraphicsRootConstantBufferView(1, radialResource->GetGPUVirtualAddress());
-		dxCommon->GetCommandList()->SetGraphicsRootDescriptorTable(0, dxCommon->GetOffScreenGPUHandle());
-		break;
-	default:
-		break;
-	}
-	dxCommon->GetCommandList()->DrawInstanced(3, 1, 0, 0);
+void OffScreen::CreatePipelines() {
+    for (int i = 0; i < kShaderModeCount; ++i) {
+        ShaderMode mode = static_cast<ShaderMode>(i);
+        rootSignatures_[i] = psoManager_->CreateRenderRootSignature(rootSignatures_[i], mode);
+        pipelineStates_[i] = psoManager_->CreateRenderGraphicsPipeLine(pipelineStates_[i], rootSignatures_[i], mode);
+    }
 }
 
-void OffScreen::DrawCommonSetting()
-{
+void OffScreen::CreatePingPongTextures() {
+    // RTV用のヒープ(ピンポン2枚)
+    rtvHeap_ = dxCommon_->CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 2, false);
+    const UINT rtvSize = dxCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+    D3D12_CLEAR_VALUE clearValue{};
+    clearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    clearValue.Color[0] = 0.0f;
+    clearValue.Color[1] = 0.0f;
+    clearValue.Color[2] = 0.0f;
+    clearValue.Color[3] = 1.0f;
+
+    D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+    rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+
+    D3D12_CPU_DESCRIPTOR_HANDLE heapStart = rtvHeap_->GetCPUDescriptorHandleForHeapStart();
+    for (int i = 0; i < 2; ++i) {
+        RenderTexture& tex = pingPong_[i];
+        tex.resource = dxCommon_->CreateRenderTextureResource(
+            WinApp::kClientWidth, WinApp::kClientHeight, clearValue.Format, clearValue);
+
+        tex.rtvHandle = heapStart;
+        tex.rtvHandle.ptr += static_cast<SIZE_T>(rtvSize) * i;
+        dxCommon_->GetDevice()->CreateRenderTargetView(tex.resource.Get(), &rtvDesc, tex.rtvHandle);
+
+        tex.srvIndex = srvManager_->Allocate();
+        srvManager_->CreateSRVforRenderTexture(tex.srvIndex, tex.resource.Get());
+        tex.srvGpuHandle = srvManager_->GetGPUDescriptorHandle(tex.srvIndex);
+    }
+}
+
+void OffScreen::Barrier(ID3D12Resource* resource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after) {
+    D3D12_RESOURCE_BARRIER barrier{};
+    barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    barrier.Transition.pResource = resource;
+    barrier.Transition.StateBefore = before;
+    barrier.Transition.StateAfter = after;
+    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    dxCommon_->GetCommandList()->ResourceBarrier(1, &barrier);
+}
+
+void OffScreen::DrawPass(IPostEffect* effect, D3D12_GPU_DESCRIPTOR_HANDLE srcSrv) {
+    const int mode = static_cast<int>(effect->GetShaderMode());
+    auto commandList = dxCommon_->GetCommandList();
+
+    psoManager_->DrawCommonSetting(pipelineStates_[mode], rootSignatures_[mode]);
+    // ルートパラメータ0 = ソーステクスチャ(全オフスクリーン用RootSignature共通)
+    commandList->SetGraphicsRootDescriptorTable(0, srcSrv);
+    // 各エフェクト固有のリソース(CBV / 深度SRV 等)
+    effect->BindExtra(commandList.Get());
+    commandList->DrawInstanced(3, 1, 0, 0);
+}
+
+void OffScreen::Draw() {
+    auto commandList = dxCommon_->GetCommandList();
+
+    // 有効なエフェクトのみを適用順に収集
+    std::vector<IPostEffect*> active;
+    active.reserve(effects_.size());
+    for (auto& effect : effects_) {
+        if (effect->IsEnabled()) {
+            active.push_back(effect.get());
+        }
+    }
+
+    // エフェクト側の毎フレーム更新
+    for (IPostEffect* effect : active) {
+        effect->SetProjection(projection_);
+        effect->Update();
+    }
+
+    // エフェクトが無ければコピー(kNone)でシーンをそのままバックバッファへ。
+    // バックバッファは PreDraw でバインド済みのため再バインド不要。
+    if (active.empty()) {
+        const int mode = static_cast<int>(ShaderMode::kNone);
+        psoManager_->DrawCommonSetting(pipelineStates_[mode], rootSignatures_[mode]);
+        commandList->SetGraphicsRootDescriptorTable(0, dxCommon_->GetOffScreenGPUHandle());
+        commandList->DrawInstanced(3, 1, 0, 0);
+        return;
+    }
+
+    // ピンポンでエフェクトを鎖状に適用する。
+    // 最初の入力はシーンテクスチャ、最後の出力はバックバッファ。
+    D3D12_GPU_DESCRIPTOR_HANDLE srcSrv = dxCommon_->GetOffScreenGPUHandle();
+    int writeIndex = 0;
+    const size_t count = active.size();
+    for (size_t i = 0; i < count; ++i) {
+        const bool isLast = (i + 1 == count);
+
+        if (isLast) {
+            // 最終パスはバックバッファへ描画(PreDraw と同じ RTV/DSV をバインド)
+            D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = dxCommon_->GetCurrentBackBufferRTVHandle();
+            D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dxCommon_->GetDSVCPUDescriptorHandle(0);
+            commandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
+        } else {
+            // 中間パスはピンポンテクスチャへ描画
+            RenderTexture& dst = pingPong_[writeIndex];
+            Barrier(dst.resource.Get(), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_RENDER_TARGET);
+            commandList->OMSetRenderTargets(1, &dst.rtvHandle, false, nullptr);
+        }
+
+        DrawPass(active[i], srcSrv);
+
+        if (!isLast) {
+            // 書き込んだテクスチャを次パスの入力にするため読み取り状態へ戻す
+            RenderTexture& dst = pingPong_[writeIndex];
+            Barrier(dst.resource.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ);
+            srcSrv = dst.srvGpuHandle;
+            writeIndex = 1 - writeIndex;
+        }
+    }
+}
+
+void OffScreen::AddEffect(const std::string& typeName) {
+    std::unique_ptr<IPostEffect> effect = CreatePostEffect(typeName);
+    if (!effect) {
+        return;
+    }
+    effect->Initialize(dxCommon_);
+    effects_.push_back(std::move(effect));
+}
+
+void OffScreen::SaveToJson() {
+    nlohmann::json root;
+    root["effects"] = nlohmann::json::array();
+    for (auto& effect : effects_) {
+        nlohmann::json entry;
+        entry["type"] = effect->GetTypeName();
+        entry["enabled"] = effect->IsEnabled();
+        nlohmann::json params;
+        effect->ToJson(params);
+        entry["params"] = params;
+        root["effects"].push_back(entry);
+    }
+
+    std::filesystem::path path = kJsonPath;
+    if (path.has_parent_path()) {
+        std::filesystem::create_directories(path.parent_path());
+    }
+    std::ofstream ofs(path);
+    if (ofs) {
+        ofs << root.dump(4);
+    }
+}
+
+void OffScreen::LoadFromJson() {
+    std::ifstream ifs(kJsonPath);
+    if (!ifs) {
+        return;
+    }
+
+    nlohmann::json root;
+    try {
+        ifs >> root;
+    } catch (...) {
+        return;
+    }
+
+    if (!root.contains("effects") || !root["effects"].is_array()) {
+        return;
+    }
+
+    effects_.clear();
+    for (const auto& entry : root["effects"]) {
+        const std::string type = entry.value("type", std::string());
+        std::unique_ptr<IPostEffect> effect = CreatePostEffect(type);
+        if (!effect) {
+            continue;
+        }
+        effect->Initialize(dxCommon_);
+        effect->SetEnabled(entry.value("enabled", true));
+        if (entry.contains("params")) {
+            effect->FromJson(entry["params"]);
+        }
+        effects_.push_back(std::move(effect));
+    }
+}
+
+void OffScreen::DrawCommonSetting() {
 #ifdef _DEBUG
-	ImGui::Begin("Offscreen");
+    ImGui::Begin("OffScreen");
 
-	// ShaderModeを文字列で表現
-	const char* shaderModeItems[] = { "None", "Gray", "Vignett", "Smooth", "Gauss", "OutLine","Depth","Blur" };
-	int currentShaderMode = static_cast<int>(shaderMode_);
+    // --- エフェクト追加 / 保存・読み込み ---
+    const std::vector<std::string>& types = GetPostEffectTypeNames();
+    if (addTypeIndex_ >= static_cast<int>(types.size())) {
+        addTypeIndex_ = 0;
+    }
+    if (ImGui::BeginCombo("##addType", types[addTypeIndex_].c_str())) {
+        for (int i = 0; i < static_cast<int>(types.size()); ++i) {
+            const bool selected = (addTypeIndex_ == i);
+            if (ImGui::Selectable(types[i].c_str(), selected)) {
+                addTypeIndex_ = i;
+            }
+            if (selected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Add")) {
+        AddEffect(types[addTypeIndex_]);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Save")) {
+        SaveToJson();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Load")) {
+        LoadFromJson();
+    }
 
-	// Comboを描画してユーザーが選択した場合に値を更新
-	if (ImGui::Combo("Shader Mode", &currentShaderMode, shaderModeItems, IM_ARRAYSIZE(shaderModeItems)))
-	{
-		shaderMode_ = static_cast<ShaderMode>(currentShaderMode);
-	}
+    ImGui::Separator();
+    ImGui::Text("Layers (top = applied first)");
 
-	switch (shaderMode_)
-	{
-	case ShaderMode::kNone:
-		break;
-	case ShaderMode::kGray:
-		break;
-	case ShaderMode::kVignette:
-		ImGui::DragFloat("Exponent", &vignetteData->vignetteExponent, 0.1f, 0.0f, 10.0f);
-		ImGui::DragFloat("Radius", &vignetteData->vignetteRadius, 0.01f, 0.0f, 10.0f);
-		ImGui::DragFloat("Strength", &vignetteData->vignetteStrength, 0.01f);
-		ImGui::DragFloat2("Center", &vignetteData->vignetteCenter.x, 0.01f, -10.0f, 10.0f);
-		break;
-	case ShaderMode::kSmooth:
-		ImGui::DragInt("Kernel Size", &smoothData->kernelSize, 2, 3, 7);
-		break;
-	case ShaderMode::kGauss:
-		ImGui::DragInt("Kernel Size", &gaussianData->kernelSize, 2, 3, 7);
-		ImGui::DragFloat("sigma", &gaussianData->sigma, 0.01f, 0.01f, 10.0f);
-		break;
-	case ShaderMode::kOutLine:
-		break;
-	case ShaderMode::kDepth:
-		depthData->projectionInverse = Inverse(projectionInverse_);
-		ImGui::DragInt("Kernel Size", &depthData->kernelSize, 2, 3, 7);
-		break;
-	case ShaderMode::kBlur:
-		ImGui::DragFloat2("Center", &radialData->kCenter.x, 0.1f);
-		ImGui::DragFloat("Width", &radialData->kBlurWidth, 0.01f);
-		break;
-	default:
-		break;
-	}
+    // --- 各レイヤーの表示・操作 ---
+    int moveUp = -1;
+    int moveDown = -1;
+    int removeAt = -1;
+    for (int i = 0; i < static_cast<int>(effects_.size()); ++i) {
+        IPostEffect* effect = effects_[i].get();
+        ImGui::PushID(i);
 
-	ImGui::End();
+        ImGui::Checkbox("##enabled", effect->EnabledPtr());
+        ImGui::SameLine();
+
+        const bool open = ImGui::TreeNode("layer", "%d: %s", i, effect->GetTypeName());
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Up")) {
+            moveUp = i;
+        }
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Down")) {
+            moveDown = i;
+        }
+        ImGui::SameLine();
+        if (ImGui::SmallButton("X")) {
+            removeAt = i;
+        }
+        if (open) {
+            effect->DrawImGui();
+            ImGui::TreePop();
+        }
+
+        ImGui::PopID();
+    }
+
+    // --- 並び替え / 削除の反映(ループ後にまとめて処理) ---
+    if (moveUp > 0) {
+        std::swap(effects_[moveUp], effects_[moveUp - 1]);
+    }
+    if (moveDown >= 0 && moveDown + 1 < static_cast<int>(effects_.size())) {
+        std::swap(effects_[moveDown], effects_[moveDown + 1]);
+    }
+    if (removeAt >= 0 && removeAt < static_cast<int>(effects_.size())) {
+        effects_.erase(effects_.begin() + removeAt);
+    }
+
+    ImGui::End();
 #endif // _DEBUG
 }
 
-void OffScreen::CreateSmooth()
-{
-	smoothResource = dxCommon->CreateBufferResource(sizeof(KernelSettings));
-	smoothResource->Map(0, nullptr, reinterpret_cast<void**>(&smoothData));
-	smoothData->kernelSize = 3;
-}
-
-void OffScreen::CreateGauss()
-{
-	gaussianResouce = dxCommon->CreateBufferResource(sizeof(GaussianParams));
-	gaussianResouce->Map(0, nullptr, reinterpret_cast<void**>(&gaussianData));
-	gaussianData->kernelSize = 3;
-	gaussianData->sigma = 1;
-}
-
-void OffScreen::CreateVignette()
-{
-	vignetteResource = dxCommon->CreateBufferResource(sizeof(VignetteParameter));
-	vignetteResource->Map(0, nullptr, reinterpret_cast<void**>(&vignetteData));
-	vignetteData->vignetteExponent = 1.0f;
-	vignetteData->vignetteRadius = 1.0f;
-	vignetteData->vignetteStrength = 1.0f;
-	vignetteData->vignetteCenter = { 0.5f,0.5f };
-}
-
-void OffScreen::CreateDepth()
-{
-	depthResouce = dxCommon->CreateBufferResource(sizeof(Depth));
-	depthResouce->Map(0, nullptr, reinterpret_cast<void**>(&depthData));
-	depthData->projectionInverse = MakeIdentity4x4();
-	depthData->kernelSize = 3;
-}
-
-void OffScreen::CreateRadial()
-{
-	radialResource = dxCommon->CreateBufferResource(sizeof(RadialBlur));
-	radialResource->Map(0, nullptr, reinterpret_cast<void**>(&radialData));
-	radialData->kBlurWidth = 0.01f;
-	radialData->kCenter = { 0.5f,0.5f };
-}
 } // namespace Engine

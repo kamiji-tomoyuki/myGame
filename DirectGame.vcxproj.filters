@@ -347,6 +347,9 @@
     <ClCompile Include="engine\offscreen\OffScreen.cpp">
       <Filter>ソースファイル\myEngine\offscreen</Filter>
     </ClCompile>
+    <ClCompile Include="engine\offscreen\PostEffect.cpp">
+      <Filter>ソースファイル\myEngine\offscreen</Filter>
+    </ClCompile>
     <ClCompile Include="application\character\base\BaseObject.cpp">
       <Filter>ソースファイル\application\Character\Base</Filter>
     </ClCompile>
@@ -728,6 +731,9 @@
       <Filter>ソースファイル\myEngine\3d\line</Filter>
     </ClInclude>
     <ClInclude Include="engine\offscreen\OffScreen.h">
+      <Filter>ソースファイル\myEngine\offscreen</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\offscreen\PostEffect.h">
       <Filter>ソースファイル\myEngine\offscreen</Filter>
     </ClInclude>
     <ClInclude Include="application\character\base\BaseObject.h">
