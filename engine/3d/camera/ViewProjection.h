@@ -13,6 +13,7 @@
 /// <summary>
 /// 定数バッファデータ(ビュー・プロジェクション)
 /// </summary>
+namespace Engine {
 struct ConstBufferDataViewProjection {
 	Matrix4x4 view;
 	Matrix4x4 projection;
@@ -110,3 +111,4 @@ private:
 };
 
 static_assert(!std::is_copy_assignable_v<ViewProjection>);
+} // namespace Engine
