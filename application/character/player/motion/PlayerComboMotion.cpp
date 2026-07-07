@@ -165,10 +165,28 @@ void PlayerComboMotion::BeginBlend(int nextIndex) {
 	}
 }
 
+// コンボを継続しない場合、現クリップ終端姿勢から基準姿勢へ補間して戻す
+void PlayerComboMotion::BeginReturn() {
+	const float endT = clips_[index_].GetDuration();
+	blendFrom_[0] = clips_[index_].SampleBody(endT);
+	blendFrom_[1] = clips_[index_].SampleRArm(endT);
+	blendFrom_[2] = clips_[index_].SampleLArm(endT);
+
+	pendingNext_ = -1;
+	blendTimer_ = 0.0f;
+
+	if (blendTime_ <= 0.0f) {
+		Stop(); // 補間時間ゼロなら即停止（ApplyVariablesが基準姿勢へ）
+	} else {
+		phase_ = Phase::kReturn;
+	}
+}
+
 PlayerComboMotion::Result PlayerComboMotion::TryAdvance() {
 	if (clips_.empty()) { return Result::kNone; }
 
-	if (phase_ == Phase::kIdle) {
+	// 停止中／基準姿勢へ戻す補間中は、新たなコンボを先頭から開始する
+	if (phase_ == Phase::kIdle || phase_ == Phase::kReturn) {
 		StartClip(0);
 		return Result::kAttacked;
 	}
@@ -193,9 +211,9 @@ void PlayerComboMotion::Update(float dt) {
 		if (time_ >= duration) {
 			const int next = ResolveNextIndex();
 			if (next >= 0) {
-				BeginBlend(next);
+				BeginBlend(next);   // 次クリップへ繋ぐ
 			} else {
-				Stop();
+				BeginReturn();      // 繋がない → 基準姿勢へ補間して戻す
 			}
 		}
 	}
@@ -205,33 +223,50 @@ void PlayerComboMotion::Update(float dt) {
 			StartClip(pendingNext_);
 		}
 	}
+	else if (phase_ == Phase::kReturn) {
+		blendTimer_ += dt;
+		if (blendTimer_ >= blendTime_) {
+			Stop();
+		}
+	}
 }
 
 PartPose PlayerComboMotion::GetBodyPose() const {
 	if (phase_ == Phase::kClip) { return clips_[index_].SampleBody(time_); }
+	const float u = (blendTime_ > 0.0f) ? (blendTimer_ / blendTime_) : 1.0f;
 	if (phase_ == Phase::kBlend) {
-		const float u = (blendTime_ > 0.0f) ? (blendTimer_ / blendTime_) : 1.0f;
 		return PlayerMotionClip::BlendPose(blendFrom_[0], clips_[pendingNext_].SampleBody(0.0f), u);
+	}
+	if (phase_ == Phase::kReturn) {
+		return PlayerMotionClip::BlendPose(blendFrom_[0], PartPose{}, u); // 体は中立へ
 	}
 	return PartPose{};
 }
 
 PartPose PlayerComboMotion::GetRArmPose() const {
 	if (phase_ == Phase::kClip) { return clips_[index_].SampleRArm(time_); }
+	const float u = (blendTime_ > 0.0f) ? (blendTimer_ / blendTime_) : 1.0f;
+	PartPose base; base.translate = kRArmBase_; // 右腕の基準姿勢
 	if (phase_ == Phase::kBlend) {
-		const float u = (blendTime_ > 0.0f) ? (blendTimer_ / blendTime_) : 1.0f;
 		return PlayerMotionClip::BlendPose(blendFrom_[1], clips_[pendingNext_].SampleRArm(0.0f), u);
 	}
-	PartPose p; p.translate = kRArmBase_; return p;
+	if (phase_ == Phase::kReturn) {
+		return PlayerMotionClip::BlendPose(blendFrom_[1], base, u);
+	}
+	return base;
 }
 
 PartPose PlayerComboMotion::GetLArmPose() const {
 	if (phase_ == Phase::kClip) { return clips_[index_].SampleLArm(time_); }
+	const float u = (blendTime_ > 0.0f) ? (blendTimer_ / blendTime_) : 1.0f;
+	PartPose base; base.translate = kLArmBase_; // 左腕の基準姿勢
 	if (phase_ == Phase::kBlend) {
-		const float u = (blendTime_ > 0.0f) ? (blendTimer_ / blendTime_) : 1.0f;
 		return PlayerMotionClip::BlendPose(blendFrom_[2], clips_[pendingNext_].SampleLArm(0.0f), u);
 	}
-	PartPose p; p.translate = kLArmBase_; return p;
+	if (phase_ == Phase::kReturn) {
+		return PlayerMotionClip::BlendPose(blendFrom_[2], base, u);
+	}
+	return base;
 }
 
 bool PlayerComboMotion::IsHitActive() const {

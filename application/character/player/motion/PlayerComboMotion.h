@@ -63,10 +63,12 @@ private:
 		kIdle,   // 停止
 		kClip,   // クリップ再生中
 		kBlend,  // クリップ間ブレンド中
+		kReturn, // 終端姿勢→基準姿勢へ戻すブレンド中（コンボ非継続時）
 	};
 
 	void StartClip(int index);
 	void BeginBlend(int nextIndex); // 現クリップ終端姿勢→次クリップ開始姿勢へ
+	void BeginReturn();             // 現クリップ終端姿勢→基準姿勢へ（コンボ非継続時）
 	int  ResolveNextIndex() const;  // 次に再生すべきインデックス（無ければ-1）
 	void LoadDefaults();            // 既定コンボ（右パンチ→左パンチ）を生成
 	bool LoadFromFiles();           // combo.json からクリップ＋補間時間を読み込む

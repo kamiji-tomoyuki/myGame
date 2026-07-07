@@ -105,6 +105,11 @@ public:
 	PlayerComboMotion::Result TryComboAttack() { return comboMotion_ ? comboMotion_->TryAdvance() : PlayerComboMotion::Result::kNone; }
 	void StopComboMotion() { if (comboMotion_) { comboMotion_->Stop(); } }
 
+	// コンボ中の体ひねりを facing に加算/除去する（ロックオンへ二重に効かないよう対で呼ぶ）。
+	// RemoveComboBodyTwist(ロックオン前) → ApplyComboBodyTwist(腕更新前) の順に PlayerStatePlaying から呼ぶ。
+	void RemoveComboBodyTwist();
+	void ApplyComboBodyTwist();
+
 	Enemy* GetEnemy()         const { return enemy_; }  // ★ 追加
 
 	void ApplyDamage(uint32_t damage, const Vector3& hitPosition);
@@ -186,6 +191,9 @@ private:
 	bool     isAttack_ = false;
 	uint32_t globalComboCount_ = 0;
 	uint32_t globalComboTimer_ = 0;
+
+	// コンボモーションで体へ加算中のひねり角（次フレームのロックオン前に除去する）
+	Vector3  comboBodyTwist_ = { 0.0f, 0.0f, 0.0f };
 
 	// ロックオン
 	Enemy* enemy_ = nullptr;

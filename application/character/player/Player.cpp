@@ -217,8 +217,9 @@ void Player::ApplyComboMotion()
 {
 	if (!comboMotion_) { return; }
 
-	// 必殺技中はコンボを止める（必殺技が腕を制御するため）
-	if (IsUltimateActive()) {
+	// 中断条件：必殺技・回避・被弾・ラッシュ中はコンボを止める（腕は ApplyVariables が基準姿勢へ戻す）
+	//   ラッシュ中はコンボの体ひねり・腕姿勢を一切適用しない（ラッシュ動作への介入防止）。
+	if (IsUltimateActive() || IsDodging() || IsHitReacting() || IsRushActive()) {
 		comboMotion_->Stop();
 		return;
 	}
@@ -255,6 +256,33 @@ void Player::ApplyComboMotion()
 			comboMotion_->MarkHit();
 		}
 	}
+}
+
+// =============================================================
+//  コンボの体ひねり — facing への加算/除去
+//  ロックオン(UpdateLockOn)は transform_.rotation_ を読んで敵方向へ補間するため、
+//  ひねりを入れたまま次フレームを迎えるとロックオンにフィードバックしてしまう。
+//  そこで「ロックオン前に前フレームのひねりを除去」「腕更新前に今フレームのひねりを加算」
+//  の対で運用し、facing とひねりを分離する。
+// =============================================================
+void Player::RemoveComboBodyTwist()
+{
+	transform_.rotation_.x -= comboBodyTwist_.x;
+	transform_.rotation_.y -= comboBodyTwist_.y;
+	transform_.rotation_.z -= comboBodyTwist_.z;
+	comboBodyTwist_ = { 0.0f, 0.0f, 0.0f };
+}
+
+void Player::ApplyComboBodyTwist()
+{
+	if (!IsComboMotionActive()) { return; }
+	Vector3 t = comboMotion_->GetBodyPose().rotate;
+	transform_.rotation_.x += t.x;
+	transform_.rotation_.y += t.y;
+	transform_.rotation_.z += t.z;
+	comboBodyTwist_ = t;
+	// 体の行列を更新してから腕(子)の行列を更新させる
+	transform_.UpdateMatrix();
 }
 
 // =============================================================
@@ -442,21 +470,28 @@ void Player::ApplyVariables()
 
 	// ★ 必殺技モーション中・コンボモーション中は腕位置を上書きしない
 	//    （それぞれが毎フレーム腕の translation/rotation を直接制御するため）
+	//    非動作時は基準姿勢へ戻す。コンボは回転も動かすため、回転も {0,0,0} へ戻すこと
+	//    （戻さないとコンボ終了後に腕が最後の回転で固まる）。
 	if (!IsUltimateActive() && !IsComboMotionActive()) {
+		const Vector3 kNoRotation = { 0.0f, 0.0f, 0.0f };
 		if (arms_[kRArm]) {
 			arms_[kRArm]->SetTranslation(kRightArmTranslation_);
+			arms_[kRArm]->SetRotation(kNoRotation);
 			arms_[kRArm]->SetScale(kArmScale_);
 		}
 		if (arms_[kLArm]) {
 			arms_[kLArm]->SetTranslation(kLeftArmTranslation_);
+			arms_[kLArm]->SetRotation(kNoRotation);
 			arms_[kLArm]->SetScale(kArmScale_);
 		}
 		if (extraArms_[kRArm]) {
 			extraArms_[kRArm]->SetTranslation(kRightArmTranslation_);
+			extraArms_[kRArm]->SetRotation(kNoRotation);
 			extraArms_[kRArm]->SetScale(kArmScale_);
 		}
 		if (extraArms_[kLArm]) {
 			extraArms_[kLArm]->SetTranslation(kLeftArmTranslation_);
+			extraArms_[kLArm]->SetRotation(kNoRotation);
 			extraArms_[kLArm]->SetScale(kArmScale_);
 		}
 	}
