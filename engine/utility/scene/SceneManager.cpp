@@ -39,27 +39,7 @@ void SceneManager::Finalize()
 
 void SceneManager::Update()
 {
-#ifdef _DEBUG
-
-	ImGui::Begin("scene");
-	if (ImGui::Button("TitleScene") && (transition_->IsEnd() && !transition_->FadeInStart())) {
-		NextSceneReservation("TITLE");
-	}
-	if (ImGui::Button("GameScene") && (transition_->IsEnd() && !transition_->FadeInStart())) {
-		NextSceneReservation("GAME");
-	}
-	if (ImGui::Button("GameClearScene") && (transition_->IsEnd() && !transition_->FadeInStart())) {
-		NextSceneReservation("CLEAR");
-	}
-	if (ImGui::Button("GameOverScene") && (transition_->IsEnd() && !transition_->FadeInStart())) {
-		NextSceneReservation("OVER");
-	}
-	if (ImGui::Button("DEBUGScene") && (transition_->IsEnd() && !transition_->FadeInStart())) {
-		NextSceneReservation("PARTICLE_DEBUG");
-	}
-	ImGui::End();
-
-#endif // _DEBUG
+	// シーン切り替えUIはメインメニューバー（EditorUI）へ移動
 
 	// 状態に応じた更新
 	if (state_) {

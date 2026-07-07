@@ -4,6 +4,9 @@
 #include <imgui.h>
 #include "GlobalVariables.h"
 #include "line/DrawLine3D.h"
+#ifdef _DEBUG
+#include "EditorUI.h"
+#endif // _DEBUG
 
 using namespace Engine;
 void ParticleDebugScene::Initialize() {
@@ -62,36 +65,42 @@ void ParticleDebugScene::Draw() {
 void ParticleDebugScene::DrawForOffScreen() {}
 
 void ParticleDebugScene::Debug() {
-    ImGui::Begin("Particle Editor Scene");
-    
-    if (ImGui::Button("Back to Title")) {
-        sceneManager_->NextSceneReservation("TITLE");
-    }
+#ifdef _DEBUG
+    EditorUI* editor = EditorUI::GetInstance();
 
-    ImGui::Separator();
-    
-    ImGui::InputText("Particle Name", particleName_, sizeof(particleName_));
-    ImGui::InputText("Model Path", modelPath_, sizeof(modelPath_));
-    
-    const char* primitiveNames[] = { "Normal", "Ring", "Cylinder" };
-    ImGui::Combo("Primitive Type", &currentPrimitive_, primitiveNames, IM_ARRAYSIZE(primitiveNames));
+    if (editor->PanelVisible("パーティクル設定", "パーティクル")) {
+        ImGui::Begin("Particle Editor Scene");
 
-    if (ImGui::Button("Reset Emitter")) {
-        emitter_ = std::make_unique<ParticleEmitter>();
-        emitter_->Initialize(particleName_, modelPath_);
-    }
-
-    if (emitter_) {
-        if (ImGui::Button("Save to JSON")) {
-            GlobalVariables::GetInstance()->SaveFile(particleName_);
-            std::string message = std::format("{}.json saved.", particleName_);
-            MessageBoxA(nullptr, message.c_str(), "GlobalVariables", 0);
+        if (ImGui::Button("Back to Title")) {
+            sceneManager_->NextSceneReservation("TITLE");
         }
+
+        ImGui::Separator();
+
+        ImGui::InputText("Particle Name", particleName_, sizeof(particleName_));
+        ImGui::InputText("Model Path", modelPath_, sizeof(modelPath_));
+
+        const char* primitiveNames[] = { "Normal", "Ring", "Cylinder" };
+        ImGui::Combo("Primitive Type", &currentPrimitive_, primitiveNames, IM_ARRAYSIZE(primitiveNames));
+
+        if (ImGui::Button("Reset Emitter")) {
+            emitter_ = std::make_unique<ParticleEmitter>();
+            emitter_->Initialize(particleName_, modelPath_);
+        }
+
+        if (emitter_) {
+            if (ImGui::Button("Save to JSON")) {
+                GlobalVariables::GetInstance()->SaveFile(particleName_);
+                std::string message = std::format("{}.json saved.", particleName_);
+                MessageBoxA(nullptr, message.c_str(), "GlobalVariables", 0);
+            }
+        }
+
+        ImGui::End();
     }
 
-    ImGui::End();
-
-    if (emitter_) {
+    if (emitter_ && editor->PanelVisible("エミッタ", "パーティクル")) {
         emitter_->imgui();
     }
+#endif // _DEBUG
 }

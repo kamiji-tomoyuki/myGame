@@ -3,6 +3,9 @@
 #include "ImGuiManager.h"
 #include "engine/Frame/Frame.h"
 #include <D3DResourceLeakChecker.h>
+#ifdef _DEBUG
+#include "EditorUI.h"
+#endif // _DEBUG
 
 namespace Engine {
 void Framework::Run() {
@@ -40,17 +43,18 @@ void Framework::Initialize() {
     dxCommon->Initialize(winApp);
     ///--------------------------------
 
-    /// ---------ImGui---------
-#ifdef _DEBUG
-    ImGuiManager::GetInstance()->Initialize(winApp);
-#endif // _DEBUG
-    /// -----------------------
-
  ///--------SRVManager--------
- // SRVマネージャの初期化
+ // SRVマネージャの初期化(ImGuiがこのヒープを共有するため先に初期化する)
     srvManager = SrvManager::GetInstance();
     srvManager->Initialize();
     ///--------------------------
+
+    /// ---------ImGui---------
+#ifdef _DEBUG
+    ImGuiManager::GetInstance()->Initialize(winApp);
+    EditorUI::GetInstance()->Initialize();
+#endif // _DEBUG
+    /// -----------------------
 
     // offscreenのSRV作成
     dxCommon->CreateOffscreenSRV();
@@ -153,6 +157,7 @@ void Framework::Finalize() {
     ///---------------------------
 
 #ifdef _DEBUG
+    EditorUI::GetInstance()->Finalize();
     ImGuiManager::GetInstance()->Finalize();
 #endif // _DEBUG
     line3d_->Finalize();
@@ -171,6 +176,7 @@ void Framework::Update() {
     Frame::Update();
 #ifdef _DEBUG
     ImGuiManager::GetInstance()->Begin();
+    EditorUI::GetInstance()->BeginDockSpace();
     GlobalVariables::GetInstance()->Update();
 #endif // _DEBUG
     offscreen_->DrawCommonSetting();
@@ -178,6 +184,7 @@ void Framework::Update() {
     collisionManager_->Update();
 #ifdef _DEBUG
     DisplayFPS();
+    EditorUI::GetInstance()->EndDockSpace();
     ImGuiManager::GetInstance()->End();
 #endif // _DEBUG
 

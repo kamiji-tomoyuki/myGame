@@ -173,6 +173,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\math\Easing.cpp" />
     <ClCompile Include="engine\3d\particle\ParticleCommon.cpp" />
     <ClCompile Include="engine\3d\particle\ParticleManager.cpp" />
+    <ClCompile Include="engine\utility\debug\EditorUI.cpp" />
     <ClCompile Include="engine\utility\debug\GlobalVariables.cpp" />
     <ClCompile Include="engine\utility\edit\LevelData.cpp" />
     <ClCompile Include="engine\math\Quaternion.cpp" />
@@ -316,6 +317,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\math\Easing.h" />
     <ClInclude Include="engine\3d\particle\ParticleCommon.h" />
     <ClInclude Include="engine\3d\particle\ParticleManager.h" />
+    <ClInclude Include="engine\utility\debug\EditorUI.h" />
     <ClInclude Include="engine\utility\debug\GlobalVariables.h" />
     <ClInclude Include="engine\utility\edit\LevelData.h" />
     <ClInclude Include="engine\math\Quaternion.h" />

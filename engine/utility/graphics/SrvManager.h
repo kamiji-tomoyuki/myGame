@@ -122,6 +122,12 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(uint32_t index);
 	D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(uint32_t index);
 
+	/// <summary>デスクリプタヒープの取得(ImGui等でヒープを共有する用)</summary>
+	ID3D12DescriptorHeap* GetDescriptorHeap() const { return descriptorHeap.Get(); }
+
+	/// <summary>CPUハンドルからインデックスを逆算して解放する</summary>
+	void FreeByCPUHandle(D3D12_CPU_DESCRIPTOR_HANDLE handle);
+
 	/// <summary>
 	/// setter
 	/// </summary>

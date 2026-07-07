@@ -3,6 +3,9 @@
 #include <ImGuiManager.h>
 #include "BaseScene.h"
 #include "ViewProjection.h"
+#ifdef _DEBUG
+#include "EditorUI.h"
+#endif // _DEBUG
 
 namespace Engine {
 void MyGame::Initialize()
@@ -18,6 +21,16 @@ void MyGame::Initialize()
 	// シーンマネージャに最初のシーンをセット
 	sceneManager_->SetSceneFactory(sceneFactory_.get());
 	sceneManager_->NextSceneReservation("TITLE");
+
+#ifdef _DEBUG
+	// エディタのシーンメニューに切り替え候補を登録
+	EditorUI* editor = EditorUI::GetInstance();
+	editor->RegisterScene("TITLE", "タイトル");
+	editor->RegisterScene("GAME", "ゲーム");
+	editor->RegisterScene("CLEAR", "クリア");
+	editor->RegisterScene("OVER", "ゲームオーバー");
+	editor->RegisterScene("PARTICLE_DEBUG", "パーティクルデバッグ");
+#endif // _DEBUG
 }
 
 void MyGame::Finalize()
@@ -40,6 +53,13 @@ void MyGame::Draw()
 		collisionManager_->Draw(*sceneManager_->GetBaseScene()->GetViewProjection());
 	}
 	sceneManager_->Draw();
+
+#ifdef _DEBUG
+	// エディタで追加したオブジェクトの描画（レンダーテクスチャへ）
+	if (sceneManager_->GetBaseScene()) {
+		EditorUI::GetInstance()->DrawEditorObjects(*sceneManager_->GetBaseScene()->GetViewProjection());
+	}
+#endif // _DEBUG
 
 	spriteCommon->DrawCommonSetting();
 	sceneManager_->DrawTransition();

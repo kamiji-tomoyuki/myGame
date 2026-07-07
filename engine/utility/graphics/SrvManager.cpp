@@ -126,6 +126,15 @@ void SrvManager::Free(uint32_t srvIndex) {
     freeIndices.push(srvIndex);
 }
 
+void SrvManager::FreeByCPUHandle(D3D12_CPU_DESCRIPTOR_HANDLE handle) {
+    const SIZE_T start = descriptorHeap->GetCPUDescriptorHandleForHeapStart().ptr;
+    if (handle.ptr < start || descriptorSize == 0) {
+        return;
+    }
+    const uint32_t index = static_cast<uint32_t>((handle.ptr - start) / descriptorSize);
+    Free(index);
+}
+
 // SRVの最大数チェック
 bool SrvManager::CanAllocate() const {
     // useIndexがkMaxSRVCount未満、もしくは空きインデックスがあればtrueを返す

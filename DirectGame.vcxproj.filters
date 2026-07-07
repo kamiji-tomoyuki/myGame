@@ -314,6 +314,9 @@
     <ClCompile Include="engine\math\Easing.cpp">
       <Filter>ソースファイル\myEngine\math</Filter>
     </ClCompile>
+    <ClCompile Include="engine\utility\debug\EditorUI.cpp">
+      <Filter>ソースファイル\myEngine\utility\debug</Filter>
+    </ClCompile>
     <ClCompile Include="engine\utility\debug\GlobalVariables.cpp">
       <Filter>ソースファイル\myEngine\utility\debug</Filter>
     </ClCompile>
@@ -644,6 +647,9 @@
       <Filter>ソースファイル\myEngine\utility\collider</Filter>
     </ClInclude>
     <ClInclude Include="engine\utility\debug\D3DResourceLeakChecker.h">
+      <Filter>ソースファイル\myEngine\utility\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\utility\debug\EditorUI.h">
       <Filter>ソースファイル\myEngine\utility\debug</Filter>
     </ClInclude>
     <ClInclude Include="engine\utility\debug\GlobalVariables.h">
