@@ -17,6 +17,7 @@
 #include "PlayerHitReaction.h"
 #include "PlayerMove.h"
 #include "PlayerRushPosture.h"
+#include "PlayerComboMotion.h"
 
 // State Pattern
 #include "IPlayerState.h"
@@ -99,6 +100,11 @@ public:
 	bool IsRushActive()       const;
 	bool IsUltimateActive()   const;  // ★ 追加
 
+	// --- モーション駆動コンボ ---
+	bool IsComboMotionActive() const { return comboMotion_ && comboMotion_->IsActive(); }
+	PlayerComboMotion::Result TryComboAttack() { return comboMotion_ ? comboMotion_->TryAdvance() : PlayerComboMotion::Result::kNone; }
+	void StopComboMotion() { if (comboMotion_) { comboMotion_->Stop(); } }
+
 	Enemy* GetEnemy()         const { return enemy_; }  // ★ 追加
 
 	void ApplyDamage(uint32_t damage, const Vector3& hitPosition);
@@ -124,6 +130,7 @@ private:
 
 	void InitArm();
 	void MoveInternal();
+	void ApplyComboMotion(); // コンボモーションの更新・腕姿勢反映・ヒット判定
 	void UpdateLockOn();
 	void TakeDamage(const Vector3& hitPosition);
 	void ChangeState(std::unique_ptr<IPlayerState> next);
@@ -146,6 +153,7 @@ private:
 	std::unique_ptr<PlayerDodge>          dodge_;
 	std::unique_ptr<PlayerRushPosture>    rushPosture_;
 	std::unique_ptr<PlayerHitReaction>    hitReaction_;
+	std::unique_ptr<PlayerComboMotion>    comboMotion_;
 
 	std::unique_ptr<PlayerStartEffect>    startEffect_;
 	std::unique_ptr<PlayerGameOverEffect> gameOverEffect_;

@@ -29,7 +29,7 @@ void MyGame::Initialize()
 	editor->RegisterScene("GAME", "ゲーム");
 	editor->RegisterScene("CLEAR", "クリア");
 	editor->RegisterScene("OVER", "ゲームオーバー");
-	editor->RegisterScene("PARTICLE_DEBUG", "パーティクルデバッグ");
+	editor->RegisterScene("DEBUG", "デバッグ");
 #endif // _DEBUG
 }
 

@@ -107,14 +107,15 @@ void PlayerAttack::Update()
         return;
     }
 
-    // --- ラッシュ優先 ---
-    if (!hitReacting && a[kLArm] && a[kLArm]->CanStartRush()) {
-        // -------------------------------------------------------
-        // 交互パンチを実現するため、左右の腕に半周期分のタイマーオフセットを与える。
-        //   右腕 timerOffset = 0               → interval の 0/2 位相
-        //   左腕 timerOffset = kRushInterval/2 → interval の 1/2 位相（半周期ずれ）
-        // オフセット値は右腕の PlayerArmRush から interval を取得して算出する。
-        // -------------------------------------------------------
+    // --- モーション駆動コンボ（右/左パンチをエディタ作成クリップの再生に置換） ---
+    //   コンボが完走した状態での入力はラッシュへ移行する。
+    PlayerComboMotion::Result result = player_->TryComboAttack();
+
+    if (result == PlayerComboMotion::Result::kRush && !hitReacting) {
+        // コンボからラッシュへ。腕をクリップ制御から解放してから既存のラッシュを開始。
+        player_->StopComboMotion();
+
+        // 交互パンチのため左右の腕に半周期分のタイマーオフセットを与える
         const uint32_t rushInterval = a[kRArm] ? a[kRArm]->GetRushInterval() : kDefaultRushInterval_;
         const uint32_t leftArmOffset = rushInterval / kAlternateOffsetDivisor_;
 
@@ -126,39 +127,6 @@ void PlayerAttack::Update()
         uint32_t extraOffset = rushInterval / 4;
         if (extra[kRArm]) { extra[kRArm]->StartRush(kRightArmTimerOffset_ + extraOffset); }
         if (extra[kLArm]) { extra[kLArm]->StartRush(leftArmOffset + extraOffset); }
-
-        return;
-    }
-
-    // --- 左パンチコンボ ---
-    if ((isComboWindowOpen || comboProtected_) &&
-        a[kRArm] && a[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch) {
-        if (a[kLArm] && a[kLArm]->GetBehavior() == PlayerArm::Behavior::kNormal) {
-            a[kLArm]->StartAttack(PlayerArm::AttackType::kLeftPunch);
-            comboProtected_ = false;
-            comboProtectTimer_ = 0;
-        }
-        return;
-    }
-
-    if (hitReacting) {
-        return;
-    }
-
-    // --- 右パンチ（初撃） ---
-    {
-        bool anyAttacking = false;
-        for (const auto& arm : *arms_) {
-            if (arm->GetBehavior() == PlayerArm::Behavior::kAttack ||
-                arm->GetBehavior() == PlayerArm::Behavior::kRush) {
-                anyAttacking = true;
-                break;
-            }
-        }
-
-        if (!anyAttacking && a[kRArm]) {
-            a[kRArm]->StartAttack(PlayerArm::AttackType::kRightPunch);
-        }
     }
 }
 

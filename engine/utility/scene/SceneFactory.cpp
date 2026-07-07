@@ -3,7 +3,7 @@
 #include"GameScene.h"
 #include"GameClearScene.h"
 #include"GameOverScene.h"
-#include"debugScene/ParticleDebugScene.h"
+#include"debugScene/DebugScene.h"
 
 namespace Engine {
 std::unique_ptr<BaseScene> SceneFactory::CreateScene(const std::string& sceneName)
@@ -23,8 +23,8 @@ std::unique_ptr<BaseScene> SceneFactory::CreateScene(const std::string& sceneNam
 	else if (sceneName == "OVER") {
 		newScene = std::make_unique<GameOverScene>();
 	}
-	else if (sceneName == "PARTICLE_DEBUG") {
-		newScene = std::make_unique<ParticleDebugScene>();
+	else if (sceneName == "DEBUG") {
+		newScene = std::make_unique<DebugScene>();
 	}
 	return newScene;
 }

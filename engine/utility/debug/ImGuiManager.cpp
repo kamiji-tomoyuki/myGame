@@ -22,7 +22,14 @@ void ImGuiManager::Initialize(WinApp* winApp)
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Docking機能を有効化
 	io.Fonts->Clear(); // 既存のフォントをクリア
 
-	// 日本語グリフ範囲 + アイコン用の記号範囲(矢印/幾何学模様/その他記号)をマージ
+	// 全体の基本フォントは FiraMono-Medium（英数字・記号）。
+	// FiraMono は日本語・アイコン記号を含まないため、それらは PixelMplus をマージして補完する。
+	const float kFontSize = 15.0f;
+
+	// --- 基本フォント: FiraMono（ラテン文字の既定範囲） ---
+	io.Fonts->AddFontFromFileTTF("resources/fonts/FiraMono-Medium.ttf", kFontSize, nullptr, io.Fonts->GetGlyphRangesDefault());
+
+	// --- 補完フォント: FiraMonoに無い日本語 + アイコン記号を PixelMplus でマージ ---
 	ImFontGlyphRangesBuilder builder;
 	builder.AddRanges(io.Fonts->GetGlyphRangesJapanese());
 	static const ImWchar iconRanges[] = {
@@ -36,7 +43,9 @@ void ImGuiManager::Initialize(WinApp* winApp)
 	static ImVector<ImWchar> glyphRanges;
 	builder.BuildRanges(&glyphRanges);
 
-	io.Fonts->AddFontFromFileTTF("resources/fonts/PixelMplus12-Regular.ttf", 14.0f, nullptr, glyphRanges.Data);
+	ImFontConfig mergeConfig;
+	mergeConfig.MergeMode = true; // 直前のフォント(FiraMono)にグリフを統合
+	io.Fonts->AddFontFromFileTTF("resources/fonts/PixelMplus12-Regular.ttf", kFontSize, &mergeConfig, glyphRanges.Data);
 
 	// ImGuiのスタイルを設定
 	ImGui::StyleColorsDark();
@@ -59,14 +68,19 @@ void ImGuiManager::Initialize(WinApp* winApp)
 void ImGuiManager::SrvDescriptorAlloc(ImGui_ImplDX12_InitInfo* /*info*/, D3D12_CPU_DESCRIPTOR_HANDLE* outCpu, D3D12_GPU_DESCRIPTOR_HANDLE* outGpu)
 {
 	SrvManager* srv = SrvManager::GetInstance();
-	const uint32_t index = srv->Allocate();
-	*outCpu = srv->GetCPUDescriptorHandle(index);
-	*outGpu = srv->GetGPUDescriptorHandle(index);
+	// エンジンの慣習に合わせて物理スロットへ +kSRVIndexTop(=1) のオフセットを付ける。
+	// テクスチャ/スキンは Allocate()+1 のスロットを使うため、ここでオフセット無しにすると
+	// ImGuiフォント(Texture2D) がスキンのパレット(Buffer)スロットと衝突して
+	// GPUベース検証の SRV次元不一致クラッシュを起こす。
+	const uint32_t physical = srv->Allocate() + 1;
+	*outCpu = srv->GetCPUDescriptorHandle(physical);
+	*outGpu = srv->GetGPUDescriptorHandle(physical);
 }
 
-void ImGuiManager::SrvDescriptorFree(ImGui_ImplDX12_InitInfo* /*info*/, D3D12_CPU_DESCRIPTOR_HANDLE cpu, D3D12_GPU_DESCRIPTOR_HANDLE /*gpu*/)
+void ImGuiManager::SrvDescriptorFree(ImGui_ImplDX12_InitInfo* /*info*/, D3D12_CPU_DESCRIPTOR_HANDLE /*cpu*/, D3D12_GPU_DESCRIPTOR_HANDLE /*gpu*/)
 {
-	SrvManager::GetInstance()->FreeByCPUHandle(cpu);
+	// ImGuiのフォントテクスチャはシャットダウン時のみ解放されるため、
+	// スロットの返却は行わない（1スロットのみで実害なし）。
 }
 
 ImGuiManager* ImGuiManager::GetInstance()

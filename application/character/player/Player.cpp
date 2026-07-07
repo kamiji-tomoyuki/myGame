@@ -3,6 +3,7 @@
 #include "FollowCamera.h"
 #include "CollisionTypeIdDef.h"
 #include "myMath.h"
+#include "Frame.h"
 #include <Enemy.h>
 #include <EnemyAttackManager.h>
 
@@ -96,6 +97,10 @@ void Player::Init()
 	InitArm();         // attack_ 生成後に呼ぶ（SetPlayerAttack のため）
 	dodge_ = std::make_unique<PlayerDodge>(this, stageManager_);
 
+	// モーション駆動コンボ（エディタで作成したクリップ／既定コンボを読み込む）
+	comboMotion_ = std::make_unique<PlayerComboMotion>();
+	comboMotion_->Init();
+
 	isAlive_ = true;
 	gameState_ = GameState::kPlaying;
 
@@ -142,6 +147,9 @@ void Player::Update()
 	//    → 同フレームで State（PlayerStatePlaying）が IsUltimateActive() を
 	//      正しく読めるようになる
 	if (attack_) { attack_->UpdateUltimate(this, enemy_); }
+
+	// コンボモーション更新・腕姿勢反映（State更新=腕Updateより前に適用する）
+	ApplyComboMotion();
 
 	// 現在の状態を更新し、次状態が返ってきたら遷移する
 	if (currentState_) {
@@ -200,6 +208,53 @@ void Player::MoveInternal()
 	}
 
 	BaseObject::SetWorldPosition(newPos);
+}
+
+// =============================================================
+//  コンボモーション（作成したクリップで腕を駆動しヒットさせる）
+// =============================================================
+void Player::ApplyComboMotion()
+{
+	if (!comboMotion_) { return; }
+
+	// 必殺技中はコンボを止める（必殺技が腕を制御するため）
+	if (IsUltimateActive()) {
+		comboMotion_->Stop();
+		return;
+	}
+
+	comboMotion_->Update(Frame::DeltaTime());
+	if (!comboMotion_->IsActive()) { return; }
+
+	// 腕へ姿勢（座標・回転）を反映。この後の腕Updateが行列を再計算する。
+	PartPose rp = comboMotion_->GetRArmPose();
+	if (arms_[kRArm]) {
+		arms_[kRArm]->SetTranslation(rp.translate);
+		arms_[kRArm]->SetRotation(rp.rotate);
+		arms_[kRArm]->SetScale(kArmScale_);
+	}
+	PartPose lp = comboMotion_->GetLArmPose();
+	if (arms_[kLArm]) {
+		arms_[kLArm]->SetTranslation(lp.translate);
+		arms_[kLArm]->SetRotation(lp.rotate);
+		arms_[kLArm]->SetScale(kArmScale_);
+	}
+
+	// ヒット判定：ヒット窓中に近距離の敵へ1クリップ1回だけダメージ
+	constexpr float kComboHitRange = 4.0f;
+	if (comboMotion_->IsHitActive() && enemy_) {
+		Vector3 diff = enemy_->GetCenterPosition() - GetCenterPosition();
+		if (diff.Length() < kComboHitRange) {
+			enemy_->TakeDamage(comboMotion_->GetDamage());
+			if (attack_) {
+				PlayerUltGauge::HitType type = (comboMotion_->GetHitArm() == HitArm::kLeft)
+					? PlayerUltGauge::HitType::kLeftPunch
+					: PlayerUltGauge::HitType::kRightPunch;
+				attack_->OnHit(type);
+			}
+			comboMotion_->MarkHit();
+		}
+	}
 }
 
 // =============================================================
@@ -385,9 +440,9 @@ void Player::ApplyVariables()
 
 	kMaxHP_ = kMaxHP_Adjustable_;
 
-	// ★ 必殺技モーション中は腕位置を上書きしない
-	//    （PlayerUltimate が毎フレーム腕の translation を直接制御するため）
-	if (!IsUltimateActive()) {
+	// ★ 必殺技モーション中・コンボモーション中は腕位置を上書きしない
+	//    （それぞれが毎フレーム腕の translation/rotation を直接制御するため）
+	if (!IsUltimateActive() && !IsComboMotionActive()) {
 		if (arms_[kRArm]) {
 			arms_[kRArm]->SetTranslation(kRightArmTranslation_);
 			arms_[kRArm]->SetScale(kArmScale_);
