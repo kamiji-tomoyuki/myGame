@@ -106,9 +106,9 @@ void PlayerAttack::Update()
     if (player_->IsDodging()) {
         return;
     }
-    // ラッシュ中は新規コンボ入力を受け付けない
-    //   （ラッシュの一連動作にコンボモーションの体回転・腕姿勢が介入しないように）
-    if (player_->IsRushActive()) {
+    // ラッシュ連打中・フィニッシャー中は新規コンボ入力を受け付けない
+    //   （ラッシュ/フィニッシャーの体回転・腕姿勢にコンボが介入しないように）
+    if (player_->IsRushActive() || player_->IsFinisherActive()) {
         return;
     }
 
@@ -127,11 +127,8 @@ void PlayerAttack::Update()
         if (a[kRArm]) { a[kRArm]->StartRush(kRightArmTimerOffset_); }
         if (a[kLArm]) { a[kLArm]->StartRush(leftArmOffset); }
 
-        // 残像腕にも StartRush（オフセットをさらにずらして残像感を出す）
-        const auto& extra = player_->GetExtraArms();
-        uint32_t extraOffset = rushInterval / 4;
-        if (extra[kRArm]) { extra[kRArm]->StartRush(kRightArmTimerOffset_ + extraOffset); }
-        if (extra[kLArm]) { extra[kLArm]->StartRush(leftArmOffset + extraOffset); }
+        // トレール残像腕を開始（主腕より遅れた位置をなぞり、後ろほど薄く描画）
+        player_->StartRushTrails(rushInterval, kRightArmTimerOffset_, leftArmOffset);
     }
 }
 

@@ -79,15 +79,24 @@ void DirectXCommon::Initialize(WinApp* winApp) {
 
 void DirectXCommon::CreateOffscreenSRV()
 {
-	offScreenSrvIndex = SrvManager::GetInstance()->Allocate();
+	// 物理スロットは +1（テクスチャ/スキン等と同じ「Allocate()+1、0番は予約」の慣習に合わせる）。
+	// これを付けないと、後から Allocate() するRT系SRV(pingpong等)がテクスチャのスロットと衝突し、
+	// white1x1 など該当テクスチャのSRVが上書きされて描画されなくなる。
+	offScreenSrvIndex = SrvManager::GetInstance()->Allocate() + 1;
 	SrvManager::GetInstance()->CreateSRVforRenderTexture(offScreenSrvIndex, offScreenResource.Get());
 	offScreenSrvHandleCPU = SrvManager::GetInstance()->GetCPUDescriptorHandle(offScreenSrvIndex);
 	offScreenSrvHandleGPU = SrvManager::GetInstance()->GetGPUDescriptorHandle(offScreenSrvIndex);
+
+	// ImGui表示用のSRV（アルファ強制1。RTのアルファで暗くなるのを防ぐ）
+	offScreenDisplaySrvIndex = SrvManager::GetInstance()->Allocate() + 1;
+	SrvManager::GetInstance()->CreateSRVforRenderTextureOpaque(offScreenDisplaySrvIndex, offScreenResource.Get());
+	offScreenDisplaySrvHandleGPU = SrvManager::GetInstance()->GetGPUDescriptorHandle(offScreenDisplaySrvIndex);
 }
 
 void DirectXCommon::CreateDepthSRV()
 {
-	depthSrvIndex = SrvManager::GetInstance()->Allocate();
+	// 物理スロットは +1（テクスチャ等と同じ慣習。衝突回避のため）
+	depthSrvIndex = SrvManager::GetInstance()->Allocate() + 1;
 	SrvManager::GetInstance()->CreateSRVforDepth(depthSrvIndex, depthStencilResource.Get());
 	depthSrvHandleCPU = SrvManager::GetInstance()->GetCPUDescriptorHandle(depthSrvIndex);
 	depthSrvHandleGPU = SrvManager::GetInstance()->GetGPUDescriptorHandle(depthSrvIndex);

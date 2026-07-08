@@ -16,6 +16,7 @@
 
 using namespace Engine;
 const std::string Player::kGroupName_ = "Player";
+const std::string Player::kTrailGroupName_ = "PlayerRushTrail";
 
 Player::Player()
 {
@@ -39,6 +40,15 @@ void Player::Init()
 	variables_->AddItem(kGroupName_, "Right Arm Translation", kRightArmTranslation_);
 	variables_->AddItem(kGroupName_, "Left Arm Translation", kLeftArmTranslation_);
 	variables_->AddItem(kGroupName_, "Arm Scale", kArmScale_);
+
+	// ラッシュ残像（トレール）調整値
+	if (!variables_->GroupExists(kTrailGroupName_)) {
+		variables_->CreateGroup(kTrailGroupName_);
+	}
+	variables_->AddItem(kTrailGroupName_, "Trail Count", kTrailCount_);
+	variables_->AddItem(kTrailGroupName_, "Trail Max Alpha", kTrailMaxAlpha_);
+	variables_->AddItem(kTrailGroupName_, "Trail Falloff", kTrailFalloff_);
+	variables_->AddItem(kTrailGroupName_, "Trail Offset Step", kTrailOffsetStep_);
 	ApplyVariables();
 
 	stageManager_ = StageManager::GetInstance();
@@ -101,6 +111,10 @@ void Player::Init()
 	comboMotion_ = std::make_unique<PlayerComboMotion>();
 	comboMotion_->Init();
 
+	// ラッシュのフィニッシャー（エディタ作成の finisher クリップ／既定を読み込む）
+	finisherMotion_ = std::make_unique<PlayerComboMotion>();
+	finisherMotion_->InitSingle("finisher");
+
 	isAlive_ = true;
 	gameState_ = GameState::kPlaying;
 
@@ -150,6 +164,10 @@ void Player::Update()
 
 	// コンボモーション更新・腕姿勢反映（State更新=腕Updateより前に適用する）
 	ApplyComboMotion();
+
+	// ラッシュ連打完了→フィニッシャークリップ開始、フィニッシャーの腕姿勢反映
+	UpdateRushFinisher();
+	ApplyFinisherMotion();
 
 	// 現在の状態を更新し、次状態が返ってきたら遷移する
 	if (currentState_) {
@@ -217,9 +235,9 @@ void Player::ApplyComboMotion()
 {
 	if (!comboMotion_) { return; }
 
-	// 中断条件：必殺技・回避・被弾・ラッシュ中はコンボを止める（腕は ApplyVariables が基準姿勢へ戻す）
-	//   ラッシュ中はコンボの体ひねり・腕姿勢を一切適用しない（ラッシュ動作への介入防止）。
-	if (IsUltimateActive() || IsDodging() || IsHitReacting() || IsRushActive()) {
+	// 中断条件：必殺技・回避・被弾・ラッシュ・フィニッシャー中はコンボを止める。
+	//   （ラッシュ/フィニッシャーの体ひねり・腕姿勢へのコンボ介入を防ぐ）
+	if (IsUltimateActive() || IsDodging() || IsHitReacting() || IsRushActive() || IsFinisherActive()) {
 		comboMotion_->Stop();
 		return;
 	}
@@ -227,14 +245,61 @@ void Player::ApplyComboMotion()
 	comboMotion_->Update(Frame::DeltaTime());
 	if (!comboMotion_->IsActive()) { return; }
 
-	// 腕へ姿勢（座標・回転）を反映。この後の腕Updateが行列を再計算する。
-	PartPose rp = comboMotion_->GetRArmPose();
+	ApplyMotionArmsAndHit(comboMotion_.get());
+}
+
+// =============================================================
+//  ラッシュ連打完了 → フィニッシャークリップ開始
+// =============================================================
+void Player::UpdateRushFinisher()
+{
+	if (!arms_[kRArm] || !finisherMotion_) { return; }
+
+	if (arms_[kRArm]->GetIsRush()) {
+		// 連打中はフィニッシャー未起動状態へリセット
+		rushFinisherStarted_ = false;
+	}
+	else if (arms_[kRArm]->IsRapidPunchDone() && !rushFinisherStarted_) {
+		// 連打完了 → フィニッシャークリップを1回だけ開始
+		finisherMotion_->StartFromBeginning();
+		rushFinisherStarted_ = true;
+	}
+}
+
+// =============================================================
+//  フィニッシャークリップの更新・適用
+// =============================================================
+void Player::ApplyFinisherMotion()
+{
+	if (!finisherMotion_) { return; }
+
+	// 必殺技・回避・被弾でフィニッシャーも中断
+	if (IsUltimateActive() || IsDodging() || IsHitReacting()) {
+		finisherMotion_->Stop();
+		rushFinisherStarted_ = false;
+		return;
+	}
+
+	finisherMotion_->Update(Frame::DeltaTime());
+	if (!finisherMotion_->IsActive()) { return; }
+
+	ApplyMotionArmsAndHit(finisherMotion_.get());
+}
+
+// =============================================================
+//  腕姿勢の適用＋距離ヒット（combo / finisher 共通）
+// =============================================================
+void Player::ApplyMotionArmsAndHit(PlayerComboMotion* motion)
+{
+	if (!motion) { return; }
+
+	PartPose rp = motion->GetRArmPose();
 	if (arms_[kRArm]) {
 		arms_[kRArm]->SetTranslation(rp.translate);
 		arms_[kRArm]->SetRotation(rp.rotate);
 		arms_[kRArm]->SetScale(kArmScale_);
 	}
-	PartPose lp = comboMotion_->GetLArmPose();
+	PartPose lp = motion->GetLArmPose();
 	if (arms_[kLArm]) {
 		arms_[kLArm]->SetTranslation(lp.translate);
 		arms_[kLArm]->SetRotation(lp.rotate);
@@ -242,20 +307,27 @@ void Player::ApplyComboMotion()
 	}
 
 	// ヒット判定：ヒット窓中に近距離の敵へ1クリップ1回だけダメージ
-	constexpr float kComboHitRange = 4.0f;
-	if (comboMotion_->IsHitActive() && enemy_) {
+	constexpr float kMotionHitRange = 4.0f;
+	if (motion->IsHitActive() && enemy_) {
 		Vector3 diff = enemy_->GetCenterPosition() - GetCenterPosition();
-		if (diff.Length() < kComboHitRange) {
-			enemy_->TakeDamage(comboMotion_->GetDamage());
+		if (diff.Length() < kMotionHitRange) {
+			enemy_->TakeDamage(motion->GetDamage());
 			if (attack_) {
-				PlayerUltGauge::HitType type = (comboMotion_->GetHitArm() == HitArm::kLeft)
+				PlayerUltGauge::HitType type = (motion->GetHitArm() == HitArm::kLeft)
 					? PlayerUltGauge::HitType::kLeftPunch
 					: PlayerUltGauge::HitType::kRightPunch;
 				attack_->OnHit(type);
 			}
-			comboMotion_->MarkHit();
+			motion->MarkHit();
 		}
 	}
+}
+
+Vector3 Player::GetActiveMotionBodyRotate() const
+{
+	if (IsComboMotionActive()) { return comboMotion_->GetBodyPose().rotate; }
+	if (IsFinisherActive()) { return finisherMotion_->GetBodyPose().rotate; }
+	return { 0.0f, 0.0f, 0.0f };
 }
 
 // =============================================================
@@ -275,8 +347,8 @@ void Player::RemoveComboBodyTwist()
 
 void Player::ApplyComboBodyTwist()
 {
-	if (!IsComboMotionActive()) { return; }
-	Vector3 t = comboMotion_->GetBodyPose().rotate;
+	if (!IsAnyMotionActive()) { return; }
+	Vector3 t = GetActiveMotionBodyRotate();
 	transform_.rotation_.x += t.x;
 	transform_.rotation_.y += t.y;
 	transform_.rotation_.z += t.z;
@@ -365,8 +437,13 @@ void Player::UpdateArms()
 	for (const auto& arm : arms_) {
 		if (arm) { arm->Update(); }
 	}
-	for (const auto& arm : extraArms_) {
-		if (arm) { arm->Update(); }
+	// 残像腕はラッシュ連打中のみ更新（非ラッシュ時は非表示なので更新不要＝負荷削減）
+	if (IsRushActive()) {
+		for (int side = 0; side < kModelNum; ++side) {
+			for (auto& arm : trailArms_[side]) {
+				if (arm) { arm->Update(); }
+			}
+		}
 	}
 }
 
@@ -425,9 +502,39 @@ void Player::DrawAnimation(const ViewProjection& viewProjection)
 		}
 
 		if (isRapidPunchPhase) {
-			for (const auto& arm : extraArms_) {
-				if (arm) { arm->DrawAnimation(viewProjection); }
+			DrawRushTrails(viewProjection);
+		}
+	}
+}
+
+// =============================================================
+//  ラッシュ残像（トレール）の開始・描画
+// =============================================================
+void Player::StartRushTrails(uint32_t rushInterval, uint32_t rightBaseOffset, uint32_t leftBaseOffset)
+{
+	(void)rushInterval;
+	for (int side = 0; side < kModelNum; ++side) {
+		const uint32_t baseOffset = (side == kRArm) ? rightBaseOffset : leftBaseOffset;
+		const uint32_t step = static_cast<uint32_t>(kTrailOffsetStep_ > 0 ? kTrailOffsetStep_ : 1);
+		float alpha = kTrailMaxAlpha_;
+		for (int i = 0; i < static_cast<int>(trailArms_[side].size()); ++i) {
+			auto& arm = trailArms_[side][i];
+			if (!arm) { continue; }
+			if (i < kTrailCount_) {
+				// 主腕より (i+1)*step フレーム遅れた位置をなぞらせ、後ろほど薄くする
+				arm->StartRush(baseOffset + static_cast<uint32_t>(i + 1) * step);
+				arm->SetObjColor(Vector4(1.0f, 1.0f, 1.0f, alpha));
+				alpha *= kTrailFalloff_;
 			}
+		}
+	}
+}
+
+void Player::DrawRushTrails(const ViewProjection& viewProjection)
+{
+	for (int side = 0; side < kModelNum; ++side) {
+		for (int i = 0; i < kTrailCount_ && i < static_cast<int>(trailArms_[side].size()); ++i) {
+			if (trailArms_[side][i]) { trailArms_[side][i]->DrawAnimation(viewProjection); }
 		}
 	}
 }
@@ -466,13 +573,21 @@ void Player::ApplyVariables()
 	kLeftArmTranslation_ = variables_->GetVector3Value(kGroupName_, "Left Arm Translation");
 	kArmScale_ = variables_->GetVector3Value(kGroupName_, "Arm Scale");
 
+	// ラッシュ残像調整値
+	kTrailCount_ = variables_->GetIntValue(kTrailGroupName_, "Trail Count");
+	if (kTrailCount_ < 0) { kTrailCount_ = 0; }
+	if (kTrailCount_ > kMaxTrail_) { kTrailCount_ = kMaxTrail_; }
+	kTrailMaxAlpha_ = variables_->GetFloatValue(kTrailGroupName_, "Trail Max Alpha");
+	kTrailFalloff_ = variables_->GetFloatValue(kTrailGroupName_, "Trail Falloff");
+	kTrailOffsetStep_ = variables_->GetIntValue(kTrailGroupName_, "Trail Offset Step");
+
 	kMaxHP_ = kMaxHP_Adjustable_;
 
-	// ★ 必殺技モーション中・コンボモーション中は腕位置を上書きしない
+	// ★ 必殺技・コンボ・フィニッシャー中は腕位置を上書きしない
 	//    （それぞれが毎フレーム腕の translation/rotation を直接制御するため）
-	//    非動作時は基準姿勢へ戻す。コンボは回転も動かすため、回転も {0,0,0} へ戻すこと
-	//    （戻さないとコンボ終了後に腕が最後の回転で固まる）。
-	if (!IsUltimateActive() && !IsComboMotionActive()) {
+	//    非動作時は基準姿勢へ戻す。コンボ/フィニッシャーは回転も動かすため、回転も {0,0,0} へ戻す
+	//    （戻さないと終了後に腕が最後の回転で固まる）。
+	if (!IsUltimateActive() && !IsAnyMotionActive()) {
 		const Vector3 kNoRotation = { 0.0f, 0.0f, 0.0f };
 		if (arms_[kRArm]) {
 			arms_[kRArm]->SetTranslation(kRightArmTranslation_);
@@ -484,15 +599,15 @@ void Player::ApplyVariables()
 			arms_[kLArm]->SetRotation(kNoRotation);
 			arms_[kLArm]->SetScale(kArmScale_);
 		}
-		if (extraArms_[kRArm]) {
-			extraArms_[kRArm]->SetTranslation(kRightArmTranslation_);
-			extraArms_[kRArm]->SetRotation(kNoRotation);
-			extraArms_[kRArm]->SetScale(kArmScale_);
-		}
-		if (extraArms_[kLArm]) {
-			extraArms_[kLArm]->SetTranslation(kLeftArmTranslation_);
-			extraArms_[kLArm]->SetRotation(kNoRotation);
-			extraArms_[kLArm]->SetScale(kArmScale_);
+		for (int side = 0; side < kModelNum; ++side) {
+			const Vector3 base = (side == kRArm) ? kRightArmTranslation_ : kLeftArmTranslation_;
+			for (auto& arm : trailArms_[side]) {
+				if (arm) {
+					arm->SetTranslation(base);
+					arm->SetRotation(kNoRotation);
+					arm->SetScale(kArmScale_);
+				}
+			}
 		}
 	}
 }
@@ -558,24 +673,23 @@ void Player::InitArm()
 	arms_[kLArm]->SetScale(kArmScale_);
 	arms_[kLArm]->SetPlayerAttack(attack_.get());
 
-	// 残像用の腕（透明度を下げ、当たり判定は無効化）
-	extraArms_[kRArm] = std::make_unique<PlayerArm>();
-	extraArms_[kRArm]->Init("player/Arm/playerArm.gltf");
-	extraArms_[kRArm]->SetPlayer(this);
-	extraArms_[kRArm]->SetIsRightArm(true);
-	extraArms_[kRArm]->SetTranslation(kRightArmTranslation_);
-	extraArms_[kRArm]->SetScale(kArmScale_);
-	extraArms_[kRArm]->SetObjColor(Vector4(1, 1, 1, 0.4f));
-	extraArms_[kRArm]->SetColliderID(CollisionTypeIdDef::kNone); // 当たり判定用IDをNoneに
-	extraArms_[kRArm]->SetCollisionEnabled(false);              // 衝突判定自体を無効化
-
-	extraArms_[kLArm] = std::make_unique<PlayerArm>();
-	extraArms_[kLArm]->Init("player/Arm/playerArm.gltf");
-	extraArms_[kLArm]->SetPlayer(this);
-	extraArms_[kLArm]->SetIsRightArm(false);
-	extraArms_[kLArm]->SetTranslation(kLeftArmTranslation_);
-	extraArms_[kLArm]->SetScale(kArmScale_);
-	extraArms_[kLArm]->SetObjColor(Vector4(1, 1, 1, 0.4f));
-	extraArms_[kLArm]->SetColliderID(CollisionTypeIdDef::kNone); // 当たり判定用IDをNoneに
-	extraArms_[kLArm]->SetCollisionEnabled(false);              // 衝突判定自体を無効化
+	// 残像（トレール）用の腕プール（左右それぞれ kMaxTrail_ 本、当たり判定は無効化）
+	for (int side = 0; side < kModelNum; ++side) {
+		const bool isRight = (side == kRArm);
+		const Vector3 base = isRight ? kRightArmTranslation_ : kLeftArmTranslation_;
+		trailArms_[side].clear();
+		trailArms_[side].reserve(kMaxTrail_);
+		for (int i = 0; i < kMaxTrail_; ++i) {
+			auto arm = std::make_unique<PlayerArm>();
+			arm->Init("player/Arm/playerArm.gltf");
+			arm->SetPlayer(this);
+			arm->SetIsRightArm(isRight);
+			arm->SetTranslation(base);
+			arm->SetScale(kArmScale_);
+			arm->SetObjColor(Vector4(1, 1, 1, 0.4f));
+			arm->SetColliderID(CollisionTypeIdDef::kNone); // 当たり判定用IDをNoneに
+			arm->SetCollisionEnabled(false);               // 衝突判定自体を無効化
+			trailArms_[side].push_back(std::move(arm));
+		}
+	}
 }

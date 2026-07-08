@@ -2,6 +2,8 @@
 #include <fstream>
 #include <sstream>
 #include <functional>
+#include <cstdlib>
+#include <string>
 
 namespace Engine {
 std::unique_ptr<ModelManager> ModelManager::instance = nullptr;
@@ -51,23 +53,23 @@ void ModelManager::ClearModels()
 
 Model* ModelManager::FindModel(const std::string& filePath)
 {
-    // .gltfファイルの場合はファイルパスにユニークな識別子を使って検索
+    // .gltfファイルの場合はファイルパスにユニークな識別子(path_index)を使って検索
     if (filePath.substr(filePath.find_last_of(".") + 1) == "gltf") {
-        // 同じファイルパスで複数のモデルがある可能性があるので、それを確認
-        std::vector<Model*> matchedModels;
-
-        // キーがファイルパスを含むモデルをすべて収集
+        // ★ unordered_map の反復順は不定なので back() は非決定的。
+        //   Object3d は LoadModel(新規生成) → FindModel の順に呼ぶため、
+        //   「最も新しい(index最大)」= 直前に生成したモデルを決定的に返す。
+        //   （同一パスの gltf を多数生成すると、従来はarmが別モデルを掴み描画不良になった）
+        Model* best = nullptr;
+        int bestIndex = -1;
         for (const auto& [key, model] : models) {
-            if (key.find(filePath) != std::string::npos) {
-                matchedModels.push_back(model.get());
-            }
+            // key = filePath + "_" + index。まず filePath で始まるものに限定
+            if (key.rfind(filePath, 0) != 0) { continue; }
+            const size_t us = key.rfind('_');
+            if (us == std::string::npos) { continue; }
+            const int idx = std::atoi(key.substr(us + 1).c_str());
+            if (idx > bestIndex) { bestIndex = idx; best = model.get(); }
         }
-
-        // 一致するモデルがあれば、必要に応じて最も新しいモデルなどを選んで返す
-        if (!matchedModels.empty()) {
-            // 例えば、最も新しい（インデックスが最大）ものを返す
-            return matchedModels.back();
-        }
+        return best; // 無ければ nullptr
     } else {
         // .gltf以外のファイルはファイルパスそのもので検索
         if (models.contains(filePath)) {

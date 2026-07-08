@@ -47,6 +47,7 @@ void DebugScene::Initialize() {
 
     // モーション プレビューリグ
     InitRig();
+    InitRushPreview();
 
     // 既定姿勢（実プレイヤーの初期腕位置に合わせる）
     pose_[0] = PartPose{};                 // 体
@@ -107,6 +108,9 @@ void DebugScene::Update() {
     if (editorMode_ == 0) {
         // パーティクル
         if (emitter_) { emitter_->Update(vp_); }
+    } else if (editorMode_ == 2) {
+        // ラッシュ
+        UpdateRushPreview();
     } else {
         // モーション
         UpdateMotionPlayback();
@@ -322,6 +326,9 @@ void DebugScene::Draw() {
             emitter_->Draw(static_cast<PrimitiveType>(currentPrimitive_));
             emitter_->DrawEmitter();
         }
+    } else if (editorMode_ == 2) {
+        // ラッシュプレビュー
+        DrawRushPreview();
     } else {
         // モーションリグ
         DrawRig();
@@ -339,6 +346,167 @@ void DebugScene::DrawRig() {
     // 体（obj / 通常）
     objCommon_->DrawCommonSetting();
     if (bodyObj_) { bodyObj_->Draw(bodyTf_, vp_); }
+}
+
+// =============================================================
+//  ラッシュプレビュー
+// =============================================================
+void DebugScene::InitRushPreview() {
+    rushR_ = std::make_unique<PlayerArmRush>();
+    rushL_ = std::make_unique<PlayerArmRush>();
+    for (int i = 0; i < kRushTrail_; ++i) {
+        trailRushR_[i] = std::make_unique<PlayerArmRush>();
+        trailRushL_[i] = std::make_unique<PlayerArmRush>();
+        trailArmR_[i] = std::make_unique<Object3d>();
+        trailArmR_[i]->Initialize("player/Arm/playerArm.gltf");
+        trailArmL_[i] = std::make_unique<Object3d>();
+        trailArmL_[i]->Initialize("player/Arm/playerArm.gltf");
+        trailTfR_[i].Initialize(); trailTfR_[i].parent_ = &bodyTf_;
+        trailTfL_[i].Initialize(); trailTfL_[i].parent_ = &bodyTf_;
+    }
+    finisherPreview_ = std::make_unique<PlayerComboMotion>();
+    finisherPreview_->InitSingle("finisher");
+}
+
+void DebugScene::StartRushPreview() {
+    const uint32_t interval = rushR_->GetRushInterval();
+    const uint32_t leftOffset = interval / 2;
+    rushR_->StartRush(true, rArmBase_, 0);
+    rushL_->StartRush(false, lArmBase_, leftOffset);
+    for (int i = 0; i < kRushTrail_; ++i) {
+        const uint32_t off = static_cast<uint32_t>((i + 1) * (rushTrailStep_ > 0 ? rushTrailStep_ : 1));
+        trailRushR_[i]->StartRush(true, rArmBase_, off);
+        trailRushL_[i]->StartRush(false, lArmBase_, leftOffset + off);
+    }
+    if (finisherPreview_) { finisherPreview_->InitSingle("finisher"); finisherPreview_->Stop(); }
+    rushFinStarted_ = false;
+    rushPlaying_ = true;
+    // 体は連打中は中立
+    pose_[0] = PartPose{};
+}
+
+void DebugScene::UpdateRushPreview() {
+    // 体は連打中は中立、フィニッシャー中はクリップの体回転
+    bodyTf_.translation_ = pose_[0].translate;
+    bodyTf_.rotation_ = pose_[0].rotate;
+    bodyTf_.scale_ = { 1.0f, 1.0f, 1.0f };
+    bodyTf_.UpdateMatrix();
+
+    if (rushPlaying_ && rushR_) {
+        if (rushR_->GetIsRush()) {
+            // --- 連打フェーズ：PlayerArmRush で主腕＋残像を駆動 ---
+            rushR_->Update(0.0f);
+            rushL_->Update(0.0f);
+            rArmTf_.translation_ = rushR_->GetCurrentTranslation();
+            rArmTf_.rotation_ = rushR_->GetCurrentRotation();
+            lArmTf_.translation_ = rushL_->GetCurrentTranslation();
+            lArmTf_.rotation_ = rushL_->GetCurrentRotation();
+            for (int i = 0; i < kRushTrail_; ++i) {
+                trailRushR_[i]->Update(0.0f);
+                trailRushL_[i]->Update(0.0f);
+                trailTfR_[i].translation_ = trailRushR_[i]->GetCurrentTranslation();
+                trailTfR_[i].rotation_ = trailRushR_[i]->GetCurrentRotation();
+                trailTfL_[i].translation_ = trailRushL_[i]->GetCurrentTranslation();
+                trailTfL_[i].rotation_ = trailRushL_[i]->GetCurrentRotation();
+            }
+            pose_[0] = PartPose{};
+        }
+        else if (rushR_->IsRapidPunchDone()) {
+            // --- フィニッシャークリップ ---
+            if (!rushFinStarted_) { finisherPreview_->StartFromBeginning(); rushFinStarted_ = true; }
+            finisherPreview_->Update(Frame::DeltaTime());
+            if (finisherPreview_->IsActive()) {
+                pose_[0] = finisherPreview_->GetBodyPose();
+                rArmTf_.translation_ = finisherPreview_->GetRArmPose().translate;
+                rArmTf_.rotation_ = finisherPreview_->GetRArmPose().rotate;
+                lArmTf_.translation_ = finisherPreview_->GetLArmPose().translate;
+                lArmTf_.rotation_ = finisherPreview_->GetLArmPose().rotate;
+            } else {
+                if (rushLoop_) { StartRushPreview(); }
+                else { rushPlaying_ = false; }
+            }
+        }
+    }
+
+    // 行列更新
+    rArmTf_.scale_ = armScale_;
+    lArmTf_.scale_ = armScale_;
+    rArmTf_.UpdateMatrix();
+    lArmTf_.UpdateMatrix();
+    if (rArmObj_) { rArmObj_->UpdateAnimation(true); }
+    if (lArmObj_) { lArmObj_->UpdateAnimation(true); }
+    for (int i = 0; i < kRushTrail_; ++i) {
+        trailTfR_[i].scale_ = armScale_;
+        trailTfL_[i].scale_ = armScale_;
+        trailTfR_[i].UpdateMatrix();
+        trailTfL_[i].UpdateMatrix();
+        if (trailArmR_[i]) { trailArmR_[i]->UpdateAnimation(true); }
+        if (trailArmL_[i]) { trailArmL_[i]->UpdateAnimation(true); }
+    }
+}
+
+void DebugScene::DrawRushPreview() {
+    objCommon_->skinningDrawCommonSetting();
+
+    // 残像（連打フェーズのみ、後ろほど薄く）
+    const bool rapid = rushPlaying_ && rushR_ && rushR_->GetIsRush();
+    if (rapid) {
+        float alpha = rushTrailAlpha_;
+        for (int i = 0; i < kRushTrail_; ++i) {
+            ObjColor col; col.SetColor({ 1.0f, 1.0f, 1.0f, alpha });
+            if (trailArmR_[i]) { trailArmR_[i]->Draw(trailTfR_[i], vp_, &col); }
+            if (trailArmL_[i]) { trailArmL_[i]->Draw(trailTfL_[i], vp_, &col); }
+            alpha *= rushTrailFalloff_;
+        }
+    }
+
+    // 主腕
+    if (rArmObj_) { rArmObj_->Draw(rArmTf_, vp_); }
+    if (lArmObj_) { lArmObj_->Draw(lArmTf_, vp_); }
+
+    // 体
+    objCommon_->DrawCommonSetting();
+    if (bodyObj_) { bodyObj_->Draw(bodyTf_, vp_); }
+}
+
+void DebugScene::DrawRushUI() {
+#ifdef _DEBUG
+    EditorUI* editor = EditorUI::GetInstance();
+    if (!editor->PanelVisible("ラッシュプレビュー", "ラッシュ")) { return; }
+
+    ImGui::Begin("Rush Preview");
+
+    ImGui::TextUnformatted("再生");
+    if (ImGui::Button("▶ ラッシュ再生")) { StartRushPreview(); }
+    ImGui::SameLine();
+    if (ImGui::Button("停止")) { rushPlaying_ = false; }
+    ImGui::Checkbox("ループ", &rushLoop_);
+    {
+        const bool rapid = rushPlaying_ && rushR_ && rushR_->GetIsRush();
+        const bool fin = rushPlaying_ && finisherPreview_ && finisherPreview_->IsActive();
+        ImGui::TextDisabled("状態: %s", !rushPlaying_ ? "停止" : (rapid ? "連打" : (fin ? "フィニッシャー" : "-")));
+    }
+
+    ImGui::Separator();
+    ImGui::TextUnformatted("残像（プレビュー表示）");
+    ImGui::SliderFloat("先頭アルファ", &rushTrailAlpha_, 0.0f, 1.0f);
+    ImGui::SliderFloat("減衰率", &rushTrailFalloff_, 0.1f, 1.0f);
+    ImGui::SliderInt("オフセット間隔", &rushTrailStep_, 1, 12);
+    ImGui::TextDisabled("本数=%d（片側）。ゲーム本番の本数/透明度はGlobalVariablesのPlayerRushTrail", kRushTrail_);
+
+    ImGui::Separator();
+    ImGui::TextUnformatted("調整値の保存");
+    ImGui::TextDisabled("値の変更は Global Variables ウィンドウで行う");
+    if (ImGui::Button("ラッシュ設定を保存 (PlayerArmRush)")) {
+        GlobalVariables::GetInstance()->SaveFile("PlayerArmRush");
+    }
+    if (ImGui::Button("残像設定を保存 (PlayerRushTrail)")) {
+        GlobalVariables::GetInstance()->SaveFile("PlayerRushTrail");
+    }
+    ImGui::TextDisabled("フィニッシャーは「モーション」モードで clip名 finisher を編集・保存");
+
+    ImGui::End();
+#endif // _DEBUG
 }
 
 void DebugScene::DrawForOffScreen() {}
@@ -377,12 +545,16 @@ void DebugScene::Debug() {
         ImGui::RadioButton("パーティクル", &editorMode_, 0);
         ImGui::SameLine();
         ImGui::RadioButton("モーション", &editorMode_, 1);
+        ImGui::SameLine();
+        ImGui::RadioButton("ラッシュ", &editorMode_, 2);
 
         ImGui::End();
     }
 
     if (editorMode_ == 0) {
         DrawParticleUI();
+    } else if (editorMode_ == 2) {
+        DrawRushUI();
     } else {
         DrawMotionUI();
     }
@@ -478,6 +650,14 @@ void DebugScene::DrawMotionUI() {
         if (ImGui::Button("左右反転して保存")) {
             PlayerMotionClip mirrored = clip_.MakeMirrored(mirrorName_);
             mirrored.Save();
+            ScanClips();
+        }
+
+        // ラッシュの最後の一撃として保存（finisher.json）。ゲーム/ラッシュプレビューが読む。
+        if (ImGui::Button("フィニッシャーとして保存 (finisher.json)")) {
+            clip_.SetName("finisher");
+            clip_.Save();
+            strncpy_s(clipName_, "finisher", _TRUNCATE);
             ScanClips();
         }
 

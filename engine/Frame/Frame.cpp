@@ -35,6 +35,11 @@ void Frame::Update() {
     std::chrono::duration<float> elapsed = currentTime - lastTime_;
     deltaTime_ = elapsed.count(); // 秒単位の経過時間
 
+    // フレームスパイク時に時間が飛びすぎるのを防ぐ（コンボ受付窓の飛ばし等を防止）。
+    // 20fps相当を下限とし、それ以下では時間が引き延びる代わりに処理飛びを防ぐ。
+    constexpr float kMaxDeltaTime = 0.05f;
+    if (deltaTime_ > kMaxDeltaTime) { deltaTime_ = kMaxDeltaTime; }
+
     // フレームカウントを増加
     frameCount_++;
 

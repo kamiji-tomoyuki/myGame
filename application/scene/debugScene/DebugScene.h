@@ -13,6 +13,8 @@
 #include "Skybox.h"
 #include "PlayerMotionClip.h"
 #include "PlayerComboMotion.h"
+#include "PlayerArmRush.h"
+#include "ObjColor.h"
 #include <array>
 #include <memory>
 #include <string>
@@ -53,6 +55,13 @@ private:
     void DrawMotionUI();
     void DrawRig();
 
+    // --- ラッシュプレビュー ---
+    void InitRushPreview();
+    void StartRushPreview();
+    void UpdateRushPreview();
+    void DrawRushPreview();
+    void DrawRushUI();
+
 private:
     Audio* audio_ = nullptr;
     Object3dCommon* objCommon_ = nullptr;
@@ -64,7 +73,7 @@ private:
     std::unique_ptr<DebugCamera> debugCamera_;
     std::unique_ptr<Skybox> skybox_;
 
-    int editorMode_ = 1; // 0=パーティクル 1=モーション
+    int editorMode_ = 1; // 0=パーティクル 1=モーション 2=ラッシュ
 
     // --- パーティクル ---
     std::unique_ptr<ParticleEmitter> emitter_;
@@ -97,6 +106,24 @@ private:
     bool  comboPlaying_ = false;
     bool  comboLoop_ = true;
     float comboBlendTime_ = 0.1f; // クリップ間の補間時間（秒）
+
+    // --- ラッシュプレビュー ---
+    static constexpr int kRushTrail_ = 3; // 片側の残像本数
+    std::unique_ptr<PlayerArmRush> rushR_;
+    std::unique_ptr<PlayerArmRush> rushL_;
+    std::array<std::unique_ptr<PlayerArmRush>, kRushTrail_> trailRushR_;
+    std::array<std::unique_ptr<PlayerArmRush>, kRushTrail_> trailRushL_;
+    std::array<std::unique_ptr<Object3d>, kRushTrail_> trailArmR_;
+    std::array<std::unique_ptr<Object3d>, kRushTrail_> trailArmL_;
+    std::array<WorldTransform, kRushTrail_> trailTfR_;
+    std::array<WorldTransform, kRushTrail_> trailTfL_;
+    std::unique_ptr<PlayerComboMotion> finisherPreview_;
+    bool  rushPlaying_ = false;
+    bool  rushLoop_ = true;
+    bool  rushFinStarted_ = false;
+    float rushTrailAlpha_ = 0.5f;
+    float rushTrailFalloff_ = 0.6f;
+    int   rushTrailStep_ = 3;
 
     // リグ基準値（実プレイヤーと同値）
     const Vector3 armScale_ = { 0.8f, 0.8f, 0.8f };

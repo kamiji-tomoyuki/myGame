@@ -24,6 +24,12 @@ public:
 	/// <summary>combo.json とクリップを読み込む（無ければ既定クリップを生成）</summary>
 	void Init();
 
+	/// <summary>
+	/// 単一クリップ（フィニッシャー等）を読み込む。combo_listは使わない。
+	/// 無ければ既定フィニッシャークリップを生成。autoAdvance/loopはoffにする。
+	/// </summary>
+	void InitSingle(const std::string& clipName);
+
 	/// <summary>攻撃入力時に呼ぶ</summary>
 	Result TryAdvance();
 
@@ -71,6 +77,7 @@ private:
 	void BeginReturn();             // 現クリップ終端姿勢→基準姿勢へ（コンボ非継続時）
 	int  ResolveNextIndex() const;  // 次に再生すべきインデックス（無ければ-1）
 	void LoadDefaults();            // 既定コンボ（右パンチ→左パンチ）を生成
+	void LoadDefaultFinisher();     // 既定フィニッシャー（振りかぶり→大パンチ→戻り）を生成
 	bool LoadFromFiles();           // combo.json からクリップ＋補間時間を読み込む
 
 	std::vector<PlayerMotionClip> clips_;

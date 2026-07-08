@@ -4,6 +4,9 @@
 #include "ViewProjection.h"
 #include "GlobalVariables.h"
 
+#include <array>
+#include <vector>
+
 #include <Sprite.h>
 #include <StageManager.h>
 #include <ParticleEmitter.h>
@@ -90,7 +93,10 @@ public:
 	bool      IsRangedInvincible() const { return hitReaction_ && hitReaction_->IsRangedCooldownActive(); }
 	GameState GetGameState()       const { return gameState_; }
 	const std::array<std::unique_ptr<PlayerArm>, kModelNum>& GetArms() const { return arms_; }
-	const std::array<std::unique_ptr<PlayerArm>, kModelNum>& GetExtraArms() const { return extraArms_; }
+
+	// ラッシュ連打の残像（トレール）腕を開始・描画する
+	void StartRushTrails(uint32_t rushInterval, uint32_t rightBaseOffset, uint32_t leftBaseOffset);
+	void DrawRushTrails(const ViewProjection& viewProjection);
 
 	bool CanRightPunch()      const;
 	bool CanLeftPunch()       const;
@@ -100,12 +106,14 @@ public:
 	bool IsRushActive()       const;
 	bool IsUltimateActive()   const;  // ★ 追加
 
-	// --- モーション駆動コンボ ---
+	// --- モーション駆動コンボ / フィニッシャー ---
 	bool IsComboMotionActive() const { return comboMotion_ && comboMotion_->IsActive(); }
+	bool IsFinisherActive()    const { return finisherMotion_ && finisherMotion_->IsActive(); }
+	bool IsAnyMotionActive()   const { return IsComboMotionActive() || IsFinisherActive(); }
 	PlayerComboMotion::Result TryComboAttack() { return comboMotion_ ? comboMotion_->TryAdvance() : PlayerComboMotion::Result::kNone; }
 	void StopComboMotion() { if (comboMotion_) { comboMotion_->Stop(); } }
 
-	// コンボ中の体ひねりを facing に加算/除去する（ロックオンへ二重に効かないよう対で呼ぶ）。
+	// コンボ/フィニッシャー中の体ひねりを facing に加算/除去する（ロックオンへ二重に効かないよう対で呼ぶ）。
 	// RemoveComboBodyTwist(ロックオン前) → ApplyComboBodyTwist(腕更新前) の順に PlayerStatePlaying から呼ぶ。
 	void RemoveComboBodyTwist();
 	void ApplyComboBodyTwist();
@@ -135,7 +143,11 @@ private:
 
 	void InitArm();
 	void MoveInternal();
-	void ApplyComboMotion(); // コンボモーションの更新・腕姿勢反映・ヒット判定
+	void ApplyComboMotion();   // コンボモーションの更新・腕姿勢反映・ヒット判定
+	void UpdateRushFinisher(); // ラッシュ連打完了を検知しフィニッシャークリップを開始
+	void ApplyFinisherMotion();// フィニッシャークリップの更新・腕姿勢反映・ヒット判定
+	void ApplyMotionArmsAndHit(PlayerComboMotion* motion); // 腕姿勢適用＋距離ヒット（combo/finisher共通）
+	Vector3 GetActiveMotionBodyRotate() const;             // 有効なモーションの体回転（combo優先）
 	void UpdateLockOn();
 	void TakeDamage(const Vector3& hitPosition);
 	void ChangeState(std::unique_ptr<IPlayerState> next);
@@ -149,8 +161,10 @@ private:
 
 	// 腕
 	std::array<std::unique_ptr<PlayerArm>, kModelNum> arms_;
-	// ラッシュ時用残像腕
-	std::array<std::unique_ptr<PlayerArm>, kModelNum> extraArms_;
+	// ラッシュ連打の残像（トレール）腕プール。左右それぞれ最大 kMaxTrail_ 本。
+	// ※各腕はスキニングgltf＝重いので過剰生成しない（多いとFPS低下・モデル多重生成）。
+	static constexpr int kMaxTrail_ = 4;
+	std::array<std::vector<std::unique_ptr<PlayerArm>>, kModelNum> trailArms_;
 
 	// サブシステム
 	std::unique_ptr<PlayerMove>           move_;
@@ -159,6 +173,8 @@ private:
 	std::unique_ptr<PlayerRushPosture>    rushPosture_;
 	std::unique_ptr<PlayerHitReaction>    hitReaction_;
 	std::unique_ptr<PlayerComboMotion>    comboMotion_;
+	std::unique_ptr<PlayerComboMotion>    finisherMotion_; // ラッシュ最後の一撃（単一クリップ）
+	bool                                  rushFinisherStarted_ = false;
 
 	std::unique_ptr<PlayerStartEffect>    startEffect_;
 	std::unique_ptr<PlayerGameOverEffect> gameOverEffect_;
@@ -214,10 +230,17 @@ private:
 	// GlobalVariables
 	GlobalVariables* variables_ = nullptr;
 	static const std::string kGroupName_;
+	static const std::string kTrailGroupName_;
 
 	// GlobalVariables で調整可能な変数
 	uint32_t kMaxHP_Adjustable_ = 1000;       // 最大HP
 	Vector3  kRightArmTranslation_ = { 1.7f, 0.0f, 1.3f };  // 右腕 初期位置
 	Vector3  kLeftArmTranslation_ = { -1.7f, 0.0f, 1.3f };  // 左腕 初期位置
 	Vector3  kArmScale_ = { 0.8f, 0.8f, 0.8f };  // 腕スケール
+
+	// ラッシュ残像（トレール）調整値
+	int   kTrailCount_ = 3;        // 片側あたりの残像本数（0..kMaxTrail_）
+	float kTrailMaxAlpha_ = 0.5f;  // 先頭残像のアルファ
+	float kTrailFalloff_ = 0.6f;   // 後続残像ほどアルファを掛け減衰
+	int   kTrailOffsetStep_ = 2;   // 残像ごとのラッシュタイマーオフセット差（フレーム）
 };

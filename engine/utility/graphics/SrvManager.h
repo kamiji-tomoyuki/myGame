@@ -92,6 +92,12 @@ public:
 	void CreateSRVforRenderTexture(uint32_t srvIndex, ID3D12Resource* pResource);
 
 	/// <summary>
+	/// SRV生成(RenderTexture用・アルファ強制1)。
+	/// ImGui表示時にRTのアルファで暗くならないよう、アルファ成分を1に固定する。
+	/// </summary>
+	void CreateSRVforRenderTextureOpaque(uint32_t srvIndex, ID3D12Resource* pResource);
+
+	/// <summary>
     /// SRV生成(Depth用)
     /// </summary>
     /// <param name="srvIndex"></param>
@@ -101,7 +107,11 @@ public:
 	void CreateSRVforDepth(uint32_t srvIndex, ID3D12Resource* pResource);
 
 	/// <summary>
-	/// インデックス割り当て
+	/// インデックス割り当て(0始まりの論理index)。
+	/// ★慣習: 物理スロットは必ず +1 して使う（0番は予約）。テクスチャ/スキン/パーティクル/
+	///   ライン/ImGuiフォント/オフスクリーンRT/深度/ポストエフェクトのpingpong まで全て +1。
+	///   一部だけ +1 を付け忘れると、RAWスロットと +1スロットが同一物理スロットを指して
+	///   SRVが上書きされ、該当リソースが描画されなくなる（過去のwhite1x1消失バグ）。
 	/// </summary>
 	/// <returns></returns>
 	uint32_t Allocate();

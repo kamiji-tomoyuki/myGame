@@ -151,7 +151,8 @@ void PlayerArm::Draw(const ViewProjection& viewProjection) {}
 
 void PlayerArm::DrawAnimation(const ViewProjection& viewProjection)
 {
-    obj3d_->Draw(BaseObject::GetWorldTransform(), viewProjection);
+    // objColor_ を渡してアルファを反映（残像腕の半透明表現に使用。本体腕は既定=不透明）
+    obj3d_->Draw(BaseObject::GetWorldTransform(), viewProjection, &objColor_);
 }
 
 void PlayerArm::DrawParticle(const ViewProjection& viewProjection) {}

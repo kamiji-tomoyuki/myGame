@@ -136,6 +136,8 @@ public:
     D3D12_GPU_DESCRIPTOR_HANDLE GetOffScreenGPUHandle() { return offScreenSrvHandleGPU; }
     D3D12_CPU_DESCRIPTOR_HANDLE GetOffScreenCPUHandle() { return offScreenSrvHandleCPU; }
     uint32_t GetOffScreenSrvIndex() { return offScreenSrvIndex; }
+    // ImGui表示用（アルファ強制1で暗くならない）オフスクリーンSRV
+    D3D12_GPU_DESCRIPTOR_HANDLE GetOffScreenDisplayGPUHandle() { return offScreenDisplaySrvHandleGPU; }
 
     D3D12_GPU_DESCRIPTOR_HANDLE GetDepthGPUHandle() { return depthSrvHandleGPU; }
     D3D12_CPU_DESCRIPTOR_HANDLE GetDepthCPUHandle() { return depthSrvHandleCPU; }
@@ -293,6 +295,9 @@ private:
     uint32_t offScreenSrvIndex = 0;
     D3D12_CPU_DESCRIPTOR_HANDLE offScreenSrvHandleCPU;
     D3D12_GPU_DESCRIPTOR_HANDLE offScreenSrvHandleGPU;
+    // ImGui表示用（アルファ強制1）
+    uint32_t offScreenDisplaySrvIndex = 0;
+    D3D12_GPU_DESCRIPTOR_HANDLE offScreenDisplaySrvHandleGPU{};
 
     uint32_t depthSrvIndex = 0;
     D3D12_CPU_DESCRIPTOR_HANDLE depthSrvHandleCPU;

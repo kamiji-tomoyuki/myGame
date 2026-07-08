@@ -18,6 +18,53 @@ void PlayerComboMotion::Init() {
 	Stop();
 }
 
+// 単一クリップ再生（フィニッシャー用）
+void PlayerComboMotion::InitSingle(const std::string& clipName) {
+	clips_.clear();
+	autoAdvance_ = false;
+	loop_ = false;
+	PlayerMotionClip clip;
+	if (clip.Load(clipName)) {
+		clips_.push_back(clip);
+	} else {
+		LoadDefaultFinisher(); // ファイルが無ければ既定フィニッシャーを生成
+	}
+	Stop();
+}
+
+// 既定フィニッシャー（右腕：振りかぶり→大パンチ→戻り、体は右→左へひねる）
+void PlayerComboMotion::LoadDefaultFinisher() {
+	clips_.clear();
+	PlayerMotionClip clip;
+	clip.SetName("finisher");
+	clip.SetDuration(0.75f);
+	clip.SetHitStart(0.45f);
+	clip.SetHitEnd(0.62f);
+	clip.SetHitArm(HitArm::kRight);
+	clip.SetDamage(150);
+	clip.SetComboWindowStart(1.1f); // 連鎖不可（単発）
+
+	auto key = [&](float t, const Vector3& bodyRot, const Vector3& rArmT, const Vector3& rArmR) {
+		MotionKeyframe k;
+		k.time = t;
+		k.body.rotate = bodyRot;
+		k.rArm.translate = rArmT;
+		k.rArm.rotate = rArmR;
+		k.lArm.translate = kLArmBase_;
+		clip.Keys().push_back(k);
+	};
+
+	// 振りかぶり（体を右へ、右腕を後方＋右へ引く）
+	key(0.00f, { 0.0f,  0.0f, 0.0f }, kRArmBase_,                    { 0.0f,  0.0f, 0.0f });
+	key(0.28f, { 0.0f,  0.5f, 0.0f }, { 2.4f, 0.1f, -0.4f },         { 0.0f,  0.6f, 0.0f });
+	// 大パンチ（体を左へ、右腕を大きく前方へ）
+	key(0.52f, { 0.0f, -0.6f, 0.0f }, { 0.2f, 0.1f,  4.2f },         { 0.0f, -1.2f, 0.0f });
+	// 戻り
+	key(0.75f, { 0.0f,  0.0f, 0.0f }, kRArmBase_,                    { 0.0f,  0.0f, 0.0f });
+	clip.SortAndNormalize();
+	clips_.push_back(clip);
+}
+
 // コンボ定義ファイルからクリップ＋補間時間を読み込む。
 // コンボ定義は clip の保存ファイル(<name>.json)と衝突しないよう専用ファイル combo_list.json を使う。
 // 互換: combo_list.json が無ければ旧 combo.json を試すが、それが clip(=keysを持つ)なら無視する。

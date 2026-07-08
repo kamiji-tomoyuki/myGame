@@ -59,7 +59,9 @@ void OffScreen::CreatePingPongTextures() {
         tex.rtvHandle.ptr += static_cast<SIZE_T>(rtvSize) * i;
         dxCommon_->GetDevice()->CreateRenderTargetView(tex.resource.Get(), &rtvDesc, tex.rtvHandle);
 
-        tex.srvIndex = srvManager_->Allocate();
+        // 物理スロットは +1（テクスチャ/スキン等と同じ「Allocate()+1、0番は予約」の慣習に合わせる）。
+        // 付けないとテクスチャのSRVスロットと衝突し、該当テクスチャが描画されなくなる。
+        tex.srvIndex = srvManager_->Allocate() + 1;
         srvManager_->CreateSRVforRenderTexture(tex.srvIndex, tex.resource.Get());
         tex.srvGpuHandle = srvManager_->GetGPUDescriptorHandle(tex.srvIndex);
     }

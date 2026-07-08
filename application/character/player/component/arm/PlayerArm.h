@@ -70,6 +70,7 @@ public:
 	Player* GetPlayer() { return player_; }
 	bool       GetIsAttack() { return attack_->GetIsAttack(); }
 	bool       GetIsRush() { return rush_->GetIsRush(); }
+	bool       IsRapidPunchDone() { return rush_->IsRapidPunchDone(); }
 	AttackType GetCurrentAttackType() { return attack_->GetCurrentAttackType(); }
 	AttackType GetLastAttackType() { return attack_->GetLastAttackType(); }
 	Behavior   GetBehavior() { return behavior_; }

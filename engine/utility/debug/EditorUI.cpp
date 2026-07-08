@@ -507,8 +507,9 @@ void EditorUI::DrawGameWindow() {
 			ImVec2 cur = ImGui::GetCursorPos();
 			ImGui::SetCursorPos(ImVec2(cur.x + (avail.x - w) * 0.5f, cur.y + (avail.y - h) * 0.5f));
 
-			// シーンのレンダーテクスチャ(SRVはSrvManagerヒープ上=ImGuiと共有)を表示
-			ImTextureID tex = static_cast<ImTextureID>(dx->GetOffScreenGPUHandle().ptr);
+			// シーンのレンダーテクスチャを表示。アルファ強制1のSRVを使い、
+			// 透明オブジェクト部分がRTのアルファでImGui背景と混ざって暗くなるのを防ぐ。
+			ImTextureID tex = static_cast<ImTextureID>(dx->GetOffScreenDisplayGPUHandle().ptr);
 			ImGui::Image(tex, ImVec2(w, h));
 
 			// 画像のスクリーン矩形を記録(ギズモ等の座標変換に使用)
