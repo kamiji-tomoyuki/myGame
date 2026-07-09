@@ -68,7 +68,6 @@ private:
     /// <summary>
     ///  FPS表示
     /// </summary>
-    void DisplayFPS();
 
 protected:
     Input* input = nullptr;

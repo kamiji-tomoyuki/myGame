@@ -188,6 +188,7 @@ private:
 	// UI用の検索・ソート機能
 	std::string searchFilter_;
 	bool sortAlphabetically_ = false;
+	int  selectedGroupIndex_ = 0; // プルダウンで選択中のグループ
 
 	// UI用のヘルパー関数
 	bool PassesFilter(const std::string& itemName) const;

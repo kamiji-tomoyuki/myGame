@@ -151,9 +151,7 @@ void TitleScene::Debug() {
         ImGui::Checkbox("loop", &loop);
         ImGui::End();
     }
-    if (editor->PanelVisible("タイトル演出", "パーティクル")) {
-        emitter_->imgui();
-    }
+    // パーティクル(emitter_)は集約「パーティクル」窓で編集する
 #endif // _DEBUG
 }
 

@@ -576,9 +576,7 @@ void DebugScene::DrawParticleUI() {
         ImGui::End();
     }
 
-    if (emitter_ && editor->PanelVisible("エミッタ", "パーティクル")) {
-        emitter_->imgui();
-    }
+    // パーティクル(emitter_)は集約「パーティクル」窓で編集する
 #endif // _DEBUG
 }
 

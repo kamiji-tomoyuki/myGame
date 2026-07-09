@@ -425,7 +425,7 @@ void Enemy::ImGui()
 	ImGui::EndDisabled();
 
 	ImGui::End();
-	trailEffect_->imgui();
+	// パーティクル(trailEffect_)は集約「パーティクル」窓で編集する
 #endif // _DEBUG
 }
 

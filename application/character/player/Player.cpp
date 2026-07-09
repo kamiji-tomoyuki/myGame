@@ -601,9 +601,7 @@ void Player::DrawParticle(const ViewProjection& viewProjection)
 // =============================================================
 void Player::ImGui()
 {
-	hitEffect_->imgui();
-	damageEffect_->imgui();
-	trailEffect_->imgui();
+	// パーティクル(hitEffect_/damageEffect_/trailEffect_)は集約「パーティクル」窓で編集する
 	if (attack_) { attack_->ImGui(); }
 }
 

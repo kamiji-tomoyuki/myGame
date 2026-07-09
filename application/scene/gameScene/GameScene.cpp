@@ -317,7 +317,7 @@ void GameScene::Debug()
 		LightGroup::GetInstance()->imgui();
 		ImGui::End();
 	}
-	if (editor->PanelVisible("ステージ壁", "パーティクル")) { stageWall_->imgui(); }
+	// パーティクル(stageWall_)は集約「パーティクル」窓で編集する
 	if (editor->PanelVisible("プレイヤー", "キャラクター")) { player_->ImGui(); }
 	if (editor->PanelVisible("敵", "キャラクター")) { enemy_->ImGui(); }
 	if (editor->PanelVisible("地面", "シーン")) { ground_->DebugTransform("ground"); }

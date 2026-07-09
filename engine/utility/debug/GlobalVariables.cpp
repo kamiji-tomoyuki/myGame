@@ -6,17 +6,21 @@
 
 #ifdef _DEBUG
 #include "imgui.h"
+#include "EditorUI.h"
 #endif // _DEBUG
 
 namespace Engine {
 void GlobalVariables::Update() {
 #ifdef _DEBUG
+	// 「表示」メニューでトグル可能に（オフなら描画しない）
+	if (!EditorUI::GetInstance()->PanelVisible("Global Variables", "デバッグ")) { return; }
+
 	if (!ImGui::Begin("Global Variables", nullptr, ImGuiWindowFlags_MenuBar)) {
 		ImGui::End();
 		return;
 	}
 
-	// メニューバー
+	// メニューバー（ソートオプション）
 	if (ImGui::BeginMenuBar()) {
 		if (ImGui::BeginMenu("オプション")) {
 			ImGui::MenuItem("アルファベット順にソート", nullptr, &sortAlphabetically_);
@@ -25,76 +29,58 @@ void GlobalVariables::Update() {
 		ImGui::EndMenuBar();
 	}
 
-	// 検索フィルター
-	std::vector<char> buffer(256); // 最大文字数に応じて調整
-
-	// strncpy_s を使用してセキュリティを向上
-	if (!searchFilter_.empty()) {
-		strncpy_s(buffer.data(), buffer.size(), searchFilter_.c_str(), _TRUNCATE);
-	}
-	else {
-		buffer[0] = '\0';
+	if (datas_.empty()) {
+		ImGui::TextDisabled("(グループなし)");
+		ImGui::End();
+		return;
 	}
 
-	ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.7f);
-	if (ImGui::InputTextWithHint("##SearchFilter", "グループを検索...", buffer.data(), buffer.size())) {
-		searchFilter_ = std::string(buffer.data());
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("クリア")) {
-		searchFilter_.clear();
-	}
+	// --- グループをプルダウンで選択（タブが多くて見づらいのを解消） ---
+	//   datas_ は std::map＝キー順で安定。1フレーム内で名前リストを作り index で選ぶ。
+	std::vector<const std::string*> groupNames;
+	groupNames.reserve(datas_.size());
+	for (auto& [gname, g] : datas_) { groupNames.push_back(&gname); }
 
+	if (selectedGroupIndex_ < 0) { selectedGroupIndex_ = 0; }
+	if (selectedGroupIndex_ >= static_cast<int>(groupNames.size())) { selectedGroupIndex_ = 0; }
+
+	ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+	if (ImGui::BeginCombo("##GroupCombo", groupNames[selectedGroupIndex_]->c_str())) {
+		for (int i = 0; i < static_cast<int>(groupNames.size()); ++i) {
+			const bool selected = (i == selectedGroupIndex_);
+			if (ImGui::Selectable(groupNames[i]->c_str(), selected)) {
+				selectedGroupIndex_ = i;
+			}
+			if (selected) { ImGui::SetItemDefaultFocus(); }
+		}
+		ImGui::EndCombo();
+	}
 	ImGui::Separator();
 
-	// タブバーの開始
-	if (ImGui::BeginTabBar("GlobalVariablesTabBar")) {
-		// 各グループについてタブを作成
-		for (auto& [groupName, group] : datas_) {
-			// グループ名が検索フィルターにマッチしない場合はスキップ
-			if (!PassesFilter(groupName)) {
-				continue;
-			}
+	// --- 選択グループの編集 ---
+	const std::string groupName = *groupNames[selectedGroupIndex_];
+	Group& group = datas_[groupName];
 
-			// タブの開始
-			if (ImGui::BeginTabItem(groupName.c_str())) {
-				// 検索結果の項目数を表示
-				auto sortedItems = GetSortedItems(group);
-
-				ImGui::Text("Items: %d", (int)group.items.size());
-
-				// グループ制御ボタン
-				if (ImGui::Button("Save")) {
-					SaveFile(groupName);
-					std::string message = std::format("{}.json saved.", groupName);
-					MessageBoxA(nullptr, message.c_str(), "GlobalVariables", 0);
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("デフォルトとして保存")) {
-					SaveDefaultValues(groupName);
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("デフォルトにリセット")) {
-					ResetToDefault(groupName);
-				}
-
-				ImGui::Separator();
-
-				// スクロール可能な領域
-				if (ImGui::BeginChild("ItemsScrollRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar)) {
-					// 各項目について
-					for (const auto& [itemName, item] : sortedItems) {
-						// アイテムをレンダリング
-						RenderItemControls(groupName, itemName, const_cast<Item&>(item));
-					}
-				}
-				ImGui::EndChild();
-
-				ImGui::EndTabItem();
-			}
-		}
-		ImGui::EndTabBar();
+	ImGui::Text("Items: %d", static_cast<int>(group.items.size()));
+	if (ImGui::Button("Save")) {
+		SaveFile(groupName);
+		std::string message = std::format("{}.json saved.", groupName);
+		MessageBoxA(nullptr, message.c_str(), "GlobalVariables", 0);
 	}
+	ImGui::SameLine();
+	if (ImGui::Button("デフォルトとして保存")) { SaveDefaultValues(groupName); }
+	ImGui::SameLine();
+	if (ImGui::Button("デフォルトにリセット")) { ResetToDefault(groupName); }
+	ImGui::Separator();
+
+	// スクロール可能な項目領域
+	if (ImGui::BeginChild("ItemsScrollRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar)) {
+		auto sortedItems = GetSortedItems(group);
+		for (const auto& [itemName, item] : sortedItems) {
+			RenderItemControls(groupName, itemName, const_cast<Item&>(item));
+		}
+	}
+	ImGui::EndChild();
 
 	ImGui::End();
 #endif // _DEBUG
