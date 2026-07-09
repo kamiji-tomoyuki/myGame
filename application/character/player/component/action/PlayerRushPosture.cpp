@@ -71,7 +71,14 @@ void PlayerRushPosture::UpdateBodyPosture(
 
 	switch (phase) {
 	case PlayerArm::RushPhase::kRapidPunch:
-		rushBodyPitchTarget_ = kRushLeanPitch_;
+		if (rArm->IsRushCharging()) {
+			// 溜め：体を後ろへ傾ける（X負）
+			rushBodyPitchTarget_ = -kChargeLeanBackPitch_;
+		}
+		else {
+			// 攻撃(連打)：体を前へ傾ける（X正）
+			rushBodyPitchTarget_ = kAttackLeanForwardPitch_;
+		}
 		rushBodyTwistTarget_ = 0.0f;
 		break;
 

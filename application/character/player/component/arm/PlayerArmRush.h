@@ -53,6 +53,10 @@ public:
 	bool       IsRapidPunchDone()      const { return rapidPunchDone_; }
 	/// <summary>連打完了フラグを消費（フィニッシャー起動は1ラッシュ1回に限定するため）</summary>
 	void       ClearRapidPunchDone() { rapidPunchDone_ = false; }
+	/// <summary>溜め(ウィンドアップ)中か。体の後傾判定に使う。</summary>
+	bool       IsCharging()            const { return isCharging_; }
+	/// <summary>溜めの進捗[0,1]</summary>
+	float      GetChargeProgress()     const { float p = (kRushChargeDuration_ > 0) ? static_cast<float>(chargeTimer_) / static_cast<float>(kRushChargeDuration_) : 1.0f; return p > 1.0f ? 1.0f : p; }
 	RushPhase  GetRushPhase()          const { return rushPhase_; }
 	float      GetFinisherProgress()   const { return finisherProgress_; }
 	float      GetRushPhaseProgress()  const { return rushPhaseProgress_; }
@@ -90,6 +94,7 @@ public:
 
 private:
 
+	void UpdateCharge();     // 溜め（体後傾＋腕を後ろへ引く）
 	void UpdateRapidPunch();
 	void UpdateWindUp();
 	void UpdateFinisher();
@@ -104,6 +109,9 @@ private:
 	bool      rapidPunchDone_ = false; // 連打完了フラグ（フィニッシャーへの受け渡し用）
 	bool      isRightArm_ = true;
 	RushPhase rushPhase_ = RushPhase::kRapidPunch;
+
+	bool      isCharging_ = false; // 溜め(ウィンドアップ)中＝連打の前に体を後傾＋腕を引く
+	uint32_t  chargeTimer_ = 0;
 
 	Vector3   originalPosition_ = {};
 	Vector3   targetPosition_ = {};
@@ -136,12 +144,15 @@ private:
 	uint32_t kRushDuration_ = 80;
 	uint32_t kRushInterval_ = 8;
 	uint32_t kRushAttackDuration_ = 12;
+	uint32_t kRushChargeDuration_ = 16; // 溜めフレーム数
 	// フィニッシャーフェーズ
 	uint32_t kWindUpDuration_ = 22;
 	uint32_t kFinisherDuration_ = 28;
 	uint32_t kRecoverDuration_ = 25;
 	// 腕移動量
 	float kRushDistance_ = 1.5f;
+	float kChargeArmPull_ = 0.9f;  // 溜め中に腕を後ろ(-Z)へ引く量
+	float kChargeArmLift_ = 0.25f; // 溜め中に腕を少し上げる量（下がらないように）
 	float kWindUpArmRetreat_ = -1.6f;
 	float kWindUpArmSideR_ = 0.8f;
 	float kFinisherArmAdvance_ = 4.0f;
