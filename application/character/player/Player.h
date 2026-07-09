@@ -119,6 +119,9 @@ public:
 	// RemoveComboBodyTwist(ロックオン前) → ApplyComboBodyTwist(腕更新前) の順に PlayerStatePlaying から呼ぶ。
 	void RemoveComboBodyTwist();
 	void ApplyComboBodyTwist();
+	// フィニッシャークリップの体translateでプレイヤー本体を前進させる＋カメラのフィニッシャーモードを同期。
+	// PlayerStatePlaying::Update から毎フレーム呼ぶ（ApplyFinisherMotion 後）。
+	void ApplyFinisherBodyAdvance();
 
 	Enemy* GetEnemy()         const { return enemy_; }  // ★ 追加
 
@@ -212,6 +215,10 @@ private:
 
 	// コンボモーションで体へ加算中のひねり角（次フレームのロックオン前に除去する）
 	Vector3  comboBodyTwist_ = { 0.0f, 0.0f, 0.0f };
+
+	// フィニッシャークリップの体translateによる前進の差分計算用（前フレームのローカルtranslate）
+	Vector3  finisherBodyLocalPrev_ = { 0.0f, 0.0f, 0.0f };
+	bool     finisherAdvanceActive_ = false;
 
 	// ロックオン
 	Enemy* enemy_ = nullptr;

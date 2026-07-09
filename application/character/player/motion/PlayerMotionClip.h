@@ -57,8 +57,12 @@ public:
 	bool Save() const;
 	bool Load(const std::string& name);
 
-	// --- キーフレーム操作 ---
+	// --- キーフレーム操作（内部ベクタの不変条件=昇順ソート/duration整合はクラス内で維持） ---
 	void AddKeyframe(const MotionKeyframe& key); // time昇順を維持して挿入
+	// 指定時刻付近(±eps)のキーを更新し、無ければ追加する（エディタのキー登録用）
+	void UpsertKeyframe(float time, const PartPose& body, const PartPose& rArm, const PartPose& lArm, float eps = 0.01f);
+	// 指定インデックスのキーを削除（範囲外は無視）
+	void RemoveKeyframe(size_t index);
 	void SortAndNormalize();                     // time昇順ソート＋duration整合
 
 	/// <summary>
@@ -76,8 +80,9 @@ public:
 	void  SetName(const std::string& n) { name_ = n; }
 	float GetDuration() const { return duration_; }
 	void  SetDuration(float d) { duration_ = (d > 0.01f) ? d : 0.01f; }
-	std::vector<MotionKeyframe>& Keys() { return keys_; }
+	// 読み取り専用アクセス（表示・反復用）。内部ベクタは直接書き換えさせない。
 	const std::vector<MotionKeyframe>& Keys() const { return keys_; }
+	size_t KeyCount() const { return keys_.size(); }
 
 	float    GetHitStart() const { return hitStart_; }
 	float    GetHitEnd() const { return hitEnd_; }

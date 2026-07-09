@@ -116,6 +116,9 @@ private:
 	/// @brief 通常追従時のターゲット位置補間速度（Lerp の t 値）
 	static inline const float   kPositionLerpSpeed = 0.1f;
 
+	/// @brief フィニッシャー中の位置補間速度（通常より遅く＝カメラが少し遅れて追いつく演出）
+	static inline const float   kFinisherPositionLerpSpeed = 0.02f;
+
 	/// @brief キーボードによるカメラ回転速度（ラジアン/フレーム）
 	static inline const float   kKeyboardRotateSpeed = 0.03f;
 

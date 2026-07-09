@@ -261,9 +261,13 @@ void Player::UpdateRushFinisher()
 		rushFinisherStarted_ = false;
 	}
 	else if (arms_[kRArm]->IsRapidPunchDone() && !rushFinisherStarted_) {
-		// 連打完了 → フィニッシャークリップを1回だけ開始
+		// 連打完了 → フィニッシャークリップを1回だけ開始。
+		// 連打完了フラグは「次のStartRushまでtrue保持」される level フラグなので、
+		// ここで消費(edge化)しないと、回避/被弾で rushFinisherStarted_ がリセットされた際に
+		// フラグが残っていてフィニッシャーが再発火してしまう。
 		finisherMotion_->StartFromBeginning();
 		rushFinisherStarted_ = true;
+		arms_[kRArm]->ClearRapidPunchDone();
 	}
 }
 
@@ -356,6 +360,44 @@ void Player::ApplyComboBodyTwist()
 	transform_.rotation_.z += t.z;
 	comboBodyTwist_ = t;
 	// 体の行列を更新してから腕(子)の行列を更新させる
+	transform_.UpdateMatrix();
+}
+
+// =============================================================
+//  フィニッシャークリップの体translateでプレイヤー本体を前進させる
+//   ・体ひねり(回転)と違い、位置は「差分を積算＝実移動」なので戻さない（帰り補間からは除外済み）。
+//   ・移動量はクリップのローカルtranslateの差分を facing(Y) で回してワールドへ反映。
+//   ・カメラのフィニッシャーモード（位置追従を遅らせる）もここで同期する。
+// =============================================================
+void Player::ApplyFinisherBodyAdvance()
+{
+	const bool active = finisherMotion_ && IsFinisherActive();
+
+	// カメラのフィニッシャーモード（少し遅れて追いつく演出）をフィニッシャー中だけ有効化
+	if (followCamera_) { followCamera_->SetFinisherMode(active); }
+
+	if (!active) {
+		finisherAdvanceActive_ = false;
+		return;
+	}
+
+	const Vector3 local = finisherMotion_->GetBodyPose().translate;
+	if (!finisherAdvanceActive_) {
+		finisherBodyLocalPrev_ = local; // 開始フレームは基準化（delta=0）
+		finisherAdvanceActive_ = true;
+	}
+	const Vector3 deltaLocal = local - finisherBodyLocalPrev_;
+	finisherBodyLocalPrev_ = local;
+
+	// ローカルの移動差分を facing(Y) で回してワールドへ（カメラの MakeOffset と同方式）
+	Matrix4x4 rotMat = MakeAffineMatrix({ 1.0f, 1.0f, 1.0f }, { 0.0f, transform_.rotation_.y, 0.0f }, { 0.0f, 0.0f, 0.0f });
+	Vector3 deltaWorld = TransformNormal(deltaLocal, rotMat);
+
+	Vector3 newPos = BaseObject::GetWorldPosition() + deltaWorld;
+	if (stageManager_ && !stageManager_->IsWithinStageBounds(newPos)) {
+		newPos = stageManager_->ClampToStageBounds(newPos);
+	}
+	BaseObject::SetWorldPosition(newPos);
 	transform_.UpdateMatrix();
 }
 

@@ -62,19 +62,8 @@ std::unique_ptr<IPlayerState> PlayerStatePlaying::Update(Player* player)
 		player->SetRotation(newRot);
 	}
 
-	// フィニッシャー前進
-	{
-		Vector3 currentPos = player->GetWorldPosition();
-		Vector3 newPos = currentPos;
-		player->rushPosture_->UpdateFinisherAdvance(
-			player->arms_,
-			currentPos,
-			player->GetTransform().rotation_.y,
-			newPos);
-		if (player->rushPosture_->IsFinisherAdvancing()) {
-			player->SetWorldPosition(newPos);
-		}
-	}
+	// フィニッシャー前進（フィニッシャークリップの体translateでプレイヤーを前進させる）
+	player->ApplyFinisherBodyAdvance();
 
 	return nullptr; // 継続
 }

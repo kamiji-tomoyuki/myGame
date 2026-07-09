@@ -124,6 +124,31 @@ void PlayerMotionClip::AddKeyframe(const MotionKeyframe& key) {
 	SortAndNormalize();
 }
 
+void PlayerMotionClip::UpsertKeyframe(float time, const PartPose& body, const PartPose& rArm, const PartPose& lArm, float eps) {
+	// 同時刻付近のキーがあれば上書き、無ければ追加する（不変条件は内部で維持）。
+	for (auto& k : keys_) {
+		if (std::fabs(k.time - time) < eps) {
+			k.body = body;
+			k.rArm = rArm;
+			k.lArm = lArm;
+			SortAndNormalize();
+			return;
+		}
+	}
+	MotionKeyframe key;
+	key.time = time;
+	key.body = body;
+	key.rArm = rArm;
+	key.lArm = lArm;
+	AddKeyframe(key);
+}
+
+void PlayerMotionClip::RemoveKeyframe(size_t index) {
+	if (index >= keys_.size()) { return; }
+	keys_.erase(keys_.begin() + index);
+	SortAndNormalize();
+}
+
 void PlayerMotionClip::SortAndNormalize() {
 	std::sort(keys_.begin(), keys_.end(),
 		[](const MotionKeyframe& a, const MotionKeyframe& b) { return a.time < b.time; });

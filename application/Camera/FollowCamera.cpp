@@ -54,8 +54,9 @@ void FollowCamera::Update()
 			}
 		}
 		else {
-			// 通常の追従
-			targetPos_ = Lerp(targetPos_, target_->translation_, kPositionLerpSpeed);
+			// 通常の追従。フィニッシャー中は位置追従を遅らせ、動いたプレイヤーへ少し遅れて追いつく。
+			const float posLerp = isFinisherMode_ ? kFinisherPositionLerpSpeed : kPositionLerpSpeed;
+			targetPos_ = Lerp(targetPos_, target_->translation_, posLerp);
 			Vector3 offset = MakeOffset();
 			vp_.translation_ = targetPos_ + offset;
 		}

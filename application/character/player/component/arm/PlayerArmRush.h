@@ -51,6 +51,8 @@ public:
 	bool       GetIsRush()             const { return isRush_; }
 	/// <summary>連打フェーズが完了したか（次のStartRushまでtrue保持）。フィニッシャー起動判定用。</summary>
 	bool       IsRapidPunchDone()      const { return rapidPunchDone_; }
+	/// <summary>連打完了フラグを消費（フィニッシャー起動は1ラッシュ1回に限定するため）</summary>
+	void       ClearRapidPunchDone() { rapidPunchDone_ = false; }
 	RushPhase  GetRushPhase()          const { return rushPhase_; }
 	float      GetFinisherProgress()   const { return finisherProgress_; }
 	float      GetRushPhaseProgress()  const { return rushPhaseProgress_; }

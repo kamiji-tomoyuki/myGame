@@ -66,60 +66,40 @@ public:
 public:
 #pragma region getter setter
 
-	int        GetID() { return serialNumber_; }
-	Player* GetPlayer() { return player_; }
-	bool       GetIsAttack() { return attack_->GetIsAttack(); }
-	bool       GetIsRush() { return rush_->GetIsRush(); }
-	bool       IsRapidPunchDone() { return rush_->IsRapidPunchDone(); }
-	AttackType GetCurrentAttackType() { return attack_->GetCurrentAttackType(); }
-	AttackType GetLastAttackType() { return attack_->GetLastAttackType(); }
-	Behavior   GetBehavior() { return behavior_; }
-	Vector3    GetCenterPosition() const override { return GetWorldPosition(); }
-	Vector3    GetCenterRotation() const override { return GetWorldRotation(); }
-	Vector3    GetAttackDirection() const;
-	uint32_t   GetComboCount()     const { return attack_->GetComboCount(); }
+	// --- 状態の読み取り（副作用なし＝すべて const） ---
+	bool       GetIsRush()             const { return rush_->GetIsRush(); }
+	bool       IsRapidPunchDone()      const { return rush_->IsRapidPunchDone(); }
+	AttackType GetCurrentAttackType()  const { return attack_->GetCurrentAttackType(); }
+	AttackType GetLastAttackType()     const { return attack_->GetLastAttackType(); }
+	Behavior   GetBehavior()           const { return behavior_; }
+	Vector3    GetCenterPosition()     const override { return GetWorldPosition(); }
+	Vector3    GetCenterRotation()     const override { return GetWorldRotation(); }
 
-	// ★ 追加 — PlayerUltimate からローカル姿勢を読み書きするために必要
-	Vector3    GetLocalRotation()    const { return transform_.rotation_; }
-	Vector3    GetLocalTranslation() const { return transform_.translation_; }
+	// PlayerUltimate がローカル姿勢を退避/復元するために参照
+	Vector3    GetLocalRotation()      const { return transform_.rotation_; }
+	Vector3    GetLocalTranslation()   const { return transform_.translation_; }
 
+	// ラッシュ姿勢制御（PlayerRushPosture 等が参照）
 	RushPhase  GetRushPhase()          const { return rush_->GetRushPhase(); }
 	bool       IsFinisherPhase()       const { return rush_->IsFinisherPhase(); }
-	bool       IsWindUpPhase()         const { return rush_->IsWindUpPhase(); }
-	bool       IsRecoverPhase()        const { return rush_->IsRecoverPhase(); }
-	bool       IsFinisherHitFrame()    const { return rush_->IsFinisherHitFrame(); }
-	bool       HasFinisherHit()        const { return rush_->HasFinisherHit(); }
-	void       SetFinisherHit() { rush_->SetHasFinisherHit(true); }
 	float      GetFinisherProgress()   const { return rush_->GetFinisherProgress(); }
 	float      GetRushPhaseProgress()  const { return rush_->GetRushPhaseProgress(); }
-	bool       IsRightArm()            const { return isRightArm_; }
-
 	/// <summary>この腕の PlayerArmRush が持つ連打間隔を返す（交互タイミング計算用）</summary>
 	uint32_t   GetRushInterval()       const { return rush_->GetRushInterval(); }
+	/// <summary>連打完了フラグを消費（フィニッシャー起動を1ラッシュ1回に限定する）</summary>
+	void       ClearRapidPunchDone() { rush_->ClearRapidPunchDone(); }
 
+	// --- 生成時のセットアップ（Player::InitArm から呼ぶ） ---
 	void SetID(int id) { serialNumber_ = id; }
 	void SetColliderID(CollisionTypeIdDef id) { Collider::SetTypeID(static_cast<uint32_t>(id)); }
 	void SetPlayer(Player* player);
-	void SetComboTimer(uint32_t comboT) { attack_->SetComboTimer(comboT); }
-	void SetComboCount(uint32_t count) { attack_->SetComboCount(count); }
 	void SetIsRightArm(bool isRight) { isRightArm_ = isRight; }
-
-	// ★ 追加 — PlayerAttack への参照をセット（Init後に Player から呼ぶ）
 	void SetPlayerAttack(PlayerAttack* pa) { playerAttack_ = pa; }
 
+	// --- モーション適用（コンボ/フィニッシャーが腕のローカル姿勢を上書きする） ---
 	void SetTranslation(const Vector3& pos) { transform_.translation_ = pos; }
-	void SetTranslationY(float pos) { transform_.translation_.y = pos; }
-	void SetTranslationX(float pos) { transform_.translation_.x = pos; }
-	void SetTranslationZ(float pos) { transform_.translation_.z = pos; }
-
 	void SetRotation(const Vector3& rotate) { transform_.rotation_ = rotate; }
-	void SetRotationX(float rotate) { transform_.rotation_.x = rotate; }
-	void SetRotationY(float rotate) { transform_.rotation_.y = rotate; }
-	void SetRotationZ(float rotate) { transform_.rotation_.z = rotate; }
-
 	void SetScale(const Vector3& scale) { transform_.scale_ = scale; }
-	void SetColliderSize(float size) { Collider::SetRadius(size); }
-	void SetOriginalPosition(const Vector3& pos) { originalPosition_ = pos; }
 
 #pragma endregion
 
@@ -139,8 +119,6 @@ private:
 
 	bool     isRightArm_ = true;
 	Behavior behavior_ = Behavior::kNormal;
-
-	Vector3  originalPosition_ = {};
 
 	uint32_t          serialNumber_ = 0;
 	static inline int nextSerialNumber_ = 0;

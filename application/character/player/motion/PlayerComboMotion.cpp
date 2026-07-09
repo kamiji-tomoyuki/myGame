@@ -51,7 +51,7 @@ void PlayerComboMotion::LoadDefaultFinisher() {
 		k.rArm.translate = rArmT;
 		k.rArm.rotate = rArmR;
 		k.lArm.translate = kLArmBase_;
-		clip.Keys().push_back(k);
+		clip.AddKeyframe(k);
 	};
 
 	// 振りかぶり（体を右へ、右腕を後方＋右へ引く）
@@ -140,7 +140,7 @@ void PlayerComboMotion::LoadDefaults() {
 				k.lArm.translate = punchArm; k.lArm.rotate = punchRot;
 				k.rArm.translate = kRArmBase_;
 			}
-			clip.Keys().push_back(k);
+			clip.AddKeyframe(k);
 		};
 
 		const float twist = right ? 0.25f : -0.25f;
@@ -298,7 +298,12 @@ PartPose PlayerComboMotion::GetBodyPose() const {
 		return PlayerMotionClip::BlendPose(blendFrom_[0], clips_[pendingNext_].SampleBody(0.0f), u);
 	}
 	if (phase_ == Phase::kReturn) {
-		return PlayerMotionClip::BlendPose(blendFrom_[0], PartPose{}, u); // 体は中立へ
+		// 元の姿勢へ戻す補間だが、体の座標(translate)のみ除外＝据え置きにする。
+		// （体の位置はモーションではなくプレイヤーの移動が持つため、復帰補間の対象にしない）
+		// 回転だけを中立へ戻す。
+		PartPose p = PlayerMotionClip::BlendPose(blendFrom_[0], PartPose{}, u);
+		p.translate = blendFrom_[0].translate;
+		return p;
 	}
 	return PartPose{};
 }

@@ -181,23 +181,9 @@ void DebugScene::UpdateRig() {
 }
 
 void DebugScene::CaptureKeyframe() {
-    // 同時刻付近のキーがあれば上書き、無ければ追加
-    const float eps = 0.01f;
-    for (auto& k : clip_.Keys()) {
-        if (std::fabs(k.time - editTime_) < eps) {
-            k.body = pose_[0];
-            k.rArm = pose_[1];
-            k.lArm = pose_[2];
-            clip_.SortAndNormalize();
-            return;
-        }
-    }
-    MotionKeyframe key;
-    key.time = editTime_;
-    key.body = pose_[0];
-    key.rArm = pose_[1];
-    key.lArm = pose_[2];
-    clip_.AddKeyframe(key);
+    // 現在の姿勢を editTime_ のキーとして登録（同時刻付近は上書き）。
+    // 追加/上書き/ソート/duration整合は PlayerMotionClip 内部で処理する。
+    clip_.UpsertKeyframe(editTime_, pose_[0], pose_[1], pose_[2]);
 }
 
 void DebugScene::ScanClips() {
@@ -750,7 +736,7 @@ void DebugScene::DrawMotionUI() {
         ImGui::TextDisabled("キーフレーム (%d)", static_cast<int>(clip_.Keys().size()));
         ImGui::BeginChild("KeyList", ImVec2(0.0f, 110.0f), true);
         int removeIdx = -1;
-        auto& keys = clip_.Keys();
+        const auto& keys = clip_.Keys(); // 表示は読み取り専用アクセス
         for (int i = 0; i < static_cast<int>(keys.size()); ++i) {
             ImGui::PushID(i);
             char label[64];
@@ -766,7 +752,7 @@ void DebugScene::DrawMotionUI() {
             ImGui::PopID();
         }
         if (removeIdx >= 0) {
-            keys.erase(keys.begin() + removeIdx);
+            clip_.RemoveKeyframe(static_cast<size_t>(removeIdx)); // 削除もクラスに委譲
         }
         ImGui::EndChild();
     }

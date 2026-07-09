@@ -36,8 +36,6 @@ void PlayerArm::Init(const std::string& filePath)
     rush_->SetRushAttackDamage(kInitRushAttackDamage_);
     rush_->SetFinisherAttackDamage(kInitFinisherAttackDamage_);
 
-    originalPosition_ = transform_.translation_;
-
     Collider::SetRadius(kColliderRadius_);
     Collider::SetCollisionEnabled(true);
 }
@@ -134,14 +132,6 @@ bool PlayerArm::CanCombo() const
 bool PlayerArm::CanStartRush() const
 {
     return (behavior_ == Behavior::kNormal && attack_->CanStartRush());
-}
-
-Vector3 PlayerArm::GetAttackDirection() const
-{
-    if (behavior_ == Behavior::kRush) {
-        return rush_->GetAttackDirection();
-    }
-    return attack_->GetAttackDirection();
 }
 
 // =============================================================

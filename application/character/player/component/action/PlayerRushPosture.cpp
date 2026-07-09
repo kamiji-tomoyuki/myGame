@@ -13,8 +13,6 @@ void PlayerRushPosture::Init(FollowCamera* followCamera, StageManager* stageMana
 	rushBodyPitchCurrent_ = 0.0f;
 	rushBodyTwistTarget_ = 0.0f;
 	rushBodyTwistCurrent_ = 0.0f;
-	isFinisherAdvancing_ = false;
-	finisherAdvanceAmount_ = 0.0f;
 }
 
 // =============================================================
@@ -119,56 +117,5 @@ void PlayerRushPosture::UpdateBodyPosture(
 	outRotation = newRot;
 }
 
-// =============================================================
-//  フィニッシャー前進更新
-// =============================================================
-void PlayerRushPosture::UpdateFinisherAdvance(
-	const std::array<std::unique_ptr<PlayerArm>, 2>& arms,
-	const Vector3& currentWorldPos,
-	float          rotationY,
-	Vector3& outNewPos)
-{
-	outNewPos = currentWorldPos;
-
-	bool  anyFinishing = false;
-	float maxProgress = 0.0f;
-
-	for (const auto& arm : arms) {
-		if (arm && arm->IsFinisherPhase()) {
-			anyFinishing = true;
-			float p = arm->GetFinisherProgress();
-			if (p > maxProgress) { maxProgress = p; }
-		}
-	}
-
-	if (!anyFinishing) {
-		isFinisherAdvancing_ = false;
-		finisherAdvanceAmount_ = 0.0f;
-		return;
-	}
-
-	float clampedProgress = maxProgress > 0.5f ? 0.5f : maxProgress;
-	float advanceRatio = (clampedProgress / 0.5f);
-	advanceRatio = advanceRatio * advanceRatio;	// ease-in
-
-	float targetAdvance = advanceRatio * kFinisherMaxAdvance_;
-	float delta = targetAdvance - finisherAdvanceAmount_;
-	finisherAdvanceAmount_ = targetAdvance;
-
-	if (delta > 0.0f) {
-		Vector3 forward = {
-			std::sin(rotationY) * delta,
-			0.0f,
-			std::cos(rotationY) * delta
-		};
-
-		Vector3 newPos = currentWorldPos + forward;
-
-		if (stageManager_ != nullptr && !stageManager_->IsWithinStageBounds(newPos)) {
-			newPos = stageManager_->ClampToStageBounds(newPos);
-		}
-
-		outNewPos = newPos;
-		isFinisherAdvancing_ = true;
-	}
-}
+// フィニッシャー前進はクリップ駆動へ移行（Player::ApplyFinisherBodyAdvance）。
+// 旧 arm フェーズ依存の前進処理は撤去。
