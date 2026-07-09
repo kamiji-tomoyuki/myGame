@@ -668,18 +668,14 @@ void Player::OnCollision(Collider* other)
 
 		if (dodge_->IsDodging() || hitReaction_->IsHitReacting()) { return; }
 
+		// 接触ダメージは「敵が攻撃モーション中」のみ発生させる。
+		// 攻撃していない敵に触れてもダメージは受けない（押し出し／範囲外クランプのみ行う）。
 		if (enemy->IsAttacking()) {
 			Vector3 hitPos = (GetCenterPosition() + enemy->GetCenterPosition()) * 0.5f;
 			ApplyDamage(100, hitPos);
 
 			Vector3 knockback = (GetCenterPosition() - enemy->GetCenterPosition()).Normalize();
 			move_->SetVelocity(move_->GetVelocity() + knockback * 0.5f);
-		}
-		else {
-			if (hitReaction_->IsContactCooldownActive()) { return; }
-
-			Vector3 hitPos = (GetCenterPosition() + enemy->GetCenterPosition()) * 0.5f;
-			ApplyDamage(10, hitPos);
 		}
 
 		Vector3 playerPos = BaseObject::GetWorldPosition();
