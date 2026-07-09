@@ -5,6 +5,7 @@
 
 #ifdef _DEBUG
 #include <imgui.h>
+#include "EditorUI.h"
 #endif // _DEBUG
 
 #include <LightGroup.h>
@@ -140,17 +141,20 @@ void TitleScene::DrawForOffScreen() {
 }
 
 void TitleScene::Debug() {
-    ImGui::Begin("TitleScene:Debug");
+#ifdef _DEBUG
+    EditorUI* editor = EditorUI::GetInstance();
 
-    debugCamera_->imgui();
-
-    LightGroup::GetInstance()->imgui();
-
-    ImGui::Checkbox("loop", &loop);
-
-    ImGui::End();
-
-    emitter_->imgui();
+    if (editor->PanelVisible("カメラ / ライト", "シーン")) {
+        ImGui::Begin("TitleScene:Debug");
+        debugCamera_->imgui();
+        LightGroup::GetInstance()->imgui();
+        ImGui::Checkbox("loop", &loop);
+        ImGui::End();
+    }
+    if (editor->PanelVisible("タイトル演出", "パーティクル")) {
+        emitter_->imgui();
+    }
+#endif // _DEBUG
 }
 
 void TitleScene::CameraUpdate() {

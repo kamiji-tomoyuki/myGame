@@ -64,6 +64,11 @@ public:// メンバ関数
 
 	bool GetTransitionEnd() { return transition_->IsEnd(); }
 
+	/// <summary>
+	/// シーン切り替えが可能な状態か（遷移中でない）
+	/// </summary>
+	bool CanChangeScene() { return transition_->IsEnd() && !transition_->FadeInStart(); }
+
 public: // setter
 	/// <summary>
 	/// シーンファクトリーのセット

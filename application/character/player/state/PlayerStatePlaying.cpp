@@ -26,13 +26,19 @@ std::unique_ptr<IPlayerState> PlayerStatePlaying::Update(Player* player)
 
 	player->hitReaction_->UpdateContactCooldown();
 
-	// Behavior の更新・遷移
+	// ロックオンが体の向きを読む前に、前フレームのコンボひねりを除去して純粋な facing に戻す
+	player->RemoveComboBodyTwist();
+
+	// Behavior の更新・遷移（この中で UpdateLockOn が facing を決める）
 	if (behavior_) {
 		std::unique_ptr<IPlayerBehavior> next = behavior_->Update(player);
 		if (next) {
 			ChangeBehavior(player, std::move(next));
 		}
 	}
+
+	// facing 決定後・腕更新前にコンボの体ひねりを加算（腕は親=体を参照するため順序が重要）
+	player->ApplyComboBodyTwist();
 
 	// アニメーション・腕は常に更新
 	player->obj3d_->UpdateAnimation(true);
@@ -56,19 +62,8 @@ std::unique_ptr<IPlayerState> PlayerStatePlaying::Update(Player* player)
 		player->SetRotation(newRot);
 	}
 
-	// フィニッシャー前進
-	{
-		Vector3 currentPos = player->GetWorldPosition();
-		Vector3 newPos = currentPos;
-		player->rushPosture_->UpdateFinisherAdvance(
-			player->arms_,
-			currentPos,
-			player->GetTransform().rotation_.y,
-			newPos);
-		if (player->rushPosture_->IsFinisherAdvancing()) {
-			player->SetWorldPosition(newPos);
-		}
-	}
+	// フィニッシャー前進（フィニッシャークリップの体translateでプレイヤーを前進させる）
+	player->ApplyFinisherBodyAdvance();
 
 	return nullptr; // 継続
 }

@@ -69,6 +69,7 @@ void PlayerArmRush::StartRush(bool isRightArm, const Vector3& currentTranslation
 	ApplyVariables();
 
 	isRush_ = true;
+	rapidPunchDone_ = false;
 	isRightArm_ = isRightArm;
 	rushPhase_ = RushPhase::kRapidPunch;
 	rushTimer_ = timerOffset;   // ★ オフセットを初期値として設定
@@ -96,12 +97,15 @@ bool PlayerArmRush::Update(float currentBodyRotY)
 	rushPhaseTimer_++;
 
 	switch (rushPhase_) {
-	case RushPhase::kRapidPunch: UpdateRapidPunch(); break;
-	case RushPhase::kWindUp:     UpdateWindUp();     break;
-	case RushPhase::kFinisher:   UpdateFinisher();   break;
+	case RushPhase::kRapidPunch:
+		UpdateRapidPunch();
+		if (!isRush_) { return true; }	// 連打完了 → 腕のラッシュ終了（behaviorをkNormalへ）
+		break;
+	case RushPhase::kWindUp:     UpdateWindUp();     break;   // 未使用（フィニッシャーはクリップ化）
+	case RushPhase::kFinisher:   UpdateFinisher();   break;   // 未使用
 	case RushPhase::kRecover:
 		UpdateRecover();
-		if (!isRush_) { return true; }	// Recover終了でラッシュ全体終了
+		if (!isRush_) { return true; }
 		break;
 	}
 
@@ -187,17 +191,18 @@ void PlayerArmRush::UpdateRapidPunch()
 		}
 	}
 
-	// 連続パンチフェーズ終了 → WindUp へ
+	// 連続パンチフェーズ終了 → 腕のラッシュは完了。
+	// フィニッシャー（振りかぶり→大パンチ→戻り）は Player 側でモーションクリップとして再生する。
+	// （旧: WindUp/Finisher/Recover の手続き処理は使用しない）
 	if (rushTimer_ >= kRushDuration_) {
 		rushAttackActive_ = false;
 		rushAttackTimer_ = 0;
 		currentTranslation_ = originalPosition_;
 
-		rushPhase_ = RushPhase::kWindUp;
+		isRush_ = false;          // 腕のラッシュ終了（behaviorはkNormalへ戻る）
+		rapidPunchDone_ = true;   // Player がこれを見てフィニッシャークリップを開始する
+		rushPhase_ = RushPhase::kRapidPunch;
 		rushPhaseTimer_ = 0;
-
-		// WindUp開始時点の体のY回転を記録
-		bodyRotYAtWindUpStart_ = currentBodyRotY_;
 	}
 }
 

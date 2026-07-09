@@ -65,7 +65,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)engine;$(ProjectDir)engine\2d;$(ProjectDir)engine\3d;$(ProjectDir)engine\3d\camera;$(ProjectDir)engine\3d\light;$(ProjectDir)engine\3d\line;$(ProjectDir)engine\3d\model;$(ProjectDir)engine\3d\particle;$(ProjectDir)engine\3d\skybox;$(ProjectDir)engine\3d\transform;$(ProjectDir)engine\audio;$(ProjectDir)engine\base;$(ProjectDir)engine\core;$(ProjectDir)engine\Frame;$(ProjectDir)engine\input;$(ProjectDir)engine\math;$(ProjectDir)engine\offscreen;$(ProjectDir)engine\utility;$(ProjectDir)engine\utility\collider;$(ProjectDir)engine\utility\debug;$(ProjectDir)engine\utility\edit;$(ProjectDir)engine\utility\graphics;$(ProjectDir)engine\utility\string;$(ProjectDir)engine\utility\json;$(ProjectDir)engine\utility\scene;$(ProjectDir)externals\assimp\include;$(ProjectDir)externals\DirectXTex;$(ProjectDir)externals\imgui;$(ProjectDir)externals\nlohmann;$(ProjectDir)application;$(ProjectDir)application\Camera;$(ProjectDir)application\Character;$(ProjectDir)application\Character\Base;$(ProjectDir)application\Character\Enemy;$(ProjectDir)application\Character\Enemy\component;$(ProjectDir)application\Character\Enemy\component\action;$(ProjectDir)application\Character\Enemy\component\reaction;$(ProjectDir)application\Character\Enemy\effect;$(ProjectDir)application\Character\Enemy\state;$(ProjectDir)application\Character\Player;$(ProjectDir)application\Character\Player\behavior;$(ProjectDir)application\Character\Player\component;$(ProjectDir)application\Character\Player\component\action;$(ProjectDir)application\Character\Player\component\arm;$(ProjectDir)application\Character\Player\component\reaction;$(ProjectDir)application\Character\Player\effect;$(ProjectDir)application\Character\Player\state;$(ProjectDir)application\Field;$(ProjectDir)application\Field\Ground;$(ProjectDir)application\Other;$(ProjectDir)application\Scene;$(ProjectDir)application\Scene\Base;$(ProjectDir)application\Scene\GameClearScene;$(ProjectDir)application\Scene\GameOverScene;$(ProjectDir)application\Scene\GameScene;$(ProjectDir)application\Scene\GameScene\Pause;$(ProjectDir)application\Scene\TitleScene</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)engine;$(ProjectDir)engine\2d;$(ProjectDir)engine\3d;$(ProjectDir)engine\3d\camera;$(ProjectDir)engine\3d\light;$(ProjectDir)engine\3d\line;$(ProjectDir)engine\3d\model;$(ProjectDir)engine\3d\particle;$(ProjectDir)engine\3d\skybox;$(ProjectDir)engine\3d\transform;$(ProjectDir)engine\audio;$(ProjectDir)engine\base;$(ProjectDir)engine\core;$(ProjectDir)engine\Frame;$(ProjectDir)engine\input;$(ProjectDir)engine\math;$(ProjectDir)engine\offscreen;$(ProjectDir)engine\utility;$(ProjectDir)engine\utility\collider;$(ProjectDir)engine\utility\debug;$(ProjectDir)engine\utility\edit;$(ProjectDir)engine\utility\graphics;$(ProjectDir)engine\utility\string;$(ProjectDir)engine\utility\json;$(ProjectDir)engine\utility\scene;$(ProjectDir)externals\assimp\include;$(ProjectDir)externals\DirectXTex;$(ProjectDir)externals\imgui;$(ProjectDir)externals\nlohmann;$(ProjectDir)application;$(ProjectDir)application\Camera;$(ProjectDir)application\Character;$(ProjectDir)application\Character\Base;$(ProjectDir)application\Character\Enemy;$(ProjectDir)application\Character\Enemy\component;$(ProjectDir)application\Character\Enemy\component\action;$(ProjectDir)application\Character\Enemy\component\reaction;$(ProjectDir)application\Character\Enemy\effect;$(ProjectDir)application\Character\Enemy\state;$(ProjectDir)application\Character\Player;$(ProjectDir)application\Character\Player\behavior;$(ProjectDir)application\Character\Player\component;$(ProjectDir)application\Character\Player\component\action;$(ProjectDir)application\Character\Player\component\arm;$(ProjectDir)application\Character\Player\component\reaction;$(ProjectDir)application\Character\Player\effect;$(ProjectDir)application\Character\Player\motion;$(ProjectDir)application\Character\Player\state;$(ProjectDir)application\Field;$(ProjectDir)application\Field\Ground;$(ProjectDir)application\Other;$(ProjectDir)application\Scene;$(ProjectDir)application\Scene\Base;$(ProjectDir)application\Scene\GameClearScene;$(ProjectDir)application\Scene\GameOverScene;$(ProjectDir)application\Scene\GameScene;$(ProjectDir)application\Scene\GameScene\Pause;$(ProjectDir)application\Scene\TitleScene</AdditionalIncludeDirectories>
       <Optimization>Custom</Optimization>
     </ClCompile>
     <Link>
@@ -94,7 +94,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
       <AdditionalOptions>/utf-8</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)engine;$(ProjectDir)engine\2d;$(ProjectDir)engine\3d;$(ProjectDir)engine\3d\camera;$(ProjectDir)engine\3d\light;$(ProjectDir)engine\3d\line;$(ProjectDir)engine\3d\model;$(ProjectDir)engine\3d\particle;$(ProjectDir)engine\3d\skybox;$(ProjectDir)engine\3d\transform;$(ProjectDir)engine\audio;$(ProjectDir)engine\base;$(ProjectDir)engine\core;$(ProjectDir)engine\Frame;$(ProjectDir)engine\input;$(ProjectDir)engine\math;$(ProjectDir)engine\offscreen;$(ProjectDir)engine\utility;$(ProjectDir)engine\utility\collider;$(ProjectDir)engine\utility\debug;$(ProjectDir)engine\utility\edit;$(ProjectDir)engine\utility\graphics;$(ProjectDir)engine\utility\string;$(ProjectDir)engine\utility\json;$(ProjectDir)engine\utility\scene;$(ProjectDir)externals\assimp\include;$(ProjectDir)externals\DirectXTex;$(ProjectDir)externals\imgui;$(ProjectDir)externals\nlohmann;$(ProjectDir)application;$(ProjectDir)application\Camera;$(ProjectDir)application\Character;$(ProjectDir)application\Character\Base;$(ProjectDir)application\Character\Enemy;$(ProjectDir)application\Character\Enemy\component;$(ProjectDir)application\Character\Enemy\component\action;$(ProjectDir)application\Character\Enemy\component\reaction;$(ProjectDir)application\Character\Enemy\effect;$(ProjectDir)application\Character\Enemy\state;$(ProjectDir)application\Character\Player;$(ProjectDir)application\Character\Player\behavior;$(ProjectDir)application\Character\Player\component;$(ProjectDir)application\Character\Player\component\action;$(ProjectDir)application\Character\Player\component\arm;$(ProjectDir)application\Character\Player\component\reaction;$(ProjectDir)application\Character\Player\effect;$(ProjectDir)application\Character\Player\state;$(ProjectDir)application\Field;$(ProjectDir)application\Field\Ground;$(ProjectDir)application\Other;$(ProjectDir)application\Scene;$(ProjectDir)application\Scene\Base;$(ProjectDir)application\Scene\GameClearScene;$(ProjectDir)application\Scene\GameOverScene;$(ProjectDir)application\Scene\GameScene;$(ProjectDir)application\Scene\GameScene\Pause;$(ProjectDir)application\Scene\TitleScene</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)engine;$(ProjectDir)engine\2d;$(ProjectDir)engine\3d;$(ProjectDir)engine\3d\camera;$(ProjectDir)engine\3d\light;$(ProjectDir)engine\3d\line;$(ProjectDir)engine\3d\model;$(ProjectDir)engine\3d\particle;$(ProjectDir)engine\3d\skybox;$(ProjectDir)engine\3d\transform;$(ProjectDir)engine\audio;$(ProjectDir)engine\base;$(ProjectDir)engine\core;$(ProjectDir)engine\Frame;$(ProjectDir)engine\input;$(ProjectDir)engine\math;$(ProjectDir)engine\offscreen;$(ProjectDir)engine\utility;$(ProjectDir)engine\utility\collider;$(ProjectDir)engine\utility\debug;$(ProjectDir)engine\utility\edit;$(ProjectDir)engine\utility\graphics;$(ProjectDir)engine\utility\string;$(ProjectDir)engine\utility\json;$(ProjectDir)engine\utility\scene;$(ProjectDir)externals\assimp\include;$(ProjectDir)externals\DirectXTex;$(ProjectDir)externals\imgui;$(ProjectDir)externals\nlohmann;$(ProjectDir)application;$(ProjectDir)application\Camera;$(ProjectDir)application\Character;$(ProjectDir)application\Character\Base;$(ProjectDir)application\Character\Enemy;$(ProjectDir)application\Character\Enemy\component;$(ProjectDir)application\Character\Enemy\component\action;$(ProjectDir)application\Character\Enemy\component\reaction;$(ProjectDir)application\Character\Enemy\effect;$(ProjectDir)application\Character\Enemy\state;$(ProjectDir)application\Character\Player;$(ProjectDir)application\Character\Player\behavior;$(ProjectDir)application\Character\Player\component;$(ProjectDir)application\Character\Player\component\action;$(ProjectDir)application\Character\Player\component\arm;$(ProjectDir)application\Character\Player\component\reaction;$(ProjectDir)application\Character\Player\effect;$(ProjectDir)application\Character\Player\motion;$(ProjectDir)application\Character\Player\state;$(ProjectDir)application\Field;$(ProjectDir)application\Field\Ground;$(ProjectDir)application\Other;$(ProjectDir)application\Scene;$(ProjectDir)application\Scene\Base;$(ProjectDir)application\Scene\GameClearScene;$(ProjectDir)application\Scene\GameOverScene;$(ProjectDir)application\Scene\GameScene;$(ProjectDir)application\Scene\GameScene\Pause;$(ProjectDir)application\Scene\TitleScene</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
     </ClCompile>
     <Link>
@@ -137,6 +137,8 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\character\player\behavior\PlayerBehaviorHitReact.cpp" />
     <ClCompile Include="application\character\player\behavior\PlayerBehaviorRoot.cpp" />
     <ClCompile Include="application\character\player\component\arm\PlayerArm.cpp" />
+    <ClCompile Include="application\character\player\motion\PlayerComboMotion.cpp" />
+    <ClCompile Include="application\character\player\motion\PlayerMotionClip.cpp" />
     <ClCompile Include="application\character\player\component\reaction\PlayerHitReaction.cpp" />
     <ClCompile Include="application\character\player\effect\PlayerGameClearEffect.cpp" />
     <ClCompile Include="application\character\player\effect\PlayerGameOverEffect.cpp" />
@@ -146,7 +148,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="application\character\player\state\PlayerStateGameOver.cpp" />
     <ClCompile Include="application\character\player\state\PlayerStatePlaying.cpp" />
     <ClCompile Include="application\field\StageManager.cpp" />
-    <ClCompile Include="application\scene\debugScene\ParticleDebugScene.cpp" />
+    <ClCompile Include="application\scene\debugScene\DebugScene.cpp" />
     <ClCompile Include="application\scene\gameScene\Pause\Pause.cpp" />
     <ClCompile Include="application\other\temp\TempObj.cpp" />
     <ClCompile Include="application\character\TitleCharacter.cpp" />
@@ -173,6 +175,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\math\Easing.cpp" />
     <ClCompile Include="engine\3d\particle\ParticleCommon.cpp" />
     <ClCompile Include="engine\3d\particle\ParticleManager.cpp" />
+    <ClCompile Include="engine\utility\debug\EditorUI.cpp" />
     <ClCompile Include="engine\utility\debug\GlobalVariables.cpp" />
     <ClCompile Include="engine\utility\edit\LevelData.cpp" />
     <ClCompile Include="engine\math\Quaternion.cpp" />
@@ -272,6 +275,8 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\character\player\component\action\PlayerUltGauge.h" />
     <ClInclude Include="application\character\player\component\action\PlayerUltimate.h" />
     <ClInclude Include="application\character\player\component\arm\PlayerArm.h" />
+    <ClInclude Include="application\character\player\motion\PlayerComboMotion.h" />
+    <ClInclude Include="application\character\player\motion\PlayerMotionClip.h" />
     <ClInclude Include="application\character\player\component\arm\PlayerArmAttack.h" />
     <ClInclude Include="application\character\player\component\arm\PlayerArmRush.h" />
     <ClInclude Include="application\character\player\behavior\IPlayerBehavior.h" />
@@ -289,7 +294,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\character\player\state\PlayerStatePlaying.h" />
     <ClInclude Include="application\field\StageManager.h" />
     <ClInclude Include="application\other\CollisionTypeIdDef.h" />
-    <ClInclude Include="application\scene\debugScene\ParticleDebugScene.h" />
+    <ClInclude Include="application\scene\debugScene\DebugScene.h" />
     <ClInclude Include="application\scene\gameScene\Pause\Pause.h" />
     <ClInclude Include="application\other\temp\TempObj.h" />
     <ClInclude Include="application\character\TitleCharacter.h" />
@@ -316,6 +321,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\math\Easing.h" />
     <ClInclude Include="engine\3d\particle\ParticleCommon.h" />
     <ClInclude Include="engine\3d\particle\ParticleManager.h" />
+    <ClInclude Include="engine\utility\debug\EditorUI.h" />
     <ClInclude Include="engine\utility\debug\GlobalVariables.h" />
     <ClInclude Include="engine\utility\edit\LevelData.h" />
     <ClInclude Include="engine\math\Quaternion.h" />

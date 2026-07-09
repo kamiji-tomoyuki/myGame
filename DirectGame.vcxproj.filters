@@ -314,6 +314,9 @@
     <ClCompile Include="engine\math\Easing.cpp">
       <Filter>ソースファイル\myEngine\math</Filter>
     </ClCompile>
+    <ClCompile Include="engine\utility\debug\EditorUI.cpp">
+      <Filter>ソースファイル\myEngine\utility\debug</Filter>
+    </ClCompile>
     <ClCompile Include="engine\utility\debug\GlobalVariables.cpp">
       <Filter>ソースファイル\myEngine\utility\debug</Filter>
     </ClCompile>
@@ -437,6 +440,12 @@
     <ClCompile Include="application\character\player\component\arm\PlayerArm.cpp">
       <Filter>ソースファイル\application\Character\Player\component\arm</Filter>
     </ClCompile>
+    <ClCompile Include="application\character\player\motion\PlayerMotionClip.cpp">
+      <Filter>ソースファイル\application\Character\Player\component\arm</Filter>
+    </ClCompile>
+    <ClCompile Include="application\character\player\motion\PlayerComboMotion.cpp">
+      <Filter>ソースファイル\application\Character\Player\component\arm</Filter>
+    </ClCompile>
     <ClCompile Include="application\character\player\component\arm\PlayerArmAttack.cpp">
       <Filter>ソースファイル\application\Character\Player\component\arm</Filter>
     </ClCompile>
@@ -515,7 +524,7 @@
     <ClCompile Include="engine\utility\scene\SceneManagerStates.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
-    <ClCompile Include="application\scene\debugScene\ParticleDebugScene.cpp">
+    <ClCompile Include="application\scene\debugScene\DebugScene.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
     <ClCompile Include="application\character\enemy\state\EnemyStateTransformation.cpp">
@@ -644,6 +653,9 @@
       <Filter>ソースファイル\myEngine\utility\collider</Filter>
     </ClInclude>
     <ClInclude Include="engine\utility\debug\D3DResourceLeakChecker.h">
+      <Filter>ソースファイル\myEngine\utility\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\utility\debug\EditorUI.h">
       <Filter>ソースファイル\myEngine\utility\debug</Filter>
     </ClInclude>
     <ClInclude Include="engine\utility\debug\GlobalVariables.h">
@@ -833,6 +845,12 @@
     <ClInclude Include="application\character\enemy\state\IEnemyState.h">
       <Filter>ソースファイル\application\Character\Enemy\state</Filter>
     </ClInclude>
+    <ClInclude Include="application\character\player\motion\PlayerMotionClip.h">
+      <Filter>ヘッダーファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="application\character\player\motion\PlayerComboMotion.h">
+      <Filter>ヘッダーファイル</Filter>
+    </ClInclude>
     <ClInclude Include="application\character\player\component\arm\PlayerArm.h">
       <Filter>ソースファイル\application\Character\Player\component\arm</Filter>
     </ClInclude>
@@ -912,7 +930,7 @@
     <ClInclude Include="engine\utility\scene\SceneManagerStates.h" />
     <ClInclude Include="engine\utility\scene\ISceneTransitionState.h" />
     <ClInclude Include="engine\utility\scene\SceneTransitionStates.h" />
-    <ClInclude Include="application\scene\debugScene\ParticleDebugScene.h" />
+    <ClInclude Include="application\scene\debugScene\DebugScene.h" />
     <ClInclude Include="application\character\enemy\state\EnemyStateTransformation.h" />
     <ClInclude Include="application\character\enemy\component\action\EnemyAttackCircle.h" />
   </ItemGroup>

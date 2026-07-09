@@ -95,6 +95,14 @@ void PlayerAttack::Update()
         }
     }
 
+    // --- バッファ入力がコンボ最終段の受付窓に達したらラッシュへ（毎フレーム判定） ---
+    //   受付窓での連鎖はバッファ方式なので、ラッシュ移行も入力フレームに依存せずここで解決する。
+    if (!player_->IsDodging() && !player_->IsHitReacting() &&
+        !player_->IsRushActive() && !player_->IsFinisherActive() &&
+        player_->ConsumeComboRush()) {
+        StartRushFromCombo();
+    }
+
     if (!Input::GetInstance()->TriggerKey(DIK_SPACE)) {
         return;
     }
@@ -106,60 +114,36 @@ void PlayerAttack::Update()
     if (player_->IsDodging()) {
         return;
     }
-
-    // --- ラッシュ優先 ---
-    if (!hitReacting && a[kLArm] && a[kLArm]->CanStartRush()) {
-        // -------------------------------------------------------
-        // 交互パンチを実現するため、左右の腕に半周期分のタイマーオフセットを与える。
-        //   右腕 timerOffset = 0               → interval の 0/2 位相
-        //   左腕 timerOffset = kRushInterval/2 → interval の 1/2 位相（半周期ずれ）
-        // オフセット値は右腕の PlayerArmRush から interval を取得して算出する。
-        // -------------------------------------------------------
-        const uint32_t rushInterval = a[kRArm] ? a[kRArm]->GetRushInterval() : kDefaultRushInterval_;
-        const uint32_t leftArmOffset = rushInterval / kAlternateOffsetDivisor_;
-
-        if (a[kRArm]) { a[kRArm]->StartRush(kRightArmTimerOffset_); }
-        if (a[kLArm]) { a[kLArm]->StartRush(leftArmOffset); }
-
-        // 残像腕にも StartRush（オフセットをさらにずらして残像感を出す）
-        const auto& extra = player_->GetExtraArms();
-        uint32_t extraOffset = rushInterval / 4;
-        if (extra[kRArm]) { extra[kRArm]->StartRush(kRightArmTimerOffset_ + extraOffset); }
-        if (extra[kLArm]) { extra[kLArm]->StartRush(leftArmOffset + extraOffset); }
-
+    // ラッシュ連打中・フィニッシャー中は新規コンボ入力を受け付けない
+    //   （ラッシュ/フィニッシャーの体回転・腕姿勢にコンボが介入しないように）
+    if (player_->IsRushActive() || player_->IsFinisherActive()) {
         return;
     }
 
-    // --- 左パンチコンボ ---
-    if ((isComboWindowOpen || comboProtected_) &&
-        a[kRArm] && a[kRArm]->GetLastAttackType() == PlayerArm::AttackType::kRightPunch) {
-        if (a[kLArm] && a[kLArm]->GetBehavior() == PlayerArm::Behavior::kNormal) {
-            a[kLArm]->StartAttack(PlayerArm::AttackType::kLeftPunch);
-            comboProtected_ = false;
-            comboProtectTimer_ = 0;
-        }
-        return;
-    }
+    // --- モーション駆動コンボ：入力をバッファするだけ（受付窓での連鎖／最終段のラッシュは
+    //   PlayerComboMotion::Update と上のラッシュ判定が解決する）。 ---
+    player_->TryComboAttack();
+}
 
-    if (hitReacting) {
-        return;
-    }
+// =============================================================
+//  コンボ最終段 → ラッシュ移行（受付窓に達したバッファ入力から呼ばれる）
+// =============================================================
+void PlayerAttack::StartRushFromCombo()
+{
+    const auto& a = *arms_;
 
-    // --- 右パンチ（初撃） ---
-    {
-        bool anyAttacking = false;
-        for (const auto& arm : *arms_) {
-            if (arm->GetBehavior() == PlayerArm::Behavior::kAttack ||
-                arm->GetBehavior() == PlayerArm::Behavior::kRush) {
-                anyAttacking = true;
-                break;
-            }
-        }
+    // 腕をクリップ制御から解放してから既存のラッシュを開始。
+    player_->StopComboMotion();
 
-        if (!anyAttacking && a[kRArm]) {
-            a[kRArm]->StartAttack(PlayerArm::AttackType::kRightPunch);
-        }
-    }
+    // 交互パンチのため左右の腕に半周期分のタイマーオフセットを与える
+    const uint32_t rushInterval = a[kRArm] ? a[kRArm]->GetRushInterval() : kDefaultRushInterval_;
+    const uint32_t leftArmOffset = rushInterval / kAlternateOffsetDivisor_;
+
+    if (a[kRArm]) { a[kRArm]->StartRush(kRightArmTimerOffset_); }
+    if (a[kLArm]) { a[kLArm]->StartRush(leftArmOffset); }
+
+    // トレール残像腕を開始（主腕より遅れた位置をなぞり、後ろほど薄く描画）
+    player_->StartRushTrails(rushInterval, kRightArmTimerOffset_, leftArmOffset);
 }
 
 // =============================================================

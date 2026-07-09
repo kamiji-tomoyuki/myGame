@@ -48,6 +48,7 @@ public:
 
 private:
     void ApplyVariables();
+    void StartRushFromCombo(); // コンボ最終段→ラッシュ移行（腕・トレール開始）
 
 private:
     Player* player_ = nullptr;

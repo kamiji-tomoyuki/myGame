@@ -5,6 +5,9 @@
 
 #include <LightGroup.h>
 #include <line/DrawLine3D.h>
+#ifdef _DEBUG
+#include "EditorUI.h"
+#endif // _DEBUG
 
 using namespace Engine;
 void GameScene::Initialize()
@@ -304,17 +307,21 @@ void GameScene::DrawForOffScreen()
 
 void GameScene::Debug()
 {
-	ImGui::Begin("GameScene:Debug");
+#ifdef _DEBUG
+	// 表示メニュー（EditorUI）から各パネルの表示/非表示を切り替え可能にする
+	EditorUI* editor = EditorUI::GetInstance();
 
-	debugCamera_->imgui();
-	LightGroup::GetInstance()->imgui();
-
-	ImGui::End();
-
-	stageWall_->imgui();
-	player_->ImGui();
-	enemy_->ImGui();
-	ground_->DebugTransform("ground");
+	if (editor->PanelVisible("カメラ / ライト", "シーン")) {
+		ImGui::Begin("GameScene:Debug");
+		debugCamera_->imgui();
+		LightGroup::GetInstance()->imgui();
+		ImGui::End();
+	}
+	if (editor->PanelVisible("ステージ壁", "パーティクル")) { stageWall_->imgui(); }
+	if (editor->PanelVisible("プレイヤー", "キャラクター")) { player_->ImGui(); }
+	if (editor->PanelVisible("敵", "キャラクター")) { enemy_->ImGui(); }
+	if (editor->PanelVisible("地面", "シーン")) { ground_->DebugTransform("ground"); }
+#endif // _DEBUG
 }
 
 void GameScene::CameraUpdate()

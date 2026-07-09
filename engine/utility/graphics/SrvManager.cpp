@@ -92,6 +92,21 @@ void SrvManager::CreateSRVforRenderTexture(uint32_t srvIndex, ID3D12Resource *pR
     dxCommon->GetDevice()->CreateShaderResourceView(pResource, &renderTextureSrvDesc, GetCPUDescriptorHandle(srvIndex));
 }
 
+void SrvManager::CreateSRVforRenderTextureOpaque(uint32_t srvIndex, ID3D12Resource *pResource) {
+    D3D12_SHADER_RESOURCE_VIEW_DESC renderTextureSrvDesc{};
+    renderTextureSrvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    // RGB はメモリから、A は 1 に固定（ImGui 表示でRTのアルファにより暗くなるのを防ぐ）
+    renderTextureSrvDesc.Shader4ComponentMapping = D3D12_ENCODE_SHADER_4_COMPONENT_MAPPING(
+        D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_0,
+        D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_1,
+        D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_2,
+        D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_1);
+    renderTextureSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    renderTextureSrvDesc.Texture2D.MipLevels = 1;
+
+    dxCommon->GetDevice()->CreateShaderResourceView(pResource, &renderTextureSrvDesc, GetCPUDescriptorHandle(srvIndex));
+}
+
 void SrvManager::CreateSRVforDepth(uint32_t srvIndex, ID3D12Resource *pResource) {
     D3D12_SHADER_RESOURCE_VIEW_DESC depthTextureSrvDesc{};
     // DXGI_FORMAT_D24_UNORM_S8_UINTのDepthを読むときはDZGI_FORMAT_R24_UNORM_X8_TYPELESS
@@ -124,6 +139,15 @@ uint32_t SrvManager::Allocate() {
 void SrvManager::Free(uint32_t srvIndex) {
     // 解放するインデックスを空きリストに追加
     freeIndices.push(srvIndex);
+}
+
+void SrvManager::FreeByCPUHandle(D3D12_CPU_DESCRIPTOR_HANDLE handle) {
+    const SIZE_T start = descriptorHeap->GetCPUDescriptorHandleForHeapStart().ptr;
+    if (handle.ptr < start || descriptorSize == 0) {
+        return;
+    }
+    const uint32_t index = static_cast<uint32_t>((handle.ptr - start) / descriptorSize);
+    Free(index);
 }
 
 // SRVの最大数チェック
