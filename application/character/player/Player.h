@@ -111,6 +111,8 @@ public:
 	bool IsFinisherActive()    const { return finisherMotion_ && finisherMotion_->IsActive(); }
 	bool IsAnyMotionActive()   const { return IsComboMotionActive() || IsFinisherActive(); }
 	PlayerComboMotion::Result TryComboAttack() { return comboMotion_ ? comboMotion_->TryAdvance() : PlayerComboMotion::Result::kNone; }
+	// バッファ入力がコンボ最終段の受付窓に達したラッシュ要求を取り出す（true=ラッシュ開始）
+	bool ConsumeComboRush() { return comboMotion_ && comboMotion_->ConsumePendingRush(); }
 	void StopComboMotion() { if (comboMotion_) { comboMotion_->Stop(); } }
 
 	// コンボ/フィニッシャー中の体ひねりを facing に加算/除去する（ロックオンへ二重に効かないよう対で呼ぶ）。
@@ -237,6 +239,7 @@ private:
 	Vector3  kRightArmTranslation_ = { 1.7f, 0.0f, 1.3f };  // 右腕 初期位置
 	Vector3  kLeftArmTranslation_ = { -1.7f, 0.0f, 1.3f };  // 左腕 初期位置
 	Vector3  kArmScale_ = { 0.8f, 0.8f, 0.8f };  // 腕スケール
+	float    kMotionHitRange_ = 7.0f;  // コンボ/フィニッシャーの距離ヒット半径（水平・GlobalVariablesで調整可）
 
 	// ラッシュ残像（トレール）調整値
 	int   kTrailCount_ = 3;        // 片側あたりの残像本数（0..kMaxTrail_）

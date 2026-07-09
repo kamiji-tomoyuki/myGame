@@ -163,6 +163,7 @@ void PlayerComboMotion::StartClip(int index) {
 	blendTimer_ = 0.0f;
 	queuedNext_ = false;
 	hasHitThisClip_ = false;
+	bufferedInput_ = false; // 新クリップ開始時にバッファは持ち越さない
 }
 
 void PlayerComboMotion::StartFromBeginning() {
@@ -178,6 +179,8 @@ void PlayerComboMotion::Stop() {
 	blendTimer_ = 0.0f;
 	queuedNext_ = false;
 	hasHitThisClip_ = false;
+	bufferedInput_ = false;
+	pendingRush_ = false;
 }
 
 // 次に再生すべきクリップ。無ければ -1。
@@ -238,15 +241,12 @@ PlayerComboMotion::Result PlayerComboMotion::TryAdvance() {
 		return Result::kAttacked;
 	}
 
-	// クリップ再生中のみ受付。コンボ受付ウィンドウが開いているか
-	if (phase_ == Phase::kClip &&
-		clips_[index_].IsComboWindowOpen(time_)) {
-		if (index_ + 1 < static_cast<int>(clips_.size())) {
-			queuedNext_ = true;
-			return Result::kAttacked;
-		}
-		// 最終段で受付中の入力 → ラッシュへ
-		return Result::kRush;
+	// クリップ再生中／ブレンド中の入力はバッファする（受付窓より前でも捨てない）。
+	//   実際の連鎖／ラッシュ移行は Update() が「受付窓(comboWindowStart)に達した瞬間」に解決する。
+	//   → モーション中のどこで押しても確実に繋がり、受付窓が連鎖(キャンセル)開始点として効く。
+	if (phase_ == Phase::kClip || phase_ == Phase::kBlend) {
+		bufferedInput_ = true;
+		return Result::kAttacked;
 	}
 	return Result::kNone;
 }
@@ -255,10 +255,23 @@ void PlayerComboMotion::Update(float dt) {
 	if (phase_ == Phase::kClip) {
 		time_ += dt;
 		const float duration = clips_[index_].GetDuration();
+
+		// バッファ済み入力が受付窓に達したら、クリップ終端を待たずに解決する。
+		//   非最終段 → 次段へキャンセル連鎖。最終段 → ラッシュ要求（呼び出し側が消費）。
+		//   comboWindowStart=1.0 でも窓は終端(time>=duration)で開くため、押していれば必ず繋がる。
+		if (bufferedInput_ && clips_[index_].IsComboWindowOpen(time_)) {
+			bufferedInput_ = false;
+			if (index_ + 1 < static_cast<int>(clips_.size())) {
+				BeginBlend(index_ + 1);
+				return;
+			}
+			pendingRush_ = true; // 最終段：ラッシュへ（クリップは最後まで再生、開始は呼び出し側）
+		}
+
 		if (time_ >= duration) {
 			const int next = ResolveNextIndex();
 			if (next >= 0) {
-				BeginBlend(next);   // 次クリップへ繋ぐ
+				BeginBlend(next);   // 次クリップへ繋ぐ（オート再生時）
 			} else {
 				BeginReturn();      // 繋がない → 基準姿勢へ補間して戻す
 			}

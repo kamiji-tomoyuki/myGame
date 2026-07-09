@@ -304,7 +304,7 @@ void DebugScene::AppendClipToCombo() {
 // combo.json のコンボを連続再生（クリップ間はブレンド補間、任意でループ）
 void DebugScene::StartComboPreview() {
     comboPreview_ = std::make_unique<PlayerComboMotion>();
-    comboPreview_->SetAutoAdvance(true);
+    comboPreview_->SetAutoAdvance(comboAutoAdvance_); // オフなら手動入力（受付時間テスト）
     comboPreview_->SetLoop(comboLoop_);
     comboPreview_->Init();                     // combo.json ＋ クリップを読み込み
     comboPreview_->SetBlendTime(comboBlendTime_); // UI の補間時間を優先反映
@@ -681,12 +681,26 @@ void DebugScene::DrawMotionUI() {
         if (ImGui::Checkbox("ループ##combo", &comboLoop_)) {
             if (comboPreview_) { comboPreview_->SetLoop(comboLoop_); }
         }
+        // オートで連鎖 / 手動入力（受付時間の効果を確認するには手動にする）
+        if (ImGui::Checkbox("オートで連鎖", &comboAutoAdvance_)) {
+            if (comboPreview_) { comboPreview_->SetAutoAdvance(comboAutoAdvance_); }
+        }
+        ImGui::SameLine(); ImGui::TextDisabled("(?)");
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("オフ: クリップ再生中に『コンボ入力』を押した時、\n各クリップの『コンボ受付開始(秒)』以降でのみ次段へ連鎖します。\n受付時間より前に押しても繋がりません＝受付時間の効果を確認できます。");
+        }
         if (ImGui::Button("コンボを再生")) { StartComboPreview(); }
         ImGui::SameLine();
         if (ImGui::Button("停止")) { comboPlaying_ = false; }
+        // 手動コンボ入力（ゲームの攻撃ボタン相当）。受付窓内なら次段へ、最終段なら"ラッシュ"扱い。
+        if (ImGui::Button("コンボ入力(次段へ)")) {
+            if (comboPreview_ && comboPlaying_) { comboPreview_->TryAdvance(); }
+        }
         if (ImGui::Button("補間時間を保存 (combo_list.json)")) { WriteComboJson(ReadComboClips()); }
-        if (comboPlaying_) { ImGui::TextDisabled("コンボ再生中… 段=%d/%d",
-            (comboPreview_ ? 1 : 0), (comboPreview_ ? comboPreview_->GetClipCount() : 0)); }
+        if (comboPlaying_ && comboPreview_) {
+            ImGui::TextDisabled("コンボ再生中… 段=%d/%d",
+                comboPreview_->GetCurrentIndex() + 1, comboPreview_->GetClipCount());
+        }
     }
 
     // ---- パート姿勢編集 ----
@@ -758,11 +772,17 @@ void DebugScene::DrawMotionUI() {
     }
 
     // ---- 戦闘メタ ----
+    // ヒット窓・コンボ受付開始は内部では正規化[0,1]だが、UIでは「秒」で編集する。
+    // スライダ最大値＝そのモーションの長さ(duration)なので、実時間で直感的に指定できる。
     if (ImGui::CollapsingHeader("戦闘設定")) {
-        float hitStart = clip_.GetHitStart();
-        float hitEnd = clip_.GetHitEnd();
-        if (ImGui::SliderFloat("ヒット開始", &hitStart, 0.0f, 1.0f)) { clip_.SetHitStart(hitStart); }
-        if (ImGui::SliderFloat("ヒット終了", &hitEnd, 0.0f, 1.0f)) { clip_.SetHitEnd(hitEnd); }
+        const float dur = clip_.GetDuration();
+        auto toSec   = [&](float n) { return n * dur; };
+        auto toNorm  = [&](float s) { return dur > 0.0f ? (s / dur) : 0.0f; };
+
+        float hitStartSec = toSec(clip_.GetHitStart());
+        float hitEndSec   = toSec(clip_.GetHitEnd());
+        if (ImGui::SliderFloat("ヒット開始(秒)", &hitStartSec, 0.0f, dur, "%.3f")) { clip_.SetHitStart(toNorm(hitStartSec)); }
+        if (ImGui::SliderFloat("ヒット終了(秒)", &hitEndSec, 0.0f, dur, "%.3f")) { clip_.SetHitEnd(toNorm(hitEndSec)); }
 
         int hitArm = static_cast<int>(clip_.GetHitArm());
         const char* arms[] = { "右腕", "左腕", "両方" };
@@ -773,8 +793,8 @@ void DebugScene::DrawMotionUI() {
         if (ImGui::InputInt("ダメージ", &damage)) {
             clip_.SetDamage(static_cast<uint32_t>(damage < 0 ? 0 : damage));
         }
-        float cw = clip_.GetComboWindowStart();
-        if (ImGui::SliderFloat("コンボ受付開始", &cw, 0.0f, 1.0f)) { clip_.SetComboWindowStart(cw); }
+        float cwSec = toSec(clip_.GetComboWindowStart());
+        if (ImGui::SliderFloat("コンボ受付開始(秒)", &cwSec, 0.0f, dur, "%.3f")) { clip_.SetComboWindowStart(toNorm(cwSec)); }
     }
 
     ImGui::End();

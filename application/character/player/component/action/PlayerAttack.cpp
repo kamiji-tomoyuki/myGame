@@ -95,6 +95,14 @@ void PlayerAttack::Update()
         }
     }
 
+    // --- バッファ入力がコンボ最終段の受付窓に達したらラッシュへ（毎フレーム判定） ---
+    //   受付窓での連鎖はバッファ方式なので、ラッシュ移行も入力フレームに依存せずここで解決する。
+    if (!player_->IsDodging() && !player_->IsHitReacting() &&
+        !player_->IsRushActive() && !player_->IsFinisherActive() &&
+        player_->ConsumeComboRush()) {
+        StartRushFromCombo();
+    }
+
     if (!Input::GetInstance()->TriggerKey(DIK_SPACE)) {
         return;
     }
@@ -112,24 +120,30 @@ void PlayerAttack::Update()
         return;
     }
 
-    // --- モーション駆動コンボ（右/左パンチをエディタ作成クリップの再生に置換） ---
-    //   コンボが完走した状態での入力はラッシュへ移行する。
-    PlayerComboMotion::Result result = player_->TryComboAttack();
+    // --- モーション駆動コンボ：入力をバッファするだけ（受付窓での連鎖／最終段のラッシュは
+    //   PlayerComboMotion::Update と上のラッシュ判定が解決する）。 ---
+    player_->TryComboAttack();
+}
 
-    if (result == PlayerComboMotion::Result::kRush && !hitReacting) {
-        // コンボからラッシュへ。腕をクリップ制御から解放してから既存のラッシュを開始。
-        player_->StopComboMotion();
+// =============================================================
+//  コンボ最終段 → ラッシュ移行（受付窓に達したバッファ入力から呼ばれる）
+// =============================================================
+void PlayerAttack::StartRushFromCombo()
+{
+    const auto& a = *arms_;
 
-        // 交互パンチのため左右の腕に半周期分のタイマーオフセットを与える
-        const uint32_t rushInterval = a[kRArm] ? a[kRArm]->GetRushInterval() : kDefaultRushInterval_;
-        const uint32_t leftArmOffset = rushInterval / kAlternateOffsetDivisor_;
+    // 腕をクリップ制御から解放してから既存のラッシュを開始。
+    player_->StopComboMotion();
 
-        if (a[kRArm]) { a[kRArm]->StartRush(kRightArmTimerOffset_); }
-        if (a[kLArm]) { a[kLArm]->StartRush(leftArmOffset); }
+    // 交互パンチのため左右の腕に半周期分のタイマーオフセットを与える
+    const uint32_t rushInterval = a[kRArm] ? a[kRArm]->GetRushInterval() : kDefaultRushInterval_;
+    const uint32_t leftArmOffset = rushInterval / kAlternateOffsetDivisor_;
 
-        // トレール残像腕を開始（主腕より遅れた位置をなぞり、後ろほど薄く描画）
-        player_->StartRushTrails(rushInterval, kRightArmTimerOffset_, leftArmOffset);
-    }
+    if (a[kRArm]) { a[kRArm]->StartRush(kRightArmTimerOffset_); }
+    if (a[kLArm]) { a[kLArm]->StartRush(leftArmOffset); }
+
+    // トレール残像腕を開始（主腕より遅れた位置をなぞり、後ろほど薄く描画）
+    player_->StartRushTrails(rushInterval, kRightArmTimerOffset_, leftArmOffset);
 }
 
 // =============================================================

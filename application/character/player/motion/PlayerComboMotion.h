@@ -43,6 +43,8 @@ public:
 	void StartFromBeginning();
 
 	bool IsActive() const { return phase_ != Phase::kIdle; }
+	// 最終段まで繋いだバッファ入力によるラッシュ要求を取り出す（true=呼び出し側がラッシュ開始）
+	bool ConsumePendingRush() { const bool r = pendingRush_; pendingRush_ = false; return r; }
 
 	// 現在時刻の各パート姿勢
 	PartPose GetBodyPose() const;
@@ -56,6 +58,7 @@ public:
 	void     MarkHit() { hasHitThisClip_ = true; }
 
 	int GetClipCount() const { return static_cast<int>(clips_.size()); }
+	int GetCurrentIndex() const { return index_; } // 再生中クリップの段（エディタ表示用）
 
 	// --- 設定 ---
 	void  SetBlendTime(float t) { blendTime_ = (t < 0.0f) ? 0.0f : t; }
@@ -91,6 +94,11 @@ private:
 
 	bool  queuedNext_ = false;
 	bool  hasHitThisClip_ = false;
+	// 攻撃入力バッファ：受付窓(comboWindowStart)より前に押しても捨てずに保持し、
+	// 窓に達した瞬間に「次段へキャンセル連鎖」／「最終段→ラッシュ要求」を解決する。
+	// → フレーム完全一致や押しっぱなしを要求せず、モーション中に押せば確実に繋がる。
+	bool  bufferedInput_ = false;
+	bool  pendingRush_ = false; // 最終段でバッファ入力が窓に達したラッシュ要求（呼び出し側が消費）
 
 	float blendTime_ = 0.1f;   // クリップ間の補間時間（秒）
 	bool  autoAdvance_ = false;

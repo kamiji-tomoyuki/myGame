@@ -105,6 +105,9 @@ private:
     std::unique_ptr<PlayerComboMotion> comboPreview_;
     bool  comboPlaying_ = false;
     bool  comboLoop_ = true;
+    // オートで連鎖するか。オフにすると「コンボ入力」ボタンで手動連鎖し、
+    // 各クリップの「コンボ受付開始」以降でのみ次段へ繋がる＝受付時間の効果を確認できる。
+    bool  comboAutoAdvance_ = false;
     float comboBlendTime_ = 0.1f; // クリップ間の補間時間（秒）
 
     // --- ラッシュプレビュー ---

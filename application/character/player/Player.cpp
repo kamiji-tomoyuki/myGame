@@ -40,6 +40,7 @@ void Player::Init()
 	variables_->AddItem(kGroupName_, "Right Arm Translation", kRightArmTranslation_);
 	variables_->AddItem(kGroupName_, "Left Arm Translation", kLeftArmTranslation_);
 	variables_->AddItem(kGroupName_, "Arm Scale", kArmScale_);
+	variables_->AddItem(kGroupName_, "Motion Hit Range", kMotionHitRange_);
 
 	// ラッシュ残像（トレール）調整値
 	if (!variables_->GroupExists(kTrailGroupName_)) {
@@ -306,11 +307,12 @@ void Player::ApplyMotionArmsAndHit(PlayerComboMotion* motion)
 		arms_[kLArm]->SetScale(kArmScale_);
 	}
 
-	// ヒット判定：ヒット窓中に近距離の敵へ1クリップ1回だけダメージ
-	constexpr float kMotionHitRange = 4.0f;
+	// ヒット判定：ヒット窓中に近距離の敵へ1クリップ1回だけダメージ。
+	//   水平距離（XZ平面）で判定＝高さ差では外れない。半径は GlobalVariables "Motion Hit Range" で調整可。
 	if (motion->IsHitActive() && enemy_) {
 		Vector3 diff = enemy_->GetCenterPosition() - GetCenterPosition();
-		if (diff.Length() < kMotionHitRange) {
+		diff.y = 0.0f; // 高さ差は無視して当てやすくする
+		if (diff.Length() < kMotionHitRange_) {
 			enemy_->TakeDamage(motion->GetDamage());
 			if (attack_) {
 				PlayerUltGauge::HitType type = (motion->GetHitArm() == HitArm::kLeft)
@@ -572,6 +574,8 @@ void Player::ApplyVariables()
 	kRightArmTranslation_ = variables_->GetVector3Value(kGroupName_, "Right Arm Translation");
 	kLeftArmTranslation_ = variables_->GetVector3Value(kGroupName_, "Left Arm Translation");
 	kArmScale_ = variables_->GetVector3Value(kGroupName_, "Arm Scale");
+	kMotionHitRange_ = variables_->GetFloatValue(kGroupName_, "Motion Hit Range");
+	if (kMotionHitRange_ < 0.1f) { kMotionHitRange_ = 0.1f; }
 
 	// ラッシュ残像調整値
 	kTrailCount_ = variables_->GetIntValue(kTrailGroupName_, "Trail Count");
