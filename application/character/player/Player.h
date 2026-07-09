@@ -127,6 +127,9 @@ public:
 
 	void ApplyDamage(uint32_t damage, const Vector3& hitPosition);
 	void ApplyDamageDirect(uint32_t damage, const Vector3& hitPosition);
+	// 敵の「連続被弾ノックバック」を受ける：ダメージ無しで被弾リアクション（行動中断）だけ発生させる。
+	// 位置の押し出しは敵側(EnemyHitReaction)が毎フレーム行う。
+	void ReceiveComboRepel(const Vector3& fromPos);
 	void StartRangedCooldown() { if (hitReaction_) { hitReaction_->StartRangedCooldown(); } }
 
 	// =============================================================

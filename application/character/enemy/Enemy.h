@@ -3,6 +3,7 @@
 #include "WorldTransform.h"
 #include "ViewProjection.h"
 #include "GlobalVariables.h"
+#include "ObjColor.h"
 #include <Sprite.h>
 #include <ParticleEmitter.h>
 
@@ -122,6 +123,7 @@ private:
 
 	// --- モデル ---
 	std::unique_ptr<Object3d> obj3d_;
+	ObjColor                  flashColor_; // 被弾時の赤フラッシュ用カラー
 
 	// --- 攻撃管理 ---
 	std::unique_ptr<EnemyAttackManager> attackManager_;

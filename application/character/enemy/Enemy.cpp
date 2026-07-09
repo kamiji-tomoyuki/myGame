@@ -51,6 +51,7 @@ void Enemy::Init()
 	// --- モデル ---
 	obj3d_ = std::make_unique<Object3d>();
 	obj3d_->Initialize("Enemy/enemyBody.obj");
+	flashColor_.Initialize(); // 被弾フラッシュ用カラーの定数バッファ生成
 	obj3d_->SetSize({ size, size, size });
 	obj3d_->SetRotation(kModelInitialRotation_);
 	BaseObject::SetRotation(obj3d_->GetRotation());
@@ -128,7 +129,7 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 	// デバッグ一時停止中は状態・移動・攻撃の更新をスキップ
 	if (!isPaused_)
 	{
-		hitReaction_->UpdateWobble();
+		hitReaction_->UpdateFlash();
 
 		// 現在の状態を更新し、次状態が返ってきたら遷移する
 		if (currentState_) {
@@ -277,33 +278,12 @@ void Enemy::HandleCollisionWithPlayer(Player* player)
 // =============================================================
 void Enemy::Draw(const ViewProjection& viewProjection)
 {
-	if (hitReaction_->IsWobbling()) {
-		// 行列計算ではなく、SRTを一時的に変更して Object3d::Draw に渡す
-		// Object3d::Update が内部で SRT から行列を再計算するため
-		Vector3 originalPos = transform_.translation_;
-		Vector3 originalRot = transform_.rotation_;
-
-		Vector3 wobbleRot = hitReaction_->GetWobbleRotation();
-		float halfHeight = kColliderSize_ * 0.5f;
-		
-		// 足元を支点とした回転後の座標を計算
-		Vector3 footPos = originalPos;
-		footPos.y -= halfHeight;
-
-		Matrix4x4 matRotate = MakeRotateXYZMatrix(wobbleRot);
-		Vector3 localOffset = { 0.0f, halfHeight, 0.0f };
-		Vector3 rotatedOffset = Transformation(localOffset, matRotate);
-
-		transform_.translation_ = footPos + rotatedOffset;
-		transform_.rotation_ = originalRot + wobbleRot;
-		transform_.UpdateMatrix();
-
-		obj3d_->Draw(transform_, viewProjection);
-
-		// 元に戻す
-		transform_.translation_ = originalPos;
-		transform_.rotation_ = originalRot;
-		transform_.UpdateMatrix();
+	if (hitReaction_->IsFlashing()) {
+		// 被弾時：揺らさず、モデルを一瞬赤くする。
+		// 乗算カラーなので赤を過剰駆動(>1)して暗赤にならないようにし、緑青を落として赤くする。
+		float i = hitReaction_->GetFlashIntensity();
+		flashColor_.SetColor({ 1.0f + 1.8f * i, 1.0f - 0.85f * i, 1.0f - 0.85f * i, 1.0f });
+		obj3d_->Draw(transform_, viewProjection, &flashColor_);
 	}
 	else {
 		obj3d_->Draw(transform_, viewProjection);
