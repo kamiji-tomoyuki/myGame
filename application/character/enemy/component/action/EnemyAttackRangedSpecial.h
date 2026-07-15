@@ -83,22 +83,25 @@ private:
 	static const std::string kGroupName_;
 
 	// -------------------------------------------------------
-	// 調整可能パラメータ
+	// 調整可能パラメータ（GlobalVariables から ApplyVariables で上書きされる）
 	// -------------------------------------------------------
-	uint32_t kPrepTime_ = 45;		// 詠唱時間
-	uint32_t kJumpTime_ = 15;		// ジャンプ上昇時間
-	uint32_t kLaunchDuration_ = 180; // 発射にかける時間 (さらに長く、バラバラに)
-	uint32_t kRecoveryTime_ = 40;	// 発射後硬直
-	uint32_t kSpawnTime_ = 20;		// 出現演出にかかる時間
-	float kJumpPower_ = 0.4f;		// ジャンプ力
-	float kGravity_ = 0.04f;		// ジャンプ中の重力
-	
-	float kSpikeSpeed_ = 0.35f;		// トゲの弾速
-	float kHomingStrength_ = 0.015f; // ホーミングの強さ (吸い付きを弱く)
-	uint32_t kSpikeLifeTime_ = 180; // 消滅までの時間
-	uint32_t kSpikeCount_ = 10;		// トゲの数 (さらに増やす)
-	int32_t kDamage_ = 8;			// ダメージ (さらに複数ヒット前提で調整)
-	
-	float kLookDownAngle_ = 0.3f;	// 予備動作時の下向き角度
-	float kShakeAmount_ = 0.18f;	// シェイク幅 (大幅に強化)
+	uint32_t prepTime_ = 45;		// 詠唱時間
+	uint32_t launchDuration_ = 180; // 発射にかける時間 (さらに長く、バラバラに)
+	uint32_t recoveryTime_ = 40;	// 発射後硬直
+
+	float spikeSpeed_ = 0.35f;		// トゲの弾速
+	float homingStrength_ = 0.015f; // ホーミングの強さ (吸い付きを弱く)
+	uint32_t spikeLifeTime_ = 180; // 消滅までの時間
+	uint32_t spikeCount_ = 10;		// トゲの数 (さらに増やす)
+	int32_t damage_ = 8;			// ダメージ (さらに複数ヒット前提で調整)
+
+	// -------------------------------------------------------
+	// 固定パラメータ（GlobalVariables には登録していない）
+	// -------------------------------------------------------
+	static constexpr uint32_t kJumpTime = 15;		// ジャンプ上昇時間
+	static constexpr uint32_t kSpawnTime = 20;		// 出現演出にかかる時間
+	static constexpr float kJumpPower = 0.4f;		// ジャンプ力
+	static constexpr float kGravity = 0.04f;		// ジャンプ中の重力
+	static constexpr float kLookDownAngle = 0.3f;	// 予備動作時の下向き角度
+	static constexpr float kShakeAmount = 0.18f;	// シェイク幅 (大幅に強化)
 };

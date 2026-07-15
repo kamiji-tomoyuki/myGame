@@ -199,16 +199,13 @@ private:
 	// ===========================================================
 	std::unique_ptr<IPlayerState> currentState_;
 
-	// HP
-	uint32_t kMaxHP_ = 1000;
-	uint32_t HP_ = kMaxHP_;
+	// HP（maxHP_ は GlobalVariables から ApplyVariables で上書きされる）
+	uint32_t maxHP_ = 1000;
+	uint32_t HP_ = maxHP_;
 
-	// HPバー
+	// HPバー（位置・サイズは UILayout を参照）
 	std::unique_ptr<Sprite> hpBarBg_;
 	std::unique_ptr<Sprite> hpBar_;
-	static constexpr float kHpBarFullWidth_ = 350.0f;
-	static constexpr float kHpBarHeight_ = 40.0f;
-	static constexpr float kHpBarBgPadding_ = 4.0f;
 	Vector3 hpColor_ = { 0.0f, 1.0f, 0.0f };
 
 	// 攻撃関連（グローバルコンボ）
@@ -245,15 +242,14 @@ private:
 	static const std::string kTrailGroupName_;
 
 	// GlobalVariables で調整可能な変数
-	uint32_t kMaxHP_Adjustable_ = 1000;       // 最大HP
-	Vector3  kRightArmTranslation_ = { 1.7f, 0.0f, 1.3f };  // 右腕 初期位置
-	Vector3  kLeftArmTranslation_ = { -1.7f, 0.0f, 1.3f };  // 左腕 初期位置
-	Vector3  kArmScale_ = { 0.8f, 0.8f, 0.8f };  // 腕スケール
-	float    kMotionHitRange_ = 7.0f;  // コンボ/フィニッシャーの距離ヒット半径（水平・GlobalVariablesで調整可）
+	Vector3  rightArmTranslation_ = { 1.7f, 0.0f, 1.3f };  // 右腕 初期位置
+	Vector3  leftArmTranslation_ = { -1.7f, 0.0f, 1.3f };  // 左腕 初期位置
+	Vector3  armScale_ = { 0.8f, 0.8f, 0.8f };  // 腕スケール
+	float    motionHitRange_ = 7.0f;  // コンボ/フィニッシャーの距離ヒット半径（水平・GlobalVariablesで調整可）
 
 	// ラッシュ残像（トレール）調整値
-	int   kTrailCount_ = 3;        // 片側あたりの残像本数（0..kMaxTrail_）
-	float kTrailMaxAlpha_ = 0.5f;  // 先頭残像のアルファ
-	float kTrailFalloff_ = 0.6f;   // 後続残像ほどアルファを掛け減衰
-	int   kTrailOffsetStep_ = 2;   // 残像ごとのラッシュタイマーオフセット差（フレーム）
+	int   trailCount_ = 3;        // 片側あたりの残像本数（0..kMaxTrail_）
+	float trailMaxAlpha_ = 0.5f;  // 先頭残像のアルファ
+	float trailFalloff_ = 0.6f;   // 後続残像ほどアルファを掛け減衰
+	int   trailOffsetStep_ = 2;   // 残像ごとのラッシュタイマーオフセット差（フレーム）
 };

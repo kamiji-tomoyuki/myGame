@@ -24,11 +24,11 @@ void PlayerUltGauge::Init()
 
     // AddItem は「存在しないキーのみ」デフォルト値で登録する。
     // すでに JSON に値がある場合はそちらが有効になる。
-    variables_->AddItem(kGroupName_, "Max Gauge", kMaxGauge_);
-    variables_->AddItem(kGroupName_, "Gain RightPunch", kGainRightPunch_);
-    variables_->AddItem(kGroupName_, "Gain LeftPunch", kGainLeftPunch_);
-    variables_->AddItem(kGroupName_, "Gain Rush", kGainRush_);
-    variables_->AddItem(kGroupName_, "Gain Finisher", kGainFinisher_);
+    variables_->AddItem(kGroupName_, "Max Gauge", maxGauge_);
+    variables_->AddItem(kGroupName_, "Gain RightPunch", gainRightPunch_);
+    variables_->AddItem(kGroupName_, "Gain LeftPunch", gainLeftPunch_);
+    variables_->AddItem(kGroupName_, "Gain Rush", gainRush_);
+    variables_->AddItem(kGroupName_, "Gain Finisher", gainFinisher_);
 
     // AddItem 後に必ず読み込んでメンバ変数へ反映する
     ApplyVariables();
@@ -55,12 +55,12 @@ void PlayerUltGauge::AddGauge(HitType type)
 {
     float gain = 0.0f;
     switch (type) {
-    case HitType::kRightPunch: gain = kGainRightPunch_; break;
-    case HitType::kLeftPunch:  gain = kGainLeftPunch_;  break;
-    case HitType::kRush:       gain = kGainRush_;       break;
-    case HitType::kFinisher:   gain = kGainFinisher_;   break;
+    case HitType::kRightPunch: gain = gainRightPunch_; break;
+    case HitType::kLeftPunch:  gain = gainLeftPunch_;  break;
+    case HitType::kRush:       gain = gainRush_;       break;
+    case HitType::kFinisher:   gain = gainFinisher_;   break;
     }
-    gauge_ = std::clamp(gauge_ + gain, 0.0f, kMaxGauge_);
+    gauge_ = std::clamp(gauge_ + gain, 0.0f, maxGauge_);
 }
 
 // =============================================================
@@ -68,7 +68,7 @@ void PlayerUltGauge::AddGauge(HitType type)
 // =============================================================
 void PlayerUltGauge::AddGaugeRaw(float amount)
 {
-    gauge_ = std::clamp(gauge_ + amount, 0.0f, kMaxGauge_);
+    gauge_ = std::clamp(gauge_ + amount, 0.0f, maxGauge_);
 }
 
 // =============================================================
@@ -84,8 +84,8 @@ void PlayerUltGauge::ConsumeGauge()
 // =============================================================
 float PlayerUltGauge::GetGaugeRatio() const
 {
-    if (kMaxGauge_ <= 0.0f) { return 0.0f; }
-    return std::clamp(gauge_ / kMaxGauge_, 0.0f, 1.0f);
+    if (maxGauge_ <= 0.0f) { return 0.0f; }
+    return std::clamp(gauge_ / maxGauge_, 0.0f, 1.0f);
 }
 
 // =============================================================
@@ -93,7 +93,7 @@ float PlayerUltGauge::GetGaugeRatio() const
 // =============================================================
 bool PlayerUltGauge::IsReady() const
 {
-    return (kMaxGauge_ > 0.0f) && (gauge_ >= kMaxGauge_);
+    return (maxGauge_ > 0.0f) && (gauge_ >= maxGauge_);
 }
 
 // =============================================================
@@ -104,7 +104,7 @@ void PlayerUltGauge::ImGui()
 #ifdef _DEBUG
     ImGui::Begin("PlayerUltGauge");
 
-    ImGui::Text("Gauge : %.1f / %.1f", gauge_, kMaxGauge_);
+    ImGui::Text("Gauge : %.1f / %.1f", gauge_, maxGauge_);
     ImGui::ProgressBar(GetGaugeRatio(), ImVec2(-1.0f, 24.0f));
 
     if (IsReady()) {
@@ -116,7 +116,7 @@ void PlayerUltGauge::ImGui()
     // AddGaugeRaw で固定値を加算（JSON の Gain 値に依存しない）
     if (ImGui::Button("+10")) { AddGaugeRaw(10.0f); }
     ImGui::SameLine();
-    if (ImGui::Button("Fill")) { AddGaugeRaw(kMaxGauge_); }
+    if (ImGui::Button("Fill")) { AddGaugeRaw(maxGauge_); }
     ImGui::SameLine();
     if (ImGui::Button("Reset")) { ConsumeGauge(); }
 
@@ -131,18 +131,18 @@ void PlayerUltGauge::ApplyVariables()
 {
     float newMax = variables_->GetFloatValue(kGroupName_, "Max Gauge");
 
-    // kMaxGauge_ が縮小した場合は gauge_ もクランプして整合性を保つ
-    if (newMax > 0.0f && newMax != kMaxGauge_) {
-        kMaxGauge_ = newMax;
-        gauge_ = std::clamp(gauge_, 0.0f, kMaxGauge_);
+    // maxGauge_ が縮小した場合は gauge_ もクランプして整合性を保つ
+    if (newMax > 0.0f && newMax != maxGauge_) {
+        maxGauge_ = newMax;
+        gauge_ = std::clamp(gauge_, 0.0f, maxGauge_);
     }
     else if (newMax > 0.0f) {
-        kMaxGauge_ = newMax;
+        maxGauge_ = newMax;
     }
     // newMax <= 0 の場合は前回値を維持（JSON 破損対策）
 
-    kGainRightPunch_ = variables_->GetFloatValue(kGroupName_, "Gain RightPunch");
-    kGainLeftPunch_ = variables_->GetFloatValue(kGroupName_, "Gain LeftPunch");
-    kGainRush_ = variables_->GetFloatValue(kGroupName_, "Gain Rush");
-    kGainFinisher_ = variables_->GetFloatValue(kGroupName_, "Gain Finisher");
+    gainRightPunch_ = variables_->GetFloatValue(kGroupName_, "Gain RightPunch");
+    gainLeftPunch_ = variables_->GetFloatValue(kGroupName_, "Gain LeftPunch");
+    gainRush_ = variables_->GetFloatValue(kGroupName_, "Gain Rush");
+    gainFinisher_ = variables_->GetFloatValue(kGroupName_, "Gain Finisher");
 }

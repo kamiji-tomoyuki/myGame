@@ -18,7 +18,7 @@ PlayerAttack::PlayerAttack(Player* player,
         variables_->CreateGroup(kGroupName_);
     }
 
-    variables_->AddItem(kGroupName_, "Combo Protect Duration", kComboProtectDuration_);
+    variables_->AddItem(kGroupName_, "Combo Protect Duration", comboProtectDuration_);
 }
 
 // =============================================================
@@ -85,7 +85,7 @@ void PlayerAttack::Update()
 
     if (isComboWindowOpen) {
         comboProtected_ = true;
-        comboProtectTimer_ = kComboProtectDuration_;
+        comboProtectTimer_ = comboProtectDuration_;
     }
     else if (comboProtected_) {
         comboProtectTimer_--;
@@ -264,5 +264,5 @@ bool PlayerAttack::IsRushActive() const
 // =============================================================
 void PlayerAttack::ApplyVariables()
 {
-    kComboProtectDuration_ = variables_->GetIntValue(kGroupName_, "Combo Protect Duration");
+    comboProtectDuration_ = variables_->GetIntValue(kGroupName_, "Combo Protect Duration");
 }

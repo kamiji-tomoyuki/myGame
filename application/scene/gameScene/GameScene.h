@@ -7,6 +7,7 @@
 #include "ParticleCommon.h"
 #include "Sprite.h"
 #include "SpriteCommon.h"
+#include "UILayout.h"
 #include "ViewProjection.h"
 
 #include <Player.h>
@@ -116,6 +117,12 @@ private:
 	std::unique_ptr<Sprite> attackUI_Left_;    // 左フック用UI
 	std::unique_ptr<Sprite> attackUI_Rush_;    // ラッシュ用UI
 	std::unique_ptr<Sprite> UIPause_;          // ポーズ表示用UI
+
+	// UI配置（左端基準・アンカー 0,0。X は HPバー等と同じ画面端マージンに揃える）
+	static constexpr float kOperationUIPosX = UILayout::kScreenMargin; // 操作説明UI（画面左下）
+	static constexpr float kOperationUIPosY = 530.0f;
+	static constexpr float kPauseUIPosX = UILayout::kScreenMargin;     // ポーズ表示UI（画面左上）
+	static constexpr float kPauseUIPosY = 60.0f;
 
 	// --- ポーズ画面管理 ---
 	std::unique_ptr<Pause> pause_;             // ポーズ管理クラス

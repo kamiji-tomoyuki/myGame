@@ -40,10 +40,10 @@ public:
     // ゲッター
     // ----------------------------------------------------------
     float GetGauge()      const { return gauge_; }
-    float GetMaxGauge()   const { return kMaxGauge_; }
+    float GetMaxGauge()   const { return maxGauge_; }
     /// <summary>0.0〜1.0 の割合</summary>
     float GetGaugeRatio() const;
-    /// <summary>必殺技が発動可能か（kMaxGauge_=0 による誤検知を防ぐ）</summary>
+    /// <summary>必殺技が発動可能か（maxGauge_=0 による誤検知を防ぐ）</summary>
     bool  IsReady()       const;
 
     // ----------------------------------------------------------
@@ -58,11 +58,11 @@ private:
     float gauge_ = 0.0f;
 
     // GlobalVariables で調整可能なパラメータ
-    float kMaxGauge_ = 100.0f;
-    float kGainRightPunch_ = 10.0f;
-    float kGainLeftPunch_ = 10.0f;
-    float kGainRush_ = 5.0f;
-    float kGainFinisher_ = 20.0f;
+    float maxGauge_ = 100.0f;
+    float gainRightPunch_ = 10.0f;
+    float gainLeftPunch_ = 10.0f;
+    float gainRush_ = 5.0f;
+    float gainFinisher_ = 20.0f;
 
     GlobalVariables* variables_ = nullptr;
     static const std::string kGroupName_;

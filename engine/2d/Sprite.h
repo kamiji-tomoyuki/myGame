@@ -32,9 +32,23 @@ public: // メンバ関数
 	void Initialize(const std::string& textureFilePath, Vector2 position, const Vector4& color = { 1,1,1,1 }, Vector2 anchorpoint = { 0.0f,0.0f }, bool isFlipX = false, bool isFlipY = false);
 
 	/// <summary>
+	/// TextureManager に既に登録済みのテクスチャ（メモリ生成など）で初期化する。
+	/// ファイルからの読み込み（LoadTexture）は行わない。
+	/// textureFilePath は基本パス "resources/images/" 直下の名前として扱う
+	/// （= 登録キー "resources/images/&lt;名前&gt;" と一致している必要がある）。
+	/// </summary>
+	void InitializeWithRegisteredTexture(const std::string& textureFilePath, Vector2 position, const Vector4& color = { 1,1,1,1 }, Vector2 anchorpoint = { 0.0f,0.0f });
+
+	/// <summary>
 	/// 描画処理
 	/// </summary>
 	void Draw();
+
+	/// <summary>
+	/// 表示サイズと切り出し範囲を、現在のテクスチャ実サイズに合わせ直す。
+	/// テキスト画像を再生成してサイズが変わったときに呼ぶ。
+	/// </summary>
+	void FitToTexture() { AdjustTextureSize(); }
 
 public:
 

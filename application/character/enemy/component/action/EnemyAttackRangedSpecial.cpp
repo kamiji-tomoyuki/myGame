@@ -17,14 +17,14 @@ EnemyAttackRangedSpecial::EnemyAttackRangedSpecial()
 		variables_->CreateGroup(kGroupName_);
 	}
 
-	variables_->AddItem(kGroupName_, "Prep Time", static_cast<int32_t>(kPrepTime_));
-	variables_->AddItem(kGroupName_, "Recovery Time", static_cast<int32_t>(kRecoveryTime_));
-	variables_->AddItem(kGroupName_, "Launch Duration", static_cast<int32_t>(kLaunchDuration_));
-	variables_->AddItem(kGroupName_, "Spike Speed", kSpikeSpeed_);
-	variables_->AddItem(kGroupName_, "Homing Strength", kHomingStrength_);
-	variables_->AddItem(kGroupName_, "Spike Life Time", static_cast<int32_t>(kSpikeLifeTime_));
-	variables_->AddItem(kGroupName_, "Spike Count", static_cast<int32_t>(kSpikeCount_));
-	variables_->AddItem(kGroupName_, "Damage", kDamage_);
+	variables_->AddItem(kGroupName_, "Prep Time", static_cast<int32_t>(prepTime_));
+	variables_->AddItem(kGroupName_, "Recovery Time", static_cast<int32_t>(recoveryTime_));
+	variables_->AddItem(kGroupName_, "Launch Duration", static_cast<int32_t>(launchDuration_));
+	variables_->AddItem(kGroupName_, "Spike Speed", spikeSpeed_);
+	variables_->AddItem(kGroupName_, "Homing Strength", homingStrength_);
+	variables_->AddItem(kGroupName_, "Spike Life Time", static_cast<int32_t>(spikeLifeTime_));
+	variables_->AddItem(kGroupName_, "Spike Count", static_cast<int32_t>(spikeCount_));
+	variables_->AddItem(kGroupName_, "Damage", damage_);
 }
 
 EnemyAttackRangedSpecial::~EnemyAttackRangedSpecial() = default;
@@ -89,20 +89,20 @@ void EnemyAttackRangedSpecial::UpdatePreparation(Enemy* enemy, Player* player)
 	timer_++;
 
 	// 下を向く
-	float progress = std::min(1.0f, static_cast<float>(timer_) / (kPrepTime_ * 0.5f));
+	float progress = std::min(1.0f, static_cast<float>(timer_) / (prepTime_ * 0.5f));
 	Vector3 rot = baseRotation_;
-	rot.x += kLookDownAngle_ * progress;
+	rot.x += kLookDownAngle * progress;
 	enemy->SetRotation(rot);
 	enemy->SetObjRotation(rot);
 
 	// シェイク (敵本体のみ)
-	float shakeX = ((rand() % 100) / 100.0f - 0.5f) * kShakeAmount_;
-	float shakeZ = ((rand() % 100) / 100.0f - 0.5f) * kShakeAmount_;
+	float shakeX = ((rand() % 100) / 100.0f - 0.5f) * kShakeAmount;
+	float shakeZ = ((rand() % 100) / 100.0f - 0.5f) * kShakeAmount;
 	enemy->SetWorldPosition({ basePosition_.x + shakeX, basePosition_.y, basePosition_.z + shakeZ });
 
 	// トゲの生成と配置 (背後に)
 	if (projectiles_.empty()) {
-		for (uint32_t i = 0; i < kSpikeCount_; ++i) {
+		for (uint32_t i = 0; i < spikeCount_; ++i) {
 			SpikeProjectile spike;
 			spike.model = std::make_unique<Object3d>();
 			spike.model->Initialize("Enemy/Cube.obj");
@@ -111,14 +111,14 @@ void EnemyAttackRangedSpecial::UpdatePreparation(Enemy* enemy, Player* player)
 			spike.isActive = true;
 			
 			// 発射タイミングをさらにばらす
-			spike.launchDelay = rand() % kLaunchDuration_;
+			spike.launchDelay = rand() % launchDuration_;
 			// 出現タイミングもばらす (予備動作中にバラバラに出現)
-			spike.spawnDelay = rand() % (kPrepTime_ - kSpawnTime_);
+			spike.spawnDelay = rand() % (prepTime_ - kSpawnTime);
 			spike.spawnTimer = 0;
 
 			// 初期オフセットをさらに広範囲にばらつきを持たせる (よりバラバラに)
 			// 重なりを減らすために、X方向を広げ、ある程度の最小間隔を意識した配置にする
-			float spreadX = (static_cast<float>(i) - (kSpikeCount_ - 1) * 0.5f) * 4.0f; // 基本的な横並び
+			float spreadX = (static_cast<float>(i) - (spikeCount_ - 1) * 0.5f) * 4.0f; // 基本的な横並び
 			spreadX += (static_cast<float>(rand() % 100) / 100.0f - 0.5f) * 3.0f;     // ランダムな揺らぎ
 			
 			float spreadY = (static_cast<float>(rand() % 100) / 100.0f - 0.5f) * 10.0f;
@@ -131,10 +131,10 @@ void EnemyAttackRangedSpecial::UpdatePreparation(Enemy* enemy, Player* player)
 
 	ArrangeSpikes(enemy, player);
 
-	if (timer_ >= kPrepTime_) {
+	if (timer_ >= prepTime_) {
 		phase_ = Phase::kJump;
 		timer_ = 0;
-		jumpVelocityY_ = kJumpPower_;
+		jumpVelocityY_ = kJumpPower;
 		enemy->SetWorldPosition(basePosition_);
 	}
 }
@@ -145,7 +145,7 @@ void EnemyAttackRangedSpecial::UpdateJump(Enemy* enemy)
 
 	Vector3 pos = enemy->GetWorldPosition();
 	pos.y += jumpVelocityY_;
-	jumpVelocityY_ -= kGravity_;
+	jumpVelocityY_ -= kGravity;
 	enemy->SetWorldPosition(pos);
 
 	// トゲは一緒にジャンプさせないように修正
@@ -170,8 +170,8 @@ void EnemyAttackRangedSpecial::UpdateLaunch(Enemy* enemy, Player* player)
 				if (launchTimer_ >= spike.launchDelay) {
 					spike.isLaunched = true;
 					Vector3 dir = (playerPos - spike.transform.translation_).Normalize();
-					spike.velocity = dir * kSpikeSpeed_;
-					spike.currentSpeed = kSpikeSpeed_;
+					spike.velocity = dir * spikeSpeed_;
+					spike.currentSpeed = spikeSpeed_;
 				}
 				else {
 					allLaunched = false;
@@ -190,13 +190,13 @@ void EnemyAttackRangedSpecial::UpdateRecovery(Enemy* enemy)
 {
 	timer_++;
 
-	float progress = std::min(1.0f, static_cast<float>(timer_) / kRecoveryTime_);
+	float progress = std::min(1.0f, static_cast<float>(timer_) / recoveryTime_);
 	Vector3 rot = enemy->GetWorldRotation();
-	rot.x = baseRotation_.x + kLookDownAngle_ * (1.0f - progress);
+	rot.x = baseRotation_.x + kLookDownAngle * (1.0f - progress);
 	enemy->SetRotation(rot);
 	enemy->SetObjRotation(rot);
 
-	if (timer_ >= kRecoveryTime_) {
+	if (timer_ >= recoveryTime_) {
 		enemy->SetRotation(baseRotation_);
 		enemy->SetObjRotation(baseRotation_);
 		isComplete_ = true;
@@ -218,7 +218,7 @@ void EnemyAttackRangedSpecial::UpdateProjectiles(Player* player)
 			it->lifeTimer++;
 
 			Vector3 toPlayer = (playerPos - it->transform.translation_).Normalize();
-			it->velocity = LerpVec3(it->velocity, toPlayer * it->currentSpeed, kHomingStrength_);
+			it->velocity = LerpVec3(it->velocity, toPlayer * it->currentSpeed, homingStrength_);
 			
 			it->transform.translation_ += it->velocity;
 
@@ -235,12 +235,12 @@ void EnemyAttackRangedSpecial::UpdateProjectiles(Player* player)
 			if (dist < 1.8f && !it->hasHit) {
 				if (!player->IsDodging()) {
 					// この攻撃のみ、被弾直後の無敵時間を無視して連続ヒットさせる
-					player->ApplyDamageDirect(static_cast<uint32_t>(kDamage_), it->transform.translation_);
+					player->ApplyDamageDirect(static_cast<uint32_t>(damage_), it->transform.translation_);
 					it->hasHit = true; 
 				}
 			}
 
-			if (it->hasHit || it->lifeTimer >= kSpikeLifeTime_) {
+			if (it->hasHit || it->lifeTimer >= spikeLifeTime_) {
 				it = projectiles_.erase(it);
 				continue;
 			}
@@ -263,12 +263,12 @@ void EnemyAttackRangedSpecial::ArrangeSpikes(Enemy* enemy, Player* player)
 
 		// 出現演出の更新
 		if (timer_ >= projectiles_[i].spawnDelay) {
-			if (projectiles_[i].spawnTimer < kSpawnTime_) {
+			if (projectiles_[i].spawnTimer < kSpawnTime) {
 				projectiles_[i].spawnTimer++;
 			}
 		}
 
-		float scaleProgress = static_cast<float>(projectiles_[i].spawnTimer) / kSpawnTime_;
+		float scaleProgress = static_cast<float>(projectiles_[i].spawnTimer) / kSpawnTime;
 		projectiles_[i].transform.scale_ = { scaleProgress * 0.5f, scaleProgress * 0.5f, scaleProgress * 1.5f };
 
 		// 背後方向（ローカル座標からの変換）
@@ -314,12 +314,12 @@ void EnemyAttackRangedSpecial::Interrupt()
 
 void EnemyAttackRangedSpecial::ApplyVariables()
 {
-	kPrepTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Prep Time"));
-	kRecoveryTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Recovery Time"));
-	kLaunchDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Launch Duration"));
-	kSpikeSpeed_ = variables_->GetFloatValue(kGroupName_, "Spike Speed");
-	kHomingStrength_ = variables_->GetFloatValue(kGroupName_, "Homing Strength");
-	kSpikeLifeTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Spike Life Time"));
-	kSpikeCount_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Spike Count"));
-	kDamage_ = variables_->GetIntValue(kGroupName_, "Damage");
+	prepTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Prep Time"));
+	recoveryTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Recovery Time"));
+	launchDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Launch Duration"));
+	spikeSpeed_ = variables_->GetFloatValue(kGroupName_, "Spike Speed");
+	homingStrength_ = variables_->GetFloatValue(kGroupName_, "Homing Strength");
+	spikeLifeTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Spike Life Time"));
+	spikeCount_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Spike Count"));
+	damage_ = variables_->GetIntValue(kGroupName_, "Damage");
 }

@@ -83,6 +83,10 @@ private:
 
 	std::unique_ptr<Sprite> title2d_;
 	std::unique_ptr<Sprite> space_;
+
+	// UI配置（アンカー 0,0）
+	static constexpr float kSpacePosX = 160.0f; // 「SPACEを押す」表示
+	static constexpr float kSpacePosY = 470.0f;
         float timer_ = 0.0f;
         float add_ = 1.0f / 60.0f;
 

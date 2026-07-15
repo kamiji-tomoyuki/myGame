@@ -30,14 +30,14 @@ Vector3 PlayerMove::Update(
 
 	Vector3 move = {};
 
-	if (Input::GetInstance()->PushKey(DIK_D)) { move.x += kAcceleration_; }
-	if (Input::GetInstance()->PushKey(DIK_A)) { move.x -= kAcceleration_; }
-	if (Input::GetInstance()->PushKey(DIK_W)) { move.z += kAcceleration_; }
-	if (Input::GetInstance()->PushKey(DIK_S)) { move.z -= kAcceleration_; }
+	if (Input::GetInstance()->PushKey(DIK_D)) { move.x += kAcceleration; }
+	if (Input::GetInstance()->PushKey(DIK_A)) { move.x -= kAcceleration; }
+	if (Input::GetInstance()->PushKey(DIK_W)) { move.z += kAcceleration; }
+	if (Input::GetInstance()->PushKey(DIK_S)) { move.z -= kAcceleration; }
 
 	float newRotY = currentRotationY;
-	if (Input::GetInstance()->PushKey(DIK_RIGHT)) { newRotY += kRotateAcceleration_; }
-	if (Input::GetInstance()->PushKey(DIK_LEFT)) { newRotY -= kRotateAcceleration_; }
+	if (Input::GetInstance()->PushKey(DIK_RIGHT)) { newRotY += kRotateAcceleration; }
+	if (Input::GetInstance()->PushKey(DIK_LEFT)) { newRotY -= kRotateAcceleration; }
 	outNewRotY = newRotY;
 
 	// --- Shift + 移動 → 回避リクエスト ---
@@ -56,14 +56,14 @@ Vector3 PlayerMove::Update(
 		move = move.Normalize();
 		Matrix4x4 rotMat = MakeRotateYMatrix(newRotY);
 		move = TransformNormal(move, rotMat);
-		velocity_ += move * kAcceleration_;	// 正規化済み方向 * 加速度
+		velocity_ += move * kAcceleration;	// 正規化済み方向 * 加速度
 	}
 	else {
 		velocity_ *= 0.8f;
 	}
 
-	if (velocity_.Length() > kMaxSpeed_) {
-		velocity_ = velocity_.Normalize() * kMaxSpeed_;
+	if (velocity_.Length() > kMaxSpeed) {
+		velocity_ = velocity_.Normalize() * kMaxSpeed;
 	}
 
 	Vector3 newPos = currentWorldPos + velocity_;

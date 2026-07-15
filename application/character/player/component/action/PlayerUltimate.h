@@ -74,18 +74,18 @@ private:
     std::array<Vector3, 2> savedArmPos_ = {};
 
     // GlobalVariables で調整可能なパラメータ
-    int   kRiseDuration_ = 30;
-    int   kChargeDuration_ = 40;
-    int   kDiveDuration_ = 20;
-    int   kImpactDuration_ = 20;
-    int   kRecoverDuration_ = 30;
-    float kRiseHeight_ = 8.0f;
-    float kAreaRadius_ = 5.0f;
-    float kAreaDamage_ = 300.0f;
+    int   riseDuration_ = 30;
+    int   chargeDuration_ = 40;
+    int   diveDuration_ = 20;
+    int   impactDuration_ = 20;
+    int   recoverDuration_ = 30;
+    float riseHeight_ = 8.0f;
+    float areaRadius_ = 5.0f;
+    float areaDamage_ = 300.0f;
 
     // ★ 腕モーション量（GlobalVariablesで調整可能にしたい場合は Init で登録）
-    float kChargePullBack_ = 1.5f;  // Charge で腕を引く距離（ローカル -Z）
-    float kDivePunchReach_ = 2.0f;  // Dive で腕を突き出す距離（ローカル +Z）
+    static constexpr float kChargePullBack = 1.5f;  // Charge で腕を引く距離（ローカル -Z）
+    static constexpr float kDivePunchReach = 2.0f;  // Dive で腕を突き出す距離（ローカル +Z）
 
     GlobalVariables* variables_ = nullptr;
     static const std::string kGroupName_;

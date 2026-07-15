@@ -18,19 +18,19 @@ EnemyAttackRanged::EnemyAttackRanged()
 	}
 
 	// タイマー系
-	variables_->AddItem(kGroupName_, "Preparation Time", static_cast<int32_t>(kPreparationTime_));
-	variables_->AddItem(kGroupName_, "Recovery Time", static_cast<int32_t>(kRecoveryTime_));
-	variables_->AddItem(kGroupName_, "Attack Interval", static_cast<int32_t>(kAttackInterval_));
-	variables_->AddItem(kGroupName_, "Attack Count", static_cast<int32_t>(kAttackCount_));
-	variables_->AddItem(kGroupName_, "Warning Duration", static_cast<int32_t>(kWarningDuration_));
-	variables_->AddItem(kGroupName_, "Spike Rise Duration", static_cast<int32_t>(kSpikeRiseDuration_));
-	variables_->AddItem(kGroupName_, "Spike Hold Duration", static_cast<int32_t>(kSpikeHoldDuration_));
-	variables_->AddItem(kGroupName_, "Spike Fall Duration", static_cast<int32_t>(kSpikeFallDuration_));
+	variables_->AddItem(kGroupName_, "Preparation Time", static_cast<int32_t>(preparationTime_));
+	variables_->AddItem(kGroupName_, "Recovery Time", static_cast<int32_t>(recoveryTime_));
+	variables_->AddItem(kGroupName_, "Attack Interval", static_cast<int32_t>(attackInterval_));
+	variables_->AddItem(kGroupName_, "Attack Count", static_cast<int32_t>(attackCount_));
+	variables_->AddItem(kGroupName_, "Warning Duration", static_cast<int32_t>(warningDuration_));
+	variables_->AddItem(kGroupName_, "Spike Rise Duration", static_cast<int32_t>(spikeRiseDuration_));
+	variables_->AddItem(kGroupName_, "Spike Hold Duration", static_cast<int32_t>(spikeHoldDuration_));
+	variables_->AddItem(kGroupName_, "Spike Fall Duration", static_cast<int32_t>(spikeFallDuration_));
 	// 挙動
-	variables_->AddItem(kGroupName_, "Spike Max Height", kSpikeMaxHeight_);
-	variables_->AddItem(kGroupName_, "Warning Circle Radius", kWarningCircleRadius_);
-	variables_->AddItem(kGroupName_, "Preparation Tilt Angle", kPreparationTiltAngle_);
-	variables_->AddItem(kGroupName_, "Ranged Damage", kRangedDamage_);
+	variables_->AddItem(kGroupName_, "Spike Max Height", spikeMaxHeight_);
+	variables_->AddItem(kGroupName_, "Warning Circle Radius", warningCircleRadius_);
+	variables_->AddItem(kGroupName_, "Preparation Tilt Angle", preparationTiltAngle_);
+	variables_->AddItem(kGroupName_, "Ranged Damage", rangedDamage_);
 }
 EnemyAttackRanged::~EnemyAttackRanged() = default;
 
@@ -53,12 +53,12 @@ void EnemyAttackRanged::Start(Enemy* enemy, Player* player)
 
 	// フェーズ2の調整（元値をベースに計算する）
 	if (enemy->GetIsPhase2()) {
-		kWarningDuration_ /= 2;
-		kAttackCount_ *= 2;
+		warningDuration_ /= 2;
+		attackCount_ *= 2;
 	}
 
 	// 警告時間が0にならないように最低値を保証
-	if (kWarningDuration_ == 0) kWarningDuration_ = 1;
+	if (warningDuration_ == 0) warningDuration_ = 1;
 
 	phase_ = Phase::kPreparation;
 	isComplete_ = false;
@@ -110,9 +110,9 @@ void EnemyAttackRanged::UpdatePreparation(Enemy* enemy)
 
 	enemy->SetVelocity(Vector3(0.0f, 0.0f, 0.0f));
 
-	if (preparationTimer_ <= kPreparationTime_) {
-		float tiltProgress = static_cast<float>(preparationTimer_) / static_cast<float>(kPreparationTime_);
-		float tiltAmount = tiltProgress * kPreparationTiltAngle_;
+	if (preparationTimer_ <= preparationTime_) {
+		float tiltProgress = static_cast<float>(preparationTimer_) / static_cast<float>(preparationTime_);
+		float tiltAmount = tiltProgress * preparationTiltAngle_;
 
 		Vector3 baseRotation = enemy->GetWorldRotation();
 		Vector3 objRotation = baseRotation;
@@ -121,7 +121,7 @@ void EnemyAttackRanged::UpdatePreparation(Enemy* enemy)
 		enemy->SetObjRotation(objRotation);
 	}
 
-	if (preparationTimer_ >= kPreparationTime_) {
+	if (preparationTimer_ >= preparationTime_) {
 		phase_ = Phase::kAttacking;
 		attackTimer_ = 0;
 	}
@@ -145,12 +145,12 @@ void EnemyAttackRanged::UpdateAttacking(Enemy* enemy, Player* player)
 
 	// 姿勢の維持（Preparationで設定した回転を維持）
 	Vector3 currentRot = enemy->GetWorldRotation();
-	currentRot.x = originalRotation_.x - kPreparationTiltAngle_;
+	currentRot.x = originalRotation_.x - preparationTiltAngle_;
 	enemy->SetRotation(currentRot);
 	enemy->SetObjRotation(currentRot);
 
 	// ジオグリフ生成フェーズ
-	if (attackTimer_ % kAttackInterval_ == 0 && attackPhase_ < kAttackCount_) {
+	if (attackTimer_ % attackInterval_ == 0 && attackPhase_ < attackCount_) {
 		RangedAttackInstance newAttack;
 
 		// プレイヤーの現在位置を取得(各トゲごとに更新)
@@ -168,7 +168,7 @@ void EnemyAttackRanged::UpdateAttacking(Enemy* enemy, Player* player)
 		// 警告円の初期化(輪郭)
 		newAttack.warningOutline = std::make_unique<Object3d>();
 		newAttack.warningOutline->Initialize("enemy/effect/warningOutLine.obj");
-		newAttack.warningOutline->SetSize({ kWarningCircleRadius_, 1.0f, kWarningCircleRadius_ });
+		newAttack.warningOutline->SetSize({ warningCircleRadius_, 1.0f, warningCircleRadius_ });
 		newAttack.warningOutline->SetRotation({ 0.0f, 0.0f, 0.0f }); // モデルが既に水平なので0
 
 		// 警告円の初期化(塗りつぶし)
@@ -195,7 +195,7 @@ void EnemyAttackRanged::UpdateAttacking(Enemy* enemy, Player* player)
 	UpdateAttackInstances(player);
 
 	// 全ての攻撃が終了したかチェック
-	bool allFinished = attackPhase_ >= kAttackCount_;
+	bool allFinished = attackPhase_ >= attackCount_;
 	if (allFinished) {
 		bool anyActive = false;
 		for (const auto& attack : attackInstances_) {
@@ -218,15 +218,15 @@ void EnemyAttackRanged::UpdateRecovery(Enemy* enemy)
 
 	enemy->SetVelocity(Vector3(0.0f, 0.0f, 0.0f));
 
-	float recoveryProgress = static_cast<float>(recoveryTimer_) / static_cast<float>(kRecoveryTime_);
-	float currentTilt = -kPreparationTiltAngle_ * (1.0f - recoveryProgress);
+	float recoveryProgress = static_cast<float>(recoveryTimer_) / static_cast<float>(recoveryTime_);
+	float currentTilt = -preparationTiltAngle_ * (1.0f - recoveryProgress);
 
 	Vector3 baseRotation = enemy->GetWorldRotation();
 	Vector3 objRotation = baseRotation;
 	objRotation.x = originalRotation_.x + currentTilt;
 	enemy->SetRotation(objRotation);
 
-	if (recoveryTimer_ >= kRecoveryTime_) {
+	if (recoveryTimer_ >= recoveryTime_) {
 		Vector3 currentRotation = enemy->GetWorldRotation();
 		currentRotation.x = originalRotation_.x;
 		enemy->SetRotation(currentRotation);
@@ -249,12 +249,12 @@ void EnemyAttackRanged::UpdateAttackInstances(Player* player)
 
 			// 塗りつぶし円のサイズ更新
 			if (attack.warningFill) {
-				float progress = static_cast<float>(attack.warningTimer) / static_cast<float>(kWarningDuration_);
-				float currentRadius = progress * kWarningCircleRadius_;
+				float progress = static_cast<float>(attack.warningTimer) / static_cast<float>(warningDuration_);
+				float currentRadius = progress * warningCircleRadius_;
 				attack.warningFill->SetSize({ currentRadius, 1.0f, currentRadius });
 			}
 
-			if (attack.warningTimer >= kWarningDuration_) {
+			if (attack.warningTimer >= warningDuration_) {
 				attack.isWarningActive = false;
 				attack.isSpikeActive = true;
 				attack.spikeTimer = 0;
@@ -265,17 +265,17 @@ void EnemyAttackRanged::UpdateAttackInstances(Player* player)
 		if (attack.isSpikeActive) {
 			attack.spikeTimer++;
 
-			if (attack.spikeTimer < kSpikeRiseDuration_) {
-				float riseProgress = static_cast<float>(attack.spikeTimer) / static_cast<float>(kSpikeRiseDuration_);
-				attack.spikeHeight = riseProgress * kSpikeMaxHeight_;
+			if (attack.spikeTimer < spikeRiseDuration_) {
+				float riseProgress = static_cast<float>(attack.spikeTimer) / static_cast<float>(spikeRiseDuration_);
+				attack.spikeHeight = riseProgress * spikeMaxHeight_;
 			}
-			else if (attack.spikeTimer < kSpikeRiseDuration_ + kSpikeHoldDuration_) {
-				attack.spikeHeight = kSpikeMaxHeight_;
+			else if (attack.spikeTimer < spikeRiseDuration_ + spikeHoldDuration_) {
+				attack.spikeHeight = spikeMaxHeight_;
 			}
-			else if (attack.spikeTimer < kSpikeRiseDuration_ + kSpikeHoldDuration_ + kSpikeFallDuration_) {
-				uint32_t fallTimer = attack.spikeTimer - (kSpikeRiseDuration_ + kSpikeHoldDuration_);
-				float fallProgress = static_cast<float>(fallTimer) / static_cast<float>(kSpikeFallDuration_);
-				attack.spikeHeight = kSpikeMaxHeight_ * (1.0f - fallProgress);
+			else if (attack.spikeTimer < spikeRiseDuration_ + spikeHoldDuration_ + spikeFallDuration_) {
+				uint32_t fallTimer = attack.spikeTimer - (spikeRiseDuration_ + spikeHoldDuration_);
+				float fallProgress = static_cast<float>(fallTimer) / static_cast<float>(spikeFallDuration_);
+				attack.spikeHeight = spikeMaxHeight_ * (1.0f - fallProgress);
 			}
 			else {
 				attack.isSpikeActive = false;
@@ -300,17 +300,17 @@ void EnemyAttackRanged::CheckCollision(Player* player)
 		if (!attack.isSpikeActive) continue;
 		if (attack.hasHitPlayer) continue;          // このトゲでは既に当たり判定済み
 
-		if (attack.spikeHeight < kSpikeMaxHeight_ * kSpikeHitHeightRatio_) continue;
+		if (attack.spikeHeight < spikeMaxHeight_ * kSpikeHitHeightRatio_) continue;
 
 		float distanceXZ = std::sqrt(
 			std::pow(playerPos.x - attack.position.x, 2.0f) +
 			std::pow(playerPos.z - attack.position.z, 2.0f)
 		);
 
-		if (distanceXZ <= kWarningCircleRadius_ &&
-			playerPos.y <= attack.position.y + kSpikeMaxHeight_) {
+		if (distanceXZ <= warningCircleRadius_ &&
+			playerPos.y <= attack.position.y + spikeMaxHeight_) {
 			if (!player->IsDodging()) {
-				player->ApplyDamage(static_cast<uint32_t>(kRangedDamage_), attack.position);
+				player->ApplyDamage(static_cast<uint32_t>(rangedDamage_), attack.position);
 				attack.hasHitPlayer = true;         // このトゲからのダメージは1回だけ
 			}
 		}
@@ -391,16 +391,16 @@ void EnemyAttackRanged::Draw(const ViewProjection& viewProjection)
 // =============================================================
 void EnemyAttackRanged::ApplyVariables()
 {
-	kPreparationTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Preparation Time"));
-	kRecoveryTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Recovery Time"));
-	kAttackInterval_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Attack Interval"));
-	kAttackCount_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Attack Count"));
-	kWarningDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Warning Duration"));
-	kSpikeRiseDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Spike Rise Duration"));
-	kSpikeHoldDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Spike Hold Duration"));
-	kSpikeFallDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Spike Fall Duration"));
-	kSpikeMaxHeight_ = variables_->GetFloatValue(kGroupName_, "Spike Max Height");
-	kWarningCircleRadius_ = variables_->GetFloatValue(kGroupName_, "Warning Circle Radius");
-	kPreparationTiltAngle_ = variables_->GetFloatValue(kGroupName_, "Preparation Tilt Angle");
-	kRangedDamage_ = variables_->GetIntValue(kGroupName_, "Ranged Damage");
+	preparationTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Preparation Time"));
+	recoveryTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Recovery Time"));
+	attackInterval_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Attack Interval"));
+	attackCount_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Attack Count"));
+	warningDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Warning Duration"));
+	spikeRiseDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Spike Rise Duration"));
+	spikeHoldDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Spike Hold Duration"));
+	spikeFallDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Spike Fall Duration"));
+	spikeMaxHeight_ = variables_->GetFloatValue(kGroupName_, "Spike Max Height");
+	warningCircleRadius_ = variables_->GetFloatValue(kGroupName_, "Warning Circle Radius");
+	preparationTiltAngle_ = variables_->GetFloatValue(kGroupName_, "Preparation Tilt Angle");
+	rangedDamage_ = variables_->GetIntValue(kGroupName_, "Ranged Damage");
 }

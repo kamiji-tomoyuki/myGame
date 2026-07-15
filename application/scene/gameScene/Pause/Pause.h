@@ -124,6 +124,13 @@ private:
 	const float kArrowFloatRange_ = 15.0f;
 	const float kAnimationSpeed_ = 2.0f;
 
+	// UI配置（画面中央・画面端からの相対で決める。絶対座標は UILayout を参照）
+	const float kTitlePosX_ = 100.0f;      // PAUSEロゴ / 再生マークの左上位置
+	const float kTitlePosY_ = 60.0f;
+	const float kSpaceMarginX_ = 100.0f;   // SPACEロゴの画面右下からのマージン（アンカー 1,1）
+	const float kSpaceMarginY_ = 60.0f;
+	const float kArrowSpacing_ = 80.0f;    // 選択項目から矢印までの距離
+
 	// 再生マークフェードアウト用
 	bool isPlayIconFading_ = false;
 	float playIconAlpha_ = 0.0f;

@@ -38,6 +38,30 @@ void Sprite::Initialize(const std::string& textureFilePath, Vector2 position, co
 	AdjustTextureSize();
 }
 
+void Sprite::InitializeWithRegisteredTexture(const std::string& textureFilePath, Vector2 position, const Vector4& color, Vector2 anchorpoint)
+{
+	// --- 引数で受け取りメンバ変数に記録 ---
+	this->spriteCommon_ = SpriteCommon::GetInstance();
+
+	// --- パスを設定（登録キーと一致させる。読み込みは行わない） ---
+	fullpath = basePath_ + textureFilePath;
+
+	// --- 各データ生成 ---
+	CreateVartexData();
+	CreateMaterialData();
+	CreateTransformationMatrixData();
+
+	// テクスチャは呼び出し側で TextureManager::RegisterTextureFromImage 済みの前提。
+
+	// --- その他引数の適応 ---
+	position_ = position;
+	materialData->color = color;
+	anchorPoint_ = anchorpoint;
+
+	// --- 切り取り（登録済みメタデータからサイズを取得） ---
+	AdjustTextureSize();
+}
+
 void Sprite::Update()
 {
 	// --- アンカーポイントを考慮した頂点座標の計算 ---

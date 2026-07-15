@@ -67,12 +67,12 @@ private:
 	static const std::string kGroupName_;
 
 	// 調整可能パラメータ
-	uint32_t kPrepTime_ = 60;		// 予備動作時間
-	uint32_t kRecoveryTime_ = 45;	// 着地後硬直
-	float kAttackRadius_ = 15.0f;	// 攻撃半径
-	float kJumpHeight_ = 15.0f;		// ジャンプの高さ (遠距離時)
-	float kGravity_ = 0.05f;		// 重力
-	int32_t kDamage_ = 25;			// ダメージ
-	float kTiltAngle_ = 0.4f;		// 前傾角度
-	float kShakeAmount_ = 0.5f;		// シェイク幅
+	uint32_t prepTime_ = 60;		// 予備動作時間
+	uint32_t recoveryTime_ = 45;	// 着地後硬直
+	float attackRadius_ = 15.0f;	// 攻撃半径
+	float jumpHeight_ = 15.0f;		// ジャンプの高さ (遠距離時)
+	float gravity_ = 0.05f;		// 重力
+	int32_t damage_ = 25;			// ダメージ
+	float tiltAngle_ = 0.4f;		// 前傾角度
+	float shakeAmount_ = 0.5f;		// シェイク幅
 };

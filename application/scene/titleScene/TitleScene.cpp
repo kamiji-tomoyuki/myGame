@@ -37,7 +37,7 @@ void TitleScene::Initialize() {
     title2d_->Initialize("title.png", {0.0f, 0.0f});
 
     space_ = std::make_unique<Sprite>();
-    space_->Initialize("space.png", {160.0f, 470.0f});
+    space_->Initialize("space.png", {kSpacePosX, kSpacePosY});
 
     emitter_ = std::make_unique<ParticleEmitter>();
     emitter_->Initialize("test", "debug/ringPlane.obj");

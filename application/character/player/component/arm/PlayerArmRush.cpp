@@ -17,23 +17,23 @@ PlayerArmRush::PlayerArmRush()
 	}
 
 	// 連打フェーズ
-	variables_->AddItem(kGroupName_, "Rush Duration", static_cast<int32_t>(kRushDuration_));
-	variables_->AddItem(kGroupName_, "Rush Interval", static_cast<int32_t>(kRushInterval_));
-	variables_->AddItem(kGroupName_, "Rush Attack Duration", static_cast<int32_t>(kRushAttackDuration_));
-	variables_->AddItem(kGroupName_, "Rush Charge Duration", static_cast<int32_t>(kRushChargeDuration_));
+	variables_->AddItem(kGroupName_, "Rush Duration", static_cast<int32_t>(rushDuration_));
+	variables_->AddItem(kGroupName_, "Rush Interval", static_cast<int32_t>(rushInterval_));
+	variables_->AddItem(kGroupName_, "Rush Attack Duration", static_cast<int32_t>(rushAttackDuration_));
+	variables_->AddItem(kGroupName_, "Rush Charge Duration", static_cast<int32_t>(rushChargeDuration_));
 	// フィニッシャーフェーズ
-	variables_->AddItem(kGroupName_, "WindUp Duration", static_cast<int32_t>(kWindUpDuration_));
-	variables_->AddItem(kGroupName_, "Finisher Duration", static_cast<int32_t>(kFinisherDuration_));
-	variables_->AddItem(kGroupName_, "Recover Duration", static_cast<int32_t>(kRecoverDuration_));
+	variables_->AddItem(kGroupName_, "WindUp Duration", static_cast<int32_t>(windUpDuration_));
+	variables_->AddItem(kGroupName_, "Finisher Duration", static_cast<int32_t>(finisherDuration_));
+	variables_->AddItem(kGroupName_, "Recover Duration", static_cast<int32_t>(recoverDuration_));
 	// 腕移動量
-	variables_->AddItem(kGroupName_, "Rush Distance", kRushDistance_);
-	variables_->AddItem(kGroupName_, "Charge Arm Pull", kChargeArmPull_);
-	variables_->AddItem(kGroupName_, "Charge Arm Lift", kChargeArmLift_);
-	variables_->AddItem(kGroupName_, "WindUp Arm Retreat", kWindUpArmRetreat_);
-	variables_->AddItem(kGroupName_, "WindUp Arm Side R", kWindUpArmSideR_);
-	variables_->AddItem(kGroupName_, "Finisher Arm Advance", kFinisherArmAdvance_);
-	variables_->AddItem(kGroupName_, "L Arm WindUp Z", kLArmWindUpZ_);
-	variables_->AddItem(kGroupName_, "L Arm Finisher Z", kLArmFinisherZ_);
+	variables_->AddItem(kGroupName_, "Rush Distance", rushDistance_);
+	variables_->AddItem(kGroupName_, "Charge Arm Pull", chargeArmPull_);
+	variables_->AddItem(kGroupName_, "Charge Arm Lift", chargeArmLift_);
+	variables_->AddItem(kGroupName_, "WindUp Arm Retreat", windUpArmRetreat_);
+	variables_->AddItem(kGroupName_, "WindUp Arm Side R", windUpArmSideR_);
+	variables_->AddItem(kGroupName_, "Finisher Arm Advance", finisherArmAdvance_);
+	variables_->AddItem(kGroupName_, "L Arm WindUp Z", lArmWindUpZ_);
+	variables_->AddItem(kGroupName_, "L Arm Finisher Z", lArmFinisherZ_);
 	// ダメージ
 	variables_->AddItem(kGroupName_, "Rush Attack Damage", static_cast<int32_t>(rushAttackDamage_));
 	variables_->AddItem(kGroupName_, "Finisher Attack Damage", static_cast<int32_t>(finisherAttackDamage_));
@@ -44,21 +44,21 @@ PlayerArmRush::PlayerArmRush()
 // =============================================================
 void PlayerArmRush::ApplyVariables()
 {
-	kRushDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Rush Duration"));
-	kRushInterval_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Rush Interval"));
-	kRushAttackDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Rush Attack Duration"));
-	kRushChargeDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Rush Charge Duration"));
-	kWindUpDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "WindUp Duration"));
-	kFinisherDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Finisher Duration"));
-	kRecoverDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Recover Duration"));
-	kRushDistance_ = variables_->GetFloatValue(kGroupName_, "Rush Distance");
-	kChargeArmPull_ = variables_->GetFloatValue(kGroupName_, "Charge Arm Pull");
-	kChargeArmLift_ = variables_->GetFloatValue(kGroupName_, "Charge Arm Lift");
-	kWindUpArmRetreat_ = variables_->GetFloatValue(kGroupName_, "WindUp Arm Retreat");
-	kWindUpArmSideR_ = variables_->GetFloatValue(kGroupName_, "WindUp Arm Side R");
-	kFinisherArmAdvance_ = variables_->GetFloatValue(kGroupName_, "Finisher Arm Advance");
-	kLArmWindUpZ_ = variables_->GetFloatValue(kGroupName_, "L Arm WindUp Z");
-	kLArmFinisherZ_ = variables_->GetFloatValue(kGroupName_, "L Arm Finisher Z");
+	rushDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Rush Duration"));
+	rushInterval_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Rush Interval"));
+	rushAttackDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Rush Attack Duration"));
+	rushChargeDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Rush Charge Duration"));
+	windUpDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "WindUp Duration"));
+	finisherDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Finisher Duration"));
+	recoverDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Recover Duration"));
+	rushDistance_ = variables_->GetFloatValue(kGroupName_, "Rush Distance");
+	chargeArmPull_ = variables_->GetFloatValue(kGroupName_, "Charge Arm Pull");
+	chargeArmLift_ = variables_->GetFloatValue(kGroupName_, "Charge Arm Lift");
+	windUpArmRetreat_ = variables_->GetFloatValue(kGroupName_, "WindUp Arm Retreat");
+	windUpArmSideR_ = variables_->GetFloatValue(kGroupName_, "WindUp Arm Side R");
+	finisherArmAdvance_ = variables_->GetFloatValue(kGroupName_, "Finisher Arm Advance");
+	lArmWindUpZ_ = variables_->GetFloatValue(kGroupName_, "L Arm WindUp Z");
+	lArmFinisherZ_ = variables_->GetFloatValue(kGroupName_, "L Arm Finisher Z");
 	rushAttackDamage_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Rush Attack Damage"));
 	finisherAttackDamage_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Finisher Attack Damage"));
 }
@@ -67,7 +67,7 @@ void PlayerArmRush::ApplyVariables()
 //  ラッシュ開始
 //  timerOffset — rushTimer_ の初期値。
 //  左右の腕で異なるオフセットを渡すことで交互パンチを実現する。
-//  例）右腕 = 0、左腕 = kRushInterval_ / 2
+//  例）右腕 = 0、左腕 = rushInterval_ / 2
 // =============================================================
 void PlayerArmRush::StartRush(bool isRightArm, const Vector3& currentTranslation,
 	uint32_t timerOffset)
@@ -146,18 +146,18 @@ Vector3 PlayerArmRush::WorldOffsetToLocal(const Vector3& worldOffset, float curr
 void PlayerArmRush::UpdateCharge()
 {
 	chargeTimer_++;
-	float t = (kRushChargeDuration_ > 0) ? static_cast<float>(chargeTimer_) / static_cast<float>(kRushChargeDuration_) : 1.0f;
+	float t = (rushChargeDuration_ > 0) ? static_cast<float>(chargeTimer_) / static_cast<float>(rushChargeDuration_) : 1.0f;
 	if (t > 1.0f) { t = 1.0f; }
 	const float ease = t * t * (3.0f - 2.0f * t); // smoothstep
 
 	// 両腕を少し後ろ(-Z)へ引き、下がらないよう少し上げる（ローカル姿勢）
 	currentTranslation_ = {
 		originalPosition_.x,
-		originalPosition_.y + kChargeArmLift_ * ease,
-		originalPosition_.z - kChargeArmPull_ * ease
+		originalPosition_.y + chargeArmLift_ * ease,
+		originalPosition_.z - chargeArmPull_ * ease
 	};
 
-	if (chargeTimer_ >= kRushChargeDuration_) {
+	if (chargeTimer_ >= rushChargeDuration_) {
 		isCharging_ = false;               // 溜め終了 → 連打へ
 		currentTranslation_ = originalPosition_;
 	}
@@ -167,7 +167,7 @@ void PlayerArmRush::UpdateRapidPunch()
 {
 	rushTimer_++;
 
-	if (rushTimer_ % kRushInterval_ == 0) {
+	if (rushTimer_ % rushInterval_ == 0) {
 		rushAttackActive_ = true;
 		rushAttackTimer_ = 0;
 		rushCount_++;
@@ -183,7 +183,7 @@ void PlayerArmRush::UpdateRapidPunch()
 			Random::Range(-kMaxRandomOffsetZ_, kMaxRandomOffsetZ_)
 		};
 
-		Vector3 attackOffset = { sideOffset + randomTargetOffset.x, randomTargetOffset.y, kRushDistance_ + randomTargetOffset.z };
+		Vector3 attackOffset = { sideOffset + randomTargetOffset.x, randomTargetOffset.y, rushDistance_ + randomTargetOffset.z };
 
 		targetPosition_ = {
 			originalPosition_.x + attackOffset.x,
@@ -204,7 +204,7 @@ void PlayerArmRush::UpdateRapidPunch()
 
 	if (rushAttackActive_) {
 		rushAttackTimer_++;
-		float rushProgress = static_cast<float>(rushAttackTimer_) / static_cast<float>(kRushAttackDuration_);
+		float rushProgress = static_cast<float>(rushAttackTimer_) / static_cast<float>(rushAttackDuration_);
 		if (rushProgress >= 1.0f) { rushProgress = 1.0f; }
 
 		float easedProgress = 1.0f - (1.0f - rushProgress) * (1.0f - rushProgress);
@@ -218,7 +218,7 @@ void PlayerArmRush::UpdateRapidPunch()
 			originalPosition_.z + (targetPosition_.z - originalPosition_.z) * easedProgress
 		};
 
-		if (rushAttackTimer_ >= kRushAttackDuration_) {
+		if (rushAttackTimer_ >= rushAttackDuration_) {
 			rushAttackActive_ = false;
 			rushAttackTimer_ = 0;
 			currentTranslation_ = originalPosition_;
@@ -228,7 +228,7 @@ void PlayerArmRush::UpdateRapidPunch()
 	// 連続パンチフェーズ終了 → 腕のラッシュは完了。
 	// フィニッシャー（振りかぶり→大パンチ→戻り）は Player 側でモーションクリップとして再生する。
 	// （旧: WindUp/Finisher/Recover の手続き処理は使用しない）
-	if (rushTimer_ >= kRushDuration_) {
+	if (rushTimer_ >= rushDuration_) {
 		rushAttackActive_ = false;
 		rushAttackTimer_ = 0;
 		currentTranslation_ = originalPosition_;
@@ -242,7 +242,7 @@ void PlayerArmRush::UpdateRapidPunch()
 
 void PlayerArmRush::UpdateWindUp()
 {
-	float t = static_cast<float>(rushPhaseTimer_) / static_cast<float>(kWindUpDuration_);
+	float t = static_cast<float>(rushPhaseTimer_) / static_cast<float>(windUpDuration_);
 	if (t > 1.0f) { t = 1.0f; }
 	rushPhaseProgress_ = t;
 
@@ -250,10 +250,10 @@ void PlayerArmRush::UpdateWindUp()
 
 	Vector3 offset;
 	if (isRightArm_) {
-		offset = { kWindUpArmSideR_ * eased, 0.0f, kWindUpArmRetreat_ * eased };
+		offset = { windUpArmSideR_ * eased, 0.0f, windUpArmRetreat_ * eased };
 	}
 	else {
-		offset = { 0.0f, 0.0f, kLArmWindUpZ_ * eased };
+		offset = { 0.0f, 0.0f, lArmWindUpZ_ * eased };
 	}
 
 	currentTranslation_ = {
@@ -262,7 +262,7 @@ void PlayerArmRush::UpdateWindUp()
 		originalPosition_.z + offset.z
 	};
 
-	if (rushPhaseTimer_ >= kWindUpDuration_) {
+	if (rushPhaseTimer_ >= windUpDuration_) {
 		rushPhase_ = RushPhase::kFinisher;
 		rushPhaseTimer_ = 0;
 		finisherProgress_ = 0.0f;
@@ -272,14 +272,14 @@ void PlayerArmRush::UpdateWindUp()
 			targetPosition_ = {
 				0.0f,
 				originalPosition_.y,
-				kFinisherArmAdvance_
+				finisherArmAdvance_
 			};
 		}
 		else {
 			targetPosition_ = {
 				0.0f,
 				originalPosition_.y,
-				kLArmFinisherZ_
+				lArmFinisherZ_
 			};
 		}
 	}
@@ -287,7 +287,7 @@ void PlayerArmRush::UpdateWindUp()
 
 void PlayerArmRush::UpdateFinisher()
 {
-	float t = static_cast<float>(rushPhaseTimer_) / static_cast<float>(kFinisherDuration_);
+	float t = static_cast<float>(rushPhaseTimer_) / static_cast<float>(finisherDuration_);
 	if (t > 1.0f) { t = 1.0f; }
 
 	finisherProgress_ = t;
@@ -305,9 +305,9 @@ void PlayerArmRush::UpdateFinisher()
 		}
 
 		Vector3 windUpEndLocal = {
-			originalPosition_.x + kWindUpArmSideR_,
+			originalPosition_.x + windUpArmSideR_,
 			originalPosition_.y,
-			originalPosition_.z + kWindUpArmRetreat_
+			originalPosition_.z + windUpArmRetreat_
 		};
 
 		Vector3 worldTargetOffset = {
@@ -341,7 +341,7 @@ void PlayerArmRush::UpdateFinisher()
 		Vector3 windUpEndLocal = {
 			originalPosition_.x,
 			originalPosition_.y,
-			originalPosition_.z + kLArmWindUpZ_
+			originalPosition_.z + lArmWindUpZ_
 		};
 
 		Vector3 worldTargetOffset = {
@@ -363,7 +363,7 @@ void PlayerArmRush::UpdateFinisher()
 		};
 	}
 
-	if (rushPhaseTimer_ >= kFinisherDuration_) {
+	if (rushPhaseTimer_ >= finisherDuration_) {
 		rushPhase_ = RushPhase::kRecover;
 		rushPhaseTimer_ = 0;
 	}
@@ -375,7 +375,7 @@ void PlayerArmRush::UpdateRecover()
 		isFinisherHitFrame_ = false;
 	}
 
-	float t = static_cast<float>(rushPhaseTimer_) / static_cast<float>(kRecoverDuration_);
+	float t = static_cast<float>(rushPhaseTimer_) / static_cast<float>(recoverDuration_);
 	if (t > 1.0f) { t = 1.0f; }
 	rushPhaseProgress_ = t;
 
@@ -391,9 +391,9 @@ void PlayerArmRush::UpdateRecover()
 	Vector3 finisherEndPos;
 	if (isRightArm_) {
 		Vector3 windUpEndLocal = {
-			originalPosition_.x + kWindUpArmSideR_,
+			originalPosition_.x + windUpArmSideR_,
 			originalPosition_.y,
-			originalPosition_.z + kWindUpArmRetreat_
+			originalPosition_.z + windUpArmRetreat_
 		};
 		Vector3 localTarget = {
 			originalPosition_.x + localTargetOffset.x,
@@ -420,7 +420,7 @@ void PlayerArmRush::UpdateRecover()
 		finisherEndPos.z + (originalPosition_.z - finisherEndPos.z) * eased
 	};
 
-	if (rushPhaseTimer_ >= kRecoverDuration_) {
+	if (rushPhaseTimer_ >= recoverDuration_) {
 		// ラッシュ全体の終了
 		isRush_ = false;
 		rushTimer_ = 0;

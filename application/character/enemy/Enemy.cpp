@@ -1,6 +1,7 @@
 #include "Enemy.h"
 
 #include "CollisionTypeIdDef.h"
+#include "UILayout.h"
 #include "Player.h"
 #include "PlayerArm.h"
 #include <ParticleEmitter.h>
@@ -40,7 +41,7 @@ void Enemy::Init()
 	if (!variables_->GroupExists(kGroupName_)) {
 		variables_->CreateGroup(kGroupName_);
 	}
-	variables_->AddItem(kGroupName_, "Max HP", static_cast<int32_t>(kMaxHP_Adjustable_));
+	variables_->AddItem(kGroupName_, "Max HP", static_cast<int32_t>(maxHP_));
 	ApplyVariables();
 
 	float size = kColliderSize_;
@@ -82,22 +83,22 @@ void Enemy::Init()
 	move_->SetTrailEmitter(trailEffect_.get());
 	move_->SetLastTrailPosition(BaseObject::GetWorldPosition());
 
-	// --- HPバー ---
+	// --- HPバー（画面右上・右端基準） ---
 	hpBarBg_ = std::make_unique<Sprite>();
 	hpBarBg_->Initialize("white1x1.png", {
-		kHpBarPosX_ + kHpBarBgPadding_,
-		kHpBarPosY_ - kHpBarBgPadding_ });
+		UILayout::kHpBarEnemyX + UILayout::kHpBarBgPadding,
+		UILayout::kHpBarTopY - UILayout::kHpBarBgPadding });
 	hpBarBg_->SetAnchorPoint({ 1.0f, 0.0f });
 	hpBarBg_->SetColor({ kHpBarBgColor_.x, kHpBarBgColor_.y, kHpBarBgColor_.z });
 	hpBarBg_->SetSize({
-		kHpBarFullWidth_ + kHpBarBgPadding_ * 2.0f,
-		kHpBarHeight_ + kHpBarBgPadding_ * 2.0f });
+		UILayout::kHpBarWidth + UILayout::kHpBarBgPadding * 2.0f,
+		UILayout::kHpBarHeight + UILayout::kHpBarBgPadding * 2.0f });
 
 	hpBar_ = std::make_unique<Sprite>();
-	hpBar_->Initialize("white1x1.png", { kHpBarPosX_, kHpBarPosY_ });
+	hpBar_->Initialize("white1x1.png", { UILayout::kHpBarEnemyX, UILayout::kHpBarTopY });
 	hpBar_->SetAnchorPoint({ 1.0f, 0.0f });
 	hpBar_->SetColor({ 1.0f, 0.0f, 0.0f });
-	hpBar_->SetSize({ kHpBarFullWidth_, kHpBarHeight_ });
+	hpBar_->SetSize({ UILayout::kHpBarWidth, UILayout::kHpBarHeight });
 
 	// --- State Pattern：初期状態を Playing に設定 ---
 	ChangeState(std::make_unique<EnemyStatePlaying>());
@@ -147,9 +148,9 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 	powerUpEffect_->Update(vp);
 
 	// HPバー更新
-	float hpRatio = static_cast<float>(HP_) / static_cast<float>(kMaxHP_);
-	float currentWidth = kHpBarFullWidth_ * hpRatio;
-	hpBar_->SetSize({ currentWidth, kHpBarHeight_ });
+	float hpRatio = static_cast<float>(HP_) / static_cast<float>(maxHP_);
+	float currentWidth = UILayout::kHpBarWidth * hpRatio;
+	hpBar_->SetSize({ currentWidth, UILayout::kHpBarHeight });
 
 	// 遠距離攻撃のビュープロジェクション更新
 	if (vp_ != nullptr && attackManager_) {
@@ -357,7 +358,7 @@ void Enemy::ImGui()
 	ImGui::Separator();
 
 	// ===== ステータス表示 =====
-	ImGui::Text("HP        : %u / %u", HP_, kMaxHP_);
+	ImGui::Text("HP        : %u / %u", HP_, maxHP_);
 	ImGui::Text("IsAlive   : %s", isAlive_ ? "true" : "false");
 	ImGui::Text("IsAttacking: %s", IsAttacking() ? "true" : "false");
 
@@ -414,8 +415,7 @@ void Enemy::ImGui()
 // =============================================================
 void Enemy::ApplyVariables()
 {
-	kMaxHP_Adjustable_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Max HP"));
-	kMaxHP_ = kMaxHP_Adjustable_;
+	maxHP_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Max HP"));
 }
 
 // =============================================================

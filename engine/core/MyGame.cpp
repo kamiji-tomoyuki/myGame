@@ -20,7 +20,7 @@ void MyGame::Initialize()
 
 	// シーンマネージャに最初のシーンをセット
 	sceneManager_->SetSceneFactory(sceneFactory_.get());
-	sceneManager_->NextSceneReservation("TITLE");
+	sceneManager_->NextSceneReservation("GAME");
 
 #ifdef _DEBUG
 	// エディタのシーンメニューに切り替え候補を登録

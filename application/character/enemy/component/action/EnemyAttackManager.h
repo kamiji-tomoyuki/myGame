@@ -102,7 +102,7 @@ private:
 
 	// 攻撃準備タイマー
 	uint32_t attackPreparationTimer_ = 0;
-	uint32_t kAttackPreparationTime_ = 180;
+	static constexpr uint32_t kAttackPreparationTime = 180;
 
 	// 攻撃範囲の閾値
 	const float kMeleeAttackRange_ = 17.0f;

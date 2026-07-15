@@ -5,6 +5,9 @@
 #include "GlobalVariables.h"
 #include "line/DrawLine3D.h"
 #include "Frame.h"
+#include "TextTextureBaker.h"
+#include "TextureManager.h"
+#include "SrvManager.h"
 #ifdef _DEBUG
 #include "EditorUI.h"
 #endif // _DEBUG
@@ -14,6 +17,7 @@
 #include "Matrix4x4.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -48,6 +52,10 @@ void DebugScene::Initialize() {
     // モーション プレビューリグ
     InitRig();
     InitRushPreview();
+
+    // テキストエディタ
+    ScanFonts();
+    InitTextEditor();
 
     // 既定姿勢（実プレイヤーの初期腕位置に合わせる）
     pose_[0] = PartPose{};                 // 体
@@ -111,6 +119,9 @@ void DebugScene::Update() {
     } else if (editorMode_ == 2) {
         // ラッシュ
         UpdateRushPreview();
+    } else if (editorMode_ == 3) {
+        // テキスト
+        UpdateTextEditor();
     } else {
         // モーション
         UpdateMotionPlayback();
@@ -315,6 +326,9 @@ void DebugScene::Draw() {
     } else if (editorMode_ == 2) {
         // ラッシュプレビュー
         DrawRushPreview();
+    } else if (editorMode_ == 3) {
+        // テキスト仮描画
+        DrawTextPreview();
     } else {
         // モーションリグ
         DrawRig();
@@ -533,6 +547,8 @@ void DebugScene::Debug() {
         ImGui::RadioButton("モーション", &editorMode_, 1);
         ImGui::SameLine();
         ImGui::RadioButton("ラッシュ", &editorMode_, 2);
+        ImGui::SameLine();
+        ImGui::RadioButton("テキスト", &editorMode_, 3);
 
         ImGui::End();
     }
@@ -541,6 +557,8 @@ void DebugScene::Debug() {
         DrawParticleUI();
     } else if (editorMode_ == 2) {
         DrawRushUI();
+    } else if (editorMode_ == 3) {
+        DrawTextUI();
     } else {
         DrawMotionUI();
     }
@@ -779,6 +797,236 @@ void DebugScene::DrawMotionUI() {
         }
         float cwSec = toSec(clip_.GetComboWindowStart());
         if (ImGui::SliderFloat("コンボ受付開始(秒)", &cwSec, 0.0f, dur, "%.3f")) { clip_.SetComboWindowStart(toNorm(cwSec)); }
+    }
+
+    ImGui::End();
+#endif // _DEBUG
+}
+
+// =============================================================
+//  テキストエディタ
+// =============================================================
+void DebugScene::ScanFonts() {
+    fontFiles_.clear();
+    try {
+        std::filesystem::path root = "resources/fonts";
+        if (std::filesystem::exists(root)) {
+            for (const auto& e : std::filesystem::directory_iterator(root)) {
+                if (!e.is_regular_file()) { continue; }
+                std::string ext = e.path().extension().string();
+                std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+                if (ext == ".ttf" || ext == ".otf") {
+                    fontFiles_.push_back(e.path().generic_string()); // "resources/fonts/xxx.ttf"
+                }
+            }
+        }
+    } catch (...) {}
+    std::sort(fontFiles_.begin(), fontFiles_.end());
+
+    // 日本語対応（PixelMplus）を既定に選んでおく
+    for (int i = 0; i < static_cast<int>(fontFiles_.size()); ++i) {
+        if (fontFiles_[i].find("Mplus") != std::string::npos || fontFiles_[i].find("mplus") != std::string::npos) {
+            textFontIndex_ = i;
+            break;
+        }
+    }
+    if (textFontIndex_ >= static_cast<int>(fontFiles_.size())) { textFontIndex_ = 0; }
+}
+
+std::string DebugScene::CurrentFontPath() const {
+    if (fontFiles_.empty()) { return "resources/fonts/PixelMplus12-Regular.ttf"; }
+    int idx = textFontIndex_;
+    if (idx < 0 || idx >= static_cast<int>(fontFiles_.size())) { idx = 0; }
+    return fontFiles_[idx];
+}
+
+std::string DebugScene::FallbackFontPath() const {
+    if (!textAutoFallback_) { return ""; }
+    const std::string current = CurrentFontPath();
+    // 日本語グリフを持つフォント（PixelMplus）を補完用に探す
+    for (const auto& f : fontFiles_) {
+        if ((f.find("Mplus") != std::string::npos || f.find("mplus") != std::string::npos) && f != current) {
+            return f;
+        }
+    }
+    return "";
+}
+
+TextRenderParams DebugScene::BuildTextParams() const {
+    TextRenderParams p;
+    p.text = textBuf_;
+    p.fontPath = CurrentFontPath();
+    p.fallbackFontPath = FallbackFontPath();
+    p.pixelSize = textSize_;
+    p.color = { textColor_[0], textColor_[1], textColor_[2], textColor_[3] };
+    p.outlineEnabled = textOutline_;
+    p.outlineColor = { textOutlineColor_[0], textOutlineColor_[1], textOutlineColor_[2], textOutlineColor_[3] };
+    p.outlineWidth = textOutlineWidth_;
+    p.lineSpacing = textLineSpacing_;
+    p.alignment = textAlign_;
+    p.padding = 6;
+    return p;
+}
+
+void DebugScene::InitTextEditor() {
+    textPreview_ = std::make_unique<TextSprite>();
+    textPreview_->Initialize(BuildTextParams(), { textPos_[0], textPos_[1] }, { 0.5f, 0.5f });
+    textPreview_->SetScale(textScale_);
+    textPreview_->SetColorMultiply({ textMul_[0], textMul_[1], textMul_[2], textMul_[3] });
+    textDirty_ = false;
+}
+
+void DebugScene::UpdateTextEditor() {
+    if (!textPreview_) { return; }
+
+    // 文字/スタイルの変更は再生成（1フレームに1回だけ）
+    if (textDirty_) {
+        textPreview_->SetParams(BuildTextParams());
+        textDirty_ = false;
+    }
+
+    // 位置・スケール・回転・乗算色は毎フレームの軽い反映
+    textPreview_->SetAnchor({ 0.5f, 0.5f });
+    textPreview_->SetPosition({ textPos_[0], textPos_[1] });
+    textPreview_->SetScale(textScale_);
+    textPreview_->SetRotation(textRotation_);
+    textPreview_->SetColorMultiply({ textMul_[0], textMul_[1], textMul_[2], textMul_[3] });
+}
+
+void DebugScene::DrawTextPreview() {
+    spCommon_->DrawCommonSetting();
+    if (textPreview_) { textPreview_->Draw(); }
+    if (textLoadedCheck_) { textLoadedCheck_->Draw(); }
+}
+
+void DebugScene::DrawTextUI() {
+#ifdef _DEBUG
+    EditorUI* editor = EditorUI::GetInstance();
+    if (!editor->PanelVisible("テキストエディタ", "テキスト")) { return; }
+
+    ImGui::Begin("Text Editor");
+
+    // ---- 文字入力 ----
+    if (ImGui::CollapsingHeader("文字", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::InputTextMultiline("##text", textBuf_, sizeof(textBuf_), ImVec2(-1.0f, 80.0f))) {
+            textDirty_ = true;
+        }
+        ImGui::TextDisabled("改行可。日本語は IME で入力できます。");
+    }
+
+    // ---- フォント ----
+    if (ImGui::CollapsingHeader("フォント", ImGuiTreeNodeFlags_DefaultOpen)) {
+        std::string curName = std::filesystem::path(CurrentFontPath()).filename().string();
+        if (ImGui::BeginCombo("フォント", curName.c_str())) {
+            for (int i = 0; i < static_cast<int>(fontFiles_.size()); ++i) {
+                std::string name = std::filesystem::path(fontFiles_[i]).filename().string();
+                bool selected = (i == textFontIndex_);
+                if (ImGui::Selectable(name.c_str(), selected)) {
+                    textFontIndex_ = i;
+                    textDirty_ = true;
+                }
+                if (selected) { ImGui::SetItemDefaultFocus(); }
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::SameLine();
+        if (ImGui::SmallButton("再スキャン")) { ScanFonts(); textDirty_ = true; }
+        if (ImGui::Checkbox("日本語をフォールバック補完 (PixelMplus)", &textAutoFallback_)) { textDirty_ = true; }
+    }
+
+    // ---- スタイル ----
+    if (ImGui::CollapsingHeader("スタイル", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::SliderFloat("サイズ(px)", &textSize_, 8.0f, 300.0f, "%.0f")) { textDirty_ = true; }
+        if (ImGui::ColorEdit4("塗り色", textColor_)) { textDirty_ = true; }
+
+        if (ImGui::Checkbox("アウトライン", &textOutline_)) { textDirty_ = true; }
+        if (textOutline_) {
+            if (ImGui::ColorEdit4("アウトライン色", textOutlineColor_)) { textDirty_ = true; }
+            if (ImGui::SliderFloat("アウトライン太さ(px)", &textOutlineWidth_, 0.0f, 20.0f, "%.1f")) { textDirty_ = true; }
+        }
+
+        const char* aligns[] = { "左", "中央", "右" };
+        if (ImGui::Combo("揃え", &textAlign_, aligns, IM_ARRAYSIZE(aligns))) { textDirty_ = true; }
+        if (ImGui::SliderFloat("行間", &textLineSpacing_, 0.5f, 2.5f, "%.2f")) { textDirty_ = true; }
+    }
+
+    // ---- シーン配置（再生成しない軽い操作） ----
+    if (ImGui::CollapsingHeader("シーン配置", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::DragFloat2("位置(px)", textPos_, 1.0f);
+        ImGui::SliderFloat("スケール", &textScale_, 0.1f, 4.0f, "%.2f");
+        ImGui::SliderFloat("回転(rad)", &textRotation_, -3.14159f, 3.14159f, "%.2f");
+        ImGui::ColorEdit4("乗算色", textMul_);
+        ImGui::TextDisabled("位置/スケール/回転/乗算色はプログラムからも同様に変更できます。");
+    }
+
+    // ---- プレビュー画像 ----
+    if (textPreview_ && textPreview_->IsValid() &&
+        TextureManager::GetInstance()->HasTexture(textPreview_->GetTextureKey())) {
+        ImGui::Separator();
+        ImGui::TextUnformatted("プレビュー");
+        Vector2 tex = textPreview_->GetSprite()->GetTexSize();
+        float w = tex.x, h = tex.y;
+        const float maxW = 360.0f;
+        if (w > maxW && w > 0.0f) { h *= maxW / w; w = maxW; }
+        uint32_t idx = textPreview_->GetSrvIndex();
+        ImTextureID tid = static_cast<ImTextureID>(SrvManager::GetInstance()->GetGPUDescriptorHandle(idx).ptr);
+        ImGui::Image(tid, ImVec2(w, h));
+        ImGui::TextDisabled("生成サイズ: %d x %d px", static_cast<int>(tex.x), static_cast<int>(tex.y));
+    }
+
+    // ---- 保存 / 読み込み ----
+    if (ImGui::CollapsingHeader("保存 / 出力", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::InputText("ファイル名", textOutName_, sizeof(textOutName_));
+        ImGui::TextDisabled("resources/images/ に PNG として保存されます（拡張子不要）。");
+
+        if (ImGui::Button("PNG 保存")) {
+            std::string name = textOutName_;
+            // 末尾の .png は取り除く
+            if (name.size() >= 4) {
+                std::string tail = name.substr(name.size() - 4);
+                std::transform(tail.begin(), tail.end(), tail.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+                if (tail == ".png") { name = name.substr(0, name.size() - 4); }
+            }
+            if (name.empty()) { name = "myText"; }
+            std::string outPath = "resources/images/" + name + ".png";
+            if (TextTextureBaker::BakeToPng(BuildTextParams(), outPath)) {
+                textLastSaved_ = outPath;
+                std::string msg = outPath + " を保存しました。\nスプライトと同じ要領で読み込めます。";
+                MessageBoxA(nullptr, msg.c_str(), "Text Editor", 0);
+            } else {
+                MessageBoxA(nullptr, "保存に失敗しました（文字が空か、フォント読込に失敗）。", "Text Editor", 0);
+            }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("保存画像をスプライトで確認")) {
+            // 通常スプライトとして読み込み、シーンに表示（保存→読込の往復確認）。
+            if (!textLastSaved_.empty()) {
+                std::string fileName = std::filesystem::path(textLastSaved_).filename().string();
+                textLoadedCheck_ = std::make_unique<Sprite>();
+                textLoadedCheck_->Initialize(fileName, { textPos_[0], textPos_[1] + 180.0f }, { 1,1,1,1 }, { 0.5f, 0.5f });
+            }
+        }
+        if (textLoadedCheck_) {
+            ImGui::SameLine();
+            if (ImGui::SmallButton("確認を消す")) { textLoadedCheck_.reset(); }
+        }
+        if (!textLastSaved_.empty()) {
+            ImGui::TextDisabled("保存済み: %s", textLastSaved_.c_str());
+        }
+    }
+
+    // ---- 使い方メモ ----
+    if (ImGui::CollapsingHeader("プログラムからの使い方")) {
+        ImGui::TextWrapped(
+            "TextSprite label;\n"
+            "TextRenderParams p; p.text = \"SCORE\"; p.pixelSize = 48; p.color = {1,1,0,1};\n"
+            "label.Initialize(p, {100, 40});\n"
+            "label.SetText(\"SCORE 120\");   // 文字を変更\n"
+            "label.SetColorMultiply({1,0,0,1}); // 色を変更\n"
+            "label.SetPosition({200, 40});  // 位置を変更\n"
+            "label.Draw();\n\n"
+            "保存済み PNG を使う場合:\n"
+            "label.InitializeFromFile(\"myText.png\", {100, 40});");
     }
 
     ImGui::End();

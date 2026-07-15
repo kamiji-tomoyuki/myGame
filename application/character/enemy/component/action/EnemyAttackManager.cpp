@@ -56,9 +56,9 @@ void EnemyAttackManager::Update(Enemy* enemy, Player* player)
 	if (currentAttackType_ == AttackType::kNone) {
 		attackPreparationTimer_++;
 
-		uint32_t effectivePrepTime = kAttackPreparationTime_;
+		uint32_t effectivePrepTime = kAttackPreparationTime;
 		if (enemy->GetIsPhase2()) {
-			effectivePrepTime = static_cast<uint32_t>(kAttackPreparationTime_ * 0.7f);
+			effectivePrepTime = static_cast<uint32_t>(kAttackPreparationTime * 0.7f);
 		}
 
 		if (attackPreparationTimer_ >= effectivePrepTime) {

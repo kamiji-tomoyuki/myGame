@@ -209,6 +209,8 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="engine\3d\model\Object3dCommon.cpp" />
     <ClCompile Include="engine\2d\Sprite.cpp" />
     <ClCompile Include="engine\2d\SpriteCommon.cpp" />
+    <ClCompile Include="engine\2d\TextTextureBaker.cpp" />
+    <ClCompile Include="engine\2d\TextSprite.cpp" />
     <ClCompile Include="engine\utility\graphics\PipeLineManager.cpp" />
     <ClCompile Include="engine\utility\graphics\SrvManager.cpp" />
     <ClCompile Include="engine\utility\scene\SceneFactory.cpp" />
@@ -294,6 +296,7 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="application\character\player\state\PlayerStatePlaying.h" />
     <ClInclude Include="application\field\StageManager.h" />
     <ClInclude Include="application\other\CollisionTypeIdDef.h" />
+    <ClInclude Include="application\other\UILayout.h" />
     <ClInclude Include="application\scene\debugScene\DebugScene.h" />
     <ClInclude Include="application\scene\gameScene\Pause\Pause.h" />
     <ClInclude Include="application\other\temp\TempObj.h" />
@@ -360,6 +363,8 @@ copy "$(WindowsSdkDIr)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="engine\3d\model\Object3dCommon.h" />
     <ClInclude Include="engine\2d\Sprite.h" />
     <ClInclude Include="engine\2d\SpriteCommon.h" />
+    <ClInclude Include="engine\2d\TextTextureBaker.h" />
+    <ClInclude Include="engine\2d\TextSprite.h" />
     <ClInclude Include="engine\utility\graphics\PipeLineManager.h" />
     <ClInclude Include="engine\utility\graphics\SrvManager.h" />
     <ClInclude Include="engine\utility\scene\AbstractSceneFactory.h" />

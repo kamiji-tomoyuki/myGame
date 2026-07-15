@@ -78,14 +78,14 @@ private:
 	// -------------------------------------------------------
 	// GlobalVariables で調整可能な変数（constexpr から昇格）
 	// -------------------------------------------------------
-	uint32_t kPreparationTime_ = 60;    // 予備動作時間
-	uint32_t kChargingTime_ = 60;    // 突進時間
-	uint32_t kRecoveryTime_ = 20;    // 回復時間
-	uint32_t kNextChargeDelay_ = 30;    // 次の突進までの待機時間
-	float    kChargeSpeed_ = 0.3f;  // 突進速度
-	float    kPreparationTiltAngle_ = 0.5f;  // 予備動作の傾き角度
-	float    kMeleeHitRadius_ = 1.5f;  // 突進の当たり判定半径
-	int32_t  kMeleeDamage_ = 100;   // 突進ダメージ
+	uint32_t preparationTime_ = 60;    // 予備動作時間
+	uint32_t chargingTime_ = 60;    // 突進時間
+	uint32_t recoveryTime_ = 20;    // 回復時間
+	uint32_t nextChargeDelay_ = 30;    // 次の突進までの待機時間
+	float    chargeSpeed_ = 0.3f;  // 突進速度
+	float    preparationTiltAngle_ = 0.5f;  // 予備動作の傾き角度
+	float    meleeHitRadius_ = 1.5f;  // 突進の当たり判定半径
+	int32_t  meleeDamage_ = 100;   // 突進ダメージ
 
 	bool hitRegistered_ = false;
 

@@ -62,21 +62,21 @@ void GameScene::Initialize()
 
 	// ===== スプライト =====
 	UI_ = std::make_unique<Sprite>();
-	UI_->Initialize("gameUI.png", { 40.0f, 530.0f });
+	UI_->Initialize("gameUI.png", { kOperationUIPosX, kOperationUIPosY });
 
-	// 攻撃UI初期化
+	// 攻撃UI初期化（操作説明UIに重ねて表示する）
 	attackUI_Right_ = std::make_unique<Sprite>();
-	attackUI_Right_->Initialize("gameUIRight.png", { 40.0f, 530.0f });
+	attackUI_Right_->Initialize("gameUIRight.png", { kOperationUIPosX, kOperationUIPosY });
 
 	attackUI_Left_ = std::make_unique<Sprite>();
-	attackUI_Left_->Initialize("gameUILeft.png", { 40.0f, 530.0f });
+	attackUI_Left_->Initialize("gameUILeft.png", { kOperationUIPosX, kOperationUIPosY });
 
 	attackUI_Rush_ = std::make_unique<Sprite>();
-	attackUI_Rush_->Initialize("gameUIRush.png", { 40.0f, 530.0f });
+	attackUI_Rush_->Initialize("gameUIRush.png", { kOperationUIPosX, kOperationUIPosY });
 
 	// ポーズ表示用UI初期化
 	UIPause_ = std::make_unique<Sprite>();
-	UIPause_->Initialize("gameUIPause.png", { 40.0f, 60.0f });
+	UIPause_->Initialize("gameUIPause.png", { kPauseUIPosX, kPauseUIPosY });
 	UIPause_->SetAlpha(1.0f); // 初期状態から表示
 
 	// ===== ポーズ管理クラスの初期化 =====
