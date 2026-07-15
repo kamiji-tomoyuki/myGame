@@ -33,7 +33,7 @@ public:
 	/// <param name="currentTranslation">現在の腕の位置（ローカル座標）</param>
 	/// <param name="timerOffset">
 	///   rushTimer_ の初期値。交互パンチを実現するため、
-	///   左右の腕に異なるオフセットを渡す（例：右腕=0, 左腕=kRushInterval_/2）。
+	///   左右の腕に異なるオフセットを渡す（例：右腕=0, 左腕=rushInterval_/2）。
 	/// </param>
 	void StartRush(bool isRightArm, const Vector3& currentTranslation,
 		uint32_t timerOffset = 0);
@@ -53,6 +53,10 @@ public:
 	bool       IsRapidPunchDone()      const { return rapidPunchDone_; }
 	/// <summary>連打完了フラグを消費（フィニッシャー起動は1ラッシュ1回に限定するため）</summary>
 	void       ClearRapidPunchDone() { rapidPunchDone_ = false; }
+	/// <summary>溜め(ウィンドアップ)中か。体の後傾判定に使う。</summary>
+	bool       IsCharging()            const { return isCharging_; }
+	/// <summary>溜めの進捗[0,1]</summary>
+	float      GetChargeProgress()     const { float p = (rushChargeDuration_ > 0) ? static_cast<float>(chargeTimer_) / static_cast<float>(rushChargeDuration_) : 1.0f; return p > 1.0f ? 1.0f : p; }
 	RushPhase  GetRushPhase()          const { return rushPhase_; }
 	float      GetFinisherProgress()   const { return finisherProgress_; }
 	float      GetRushPhaseProgress()  const { return rushPhaseProgress_; }
@@ -82,14 +86,15 @@ public:
 
 	/// <summary>
 	/// 交互パンチ用：連打フェーズが次のパンチを出せる状態かどうか。
-	/// rushTimer_ が kRushInterval_ の倍数になるタイミングを外部から確認するために使う。
+	/// rushTimer_ が rushInterval_ の倍数になるタイミングを外部から確認するために使う。
 	/// </summary>
-	uint32_t GetRushInterval() const { return kRushInterval_; }
+	uint32_t GetRushInterval() const { return rushInterval_; }
 
 #pragma endregion
 
 private:
 
+	void UpdateCharge();     // 溜め（体後傾＋腕を後ろへ引く）
 	void UpdateRapidPunch();
 	void UpdateWindUp();
 	void UpdateFinisher();
@@ -104,6 +109,9 @@ private:
 	bool      rapidPunchDone_ = false; // 連打完了フラグ（フィニッシャーへの受け渡し用）
 	bool      isRightArm_ = true;
 	RushPhase rushPhase_ = RushPhase::kRapidPunch;
+
+	bool      isCharging_ = false; // 溜め(ウィンドアップ)中＝連打の前に体を後傾＋腕を引く
+	uint32_t  chargeTimer_ = 0;
 
 	Vector3   originalPosition_ = {};
 	Vector3   targetPosition_ = {};
@@ -133,20 +141,23 @@ private:
 	// GlobalVariables で調整可能な変数（constexpr から昇格）
 	// -------------------------------------------------------
 	// 連打フェーズ
-	uint32_t kRushDuration_ = 80;
-	uint32_t kRushInterval_ = 8;
-	uint32_t kRushAttackDuration_ = 12;
+	uint32_t rushDuration_ = 80;
+	uint32_t rushInterval_ = 8;
+	uint32_t rushAttackDuration_ = 12;
+	uint32_t rushChargeDuration_ = 16; // 溜めフレーム数
 	// フィニッシャーフェーズ
-	uint32_t kWindUpDuration_ = 22;
-	uint32_t kFinisherDuration_ = 28;
-	uint32_t kRecoverDuration_ = 25;
+	uint32_t windUpDuration_ = 22;
+	uint32_t finisherDuration_ = 28;
+	uint32_t recoverDuration_ = 25;
 	// 腕移動量
-	float kRushDistance_ = 1.5f;
-	float kWindUpArmRetreat_ = -1.6f;
-	float kWindUpArmSideR_ = 0.8f;
-	float kFinisherArmAdvance_ = 4.0f;
-	float kLArmWindUpZ_ = -0.6f;
-	float kLArmFinisherZ_ = -1.0f;
+	float rushDistance_ = 1.5f;
+	float chargeArmPull_ = 0.9f;  // 溜め中に腕を後ろ(-Z)へ引く量
+	float chargeArmLift_ = 0.25f; // 溜め中に腕を少し上げる量（下がらないように）
+	float windUpArmRetreat_ = -1.6f;
+	float windUpArmSideR_ = 0.8f;
+	float finisherArmAdvance_ = 4.0f;
+	float lArmWindUpZ_ = -0.6f;
+	float lArmFinisherZ_ = -1.0f;
 
 	// --- 定数 ---
 	/// 連続パンチの左右振り幅の基準値

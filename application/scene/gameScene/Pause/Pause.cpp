@@ -1,4 +1,5 @@
 #include "Pause.h"
+#include "UILayout.h"
 #include <cmath>
 
 using namespace Engine;
@@ -10,42 +11,44 @@ void Pause::Initialize()
 	// 背景（半透明の黒）
 	pauseBackground_ = std::make_unique<Sprite>();
 	pauseBackground_->Initialize("white1x1.png", { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.7f }, { 0.0f, 0.0f }); // 左上基準
-	pauseBackground_->SetSize({ 1280.0f, 720.0f }); // 画面全体
+	pauseBackground_->SetSize({ UILayout::kScreenWidth, UILayout::kScreenHeight }); // 画面全体
 
 	// PAUSEロゴ（画面中央上部）
 	pauseTitle_ = std::make_unique<Sprite>();
-	pauseTitle_->Initialize("pauseTitle.png", { 100.0f, 60.0f });
+	pauseTitle_->Initialize("pauseTitle.png", { kTitlePosX_, kTitlePosY_ });
 
 	// 再生マーク（PAUSEロゴと同じ位置）
 	pausePlayIcon_ = std::make_unique<Sprite>();
-	pausePlayIcon_->Initialize("pausePlay.png", { 100.0f, 60.0f });
+	pausePlayIcon_->Initialize("pausePlay.png", { kTitlePosX_, kTitlePosY_ });
 	pausePlayIcon_->SetAlpha(0.0f); // 初期状態では非表示
 
 	// メニュー項目（画面中央）
 	pauseResume_ = std::make_unique<Sprite>();
-	pauseResume_->Initialize("pauseResume.png", { 640.0f, 300.0f });
+	pauseResume_->Initialize("pauseResume.png", { UILayout::kScreenCenterX, kResumeBaseY_ });
 	pauseResume_->SetAnchorPoint({ 0.5f, 0.5f });
 
 	pauseRetry_ = std::make_unique<Sprite>();
-	pauseRetry_->Initialize("pauseRetry.png", { 640.0f, 380.0f });
+	pauseRetry_->Initialize("pauseRetry.png", { UILayout::kScreenCenterX, kRetryBaseY_ });
 	pauseRetry_->SetAnchorPoint({ 0.5f, 0.5f });
 
 	pauseToTitle_ = std::make_unique<Sprite>();
-	pauseToTitle_->Initialize("pauseToTitle.png", { 640.0f, 460.0f });
+	pauseToTitle_->Initialize("pauseToTitle.png", { UILayout::kScreenCenterX, kToTitleBaseY_ });
 	pauseToTitle_->SetAnchorPoint({ 0.5f, 0.5f });
 
-	// 矢印スプライト初期化
+	// 矢印スプライト初期化（実際の位置は Draw で選択項目に追従させる）
 	pauseArrowUp_ = std::make_unique<Sprite>();
-	pauseArrowUp_->Initialize("ArrowUp.png", { 640.0f, 200.0f });
+	pauseArrowUp_->Initialize("ArrowUp.png", { UILayout::kScreenCenterX, kResumeBaseY_ - kArrowSpacing_ });
 	pauseArrowUp_->SetAnchorPoint({ 0.5f, 0.5f });
 
 	pauseArrowDown_ = std::make_unique<Sprite>();
-	pauseArrowDown_->Initialize("ArrowDown.png", { 640.0f, 300.0f });
+	pauseArrowDown_->Initialize("ArrowDown.png", { UILayout::kScreenCenterX, kResumeBaseY_ + kArrowSpacing_ });
 	pauseArrowDown_->SetAnchorPoint({ 0.5f, 0.5f });
 
-	// SPACEロゴ
+	// SPACEロゴ（画面右下基準）
 	pauseSPACE_ = std::make_unique<Sprite>();
-	pauseSPACE_->Initialize("pauseSPACE.png", { 1180.0f, 660.0f });
+	pauseSPACE_->Initialize("pauseSPACE.png", {
+		UILayout::kScreenWidth - kSpaceMarginX_,
+		UILayout::kScreenHeight - kSpaceMarginY_ });
 	pauseSPACE_->SetAnchorPoint({ 1.0f, 1.0f });
 
 	// ポーズ状態初期化
@@ -159,7 +162,7 @@ void Pause::Draw()
 		pauseResume_->SetColor({ 1.0f, 1.0f, 1.0f });
 		pauseResume_->SetAlpha(1.0f);
 	}
-	pauseResume_->SetPosition({ 640.0f, resumeCurrentY_ });
+	pauseResume_->SetPosition({ UILayout::kScreenCenterX, resumeCurrentY_ });
 	pauseResume_->Draw();
 
 	// --- 再挑戦 ---
@@ -171,7 +174,7 @@ void Pause::Draw()
 		pauseRetry_->SetColor({ 1.0f, 1.0f, 1.0f });
 		pauseRetry_->SetAlpha(1.0f);
 	}
-	pauseRetry_->SetPosition({ 640.0f, retryCurrentY_ });
+	pauseRetry_->SetPosition({ UILayout::kScreenCenterX, retryCurrentY_ });
 	pauseRetry_->Draw();
 
 	// --- タイトルへ戻る ---
@@ -183,19 +186,16 @@ void Pause::Draw()
 		pauseToTitle_->SetColor({ 1.0f, 1.0f, 1.0f });
 		pauseToTitle_->SetAlpha(1.0f);
 	}
-	pauseToTitle_->SetPosition({ 640.0f, toTitleCurrentY_ });
+	pauseToTitle_->SetPosition({ UILayout::kScreenCenterX, toTitleCurrentY_ });
 	pauseToTitle_->Draw();
 
 	// --- 矢印の描画（選択中の項目の上下） ---
-	const float arrowX = 640.0f; // 画面中央
-	const float arrowSpacing = 80.0f; // 選択項目から矢印までの距離
-
 	// 上矢印
-	pauseArrowUp_->SetPosition({ arrowX, selectedY - arrowSpacing + arrowOffset });
+	pauseArrowUp_->SetPosition({ UILayout::kScreenCenterX, selectedY - kArrowSpacing_ + arrowOffset });
 	pauseArrowUp_->Draw();
 
 	// 下矢印
-	pauseArrowDown_->SetPosition({ arrowX, selectedY + arrowSpacing - arrowOffset });
+	pauseArrowDown_->SetPosition({ UILayout::kScreenCenterX, selectedY + kArrowSpacing_ - arrowOffset });
 	pauseArrowDown_->Draw();
 }
 

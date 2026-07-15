@@ -61,7 +61,7 @@ private:
     int   comboProtectTimer_ = 0;
 
     // GlobalVariables で調整可能な変数
-    int kComboProtectDuration_ = 25;
+    int comboProtectDuration_ = 25;
 
     GlobalVariables* variables_ = nullptr;
     static const std::string kGroupName_;

@@ -38,6 +38,9 @@ std::unique_ptr<IEnemyState> EnemyStatePlaying::Update(Enemy* enemy)
 	// ラッシュ状態チェック
 	hitReaction->CheckPlayerRushStatus(enemy);
 
+	// 連続ヒット対策：一定連続で被弾したら攻撃を中断してプレイヤーを押し返す
+	hitReaction->UpdateComboRepel(enemy);
+
 	// ノックバック中は専用更新（スタン中より優先して即座に開始させる）
 	if (hitReaction->IsBeingKnockedBack()) {
 		hitReaction->UpdateKnockback(enemy);

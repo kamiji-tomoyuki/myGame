@@ -4,6 +4,7 @@
 #include "Player.h"
 #include "PlayerAttack.h"
 #include <Enemy.h>
+#include <cmath>
 
 // =============================================================
 //  関数ポインタテーブルの定義
@@ -82,13 +83,22 @@ bool PlayerArm::UpdateAttackBehavior()
 bool PlayerArm::UpdateRushBehavior()
 {
     float bodyRotY = 0.0f;
+    float bodyPitch = 0.0f;
     if (transform_.parent_ != nullptr) {
         bodyRotY = transform_.parent_->rotation_.y;
+        bodyPitch = transform_.parent_->rotation_.x; // ラッシュ中の体の前後傾(X)
     }
 
     bool finished = rush_->Update(bodyRotY);
     transform_.translation_ = rush_->GetCurrentTranslation();
     transform_.rotation_ = rush_->GetCurrentRotation();
+
+    if (!finished) {
+        // 体の傾き(親のX回転)で腕が下がらないよう、腕を逆ピッチ＋Yで打ち消して水平を保つ。
+        //   （溜め=後傾/攻撃=前傾どちらでも腕は元の高さ・向きを維持する）
+        transform_.rotation_.x -= bodyPitch;
+        transform_.translation_.y += transform_.translation_.z * std::sin(bodyPitch);
+    }
 
     if (finished) {
         transform_.rotation_ = { 0.0f, 0.0f, 0.0f };

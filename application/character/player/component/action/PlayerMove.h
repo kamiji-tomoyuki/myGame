@@ -63,9 +63,9 @@ private:
 
 	StageManager* stageManager_ = nullptr;
 
-	float kAcceleration_ = 0.1f;
-	float kMaxSpeed_ = 0.1f;
-	float kRotateAcceleration_ = 0.1f;
+	static constexpr float kAcceleration = 0.1f;
+	static constexpr float kMaxSpeed = 0.1f;
+	static constexpr float kRotateAcceleration = 0.1f;
 
 	static constexpr float kFootOffsetY_ = -0.8f;
 };

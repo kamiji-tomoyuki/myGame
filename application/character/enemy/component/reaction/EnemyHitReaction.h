@@ -33,36 +33,52 @@ public:
 	/// <summary>ノックバック終了</summary>
 	void EndKnockback(Enemy* enemy);
 
-	/// <summary>被弾時の揺れを開始</summary>
+	/// <summary>被弾時：赤フラッシュ開始＋連続ヒットカウント加算</summary>
 	void OnHit();
 
-	/// <summary>揺れの更新</summary>
-	void UpdateWobble();
+	/// <summary>赤フラッシュの更新（毎フレーム）</summary>
+	void UpdateFlash();
 
-	/// <summary>被弾リアクション（揺れ・スタン・ノックバック）を全てリセットする</summary>
+	/// <summary>連続ヒット対策：一定連続で被弾したら攻撃を中断してプレイヤーを押し返す。
+	///          EnemyStatePlaying から毎フレーム呼ぶ。</summary>
+	void UpdateComboRepel(Enemy* enemy);
+
+	/// <summary>被弾リアクション（フラッシュ・スタン・ノックバック・連続ヒット）を全てリセットする</summary>
 	void Reset(Enemy* enemy);
 
 	// --- ゲッター ---
-	bool IsStunned()          const { return isRushStunned_; }
-	bool IsBeingKnockedBack() const { return isBeingRushed_; }
-	bool IsWobbling()         const { return isWobbling_; }
-	Vector3 GetWobbleRotation() const { return wobbleRotation_; }
+	bool  IsStunned()          const { return isRushStunned_; }
+	bool  IsBeingKnockedBack() const { return isBeingRushed_; }
+	bool  IsFlashing()         const { return isFlashing_; }
+	/// <summary>フラッシュ強度[0,1]（1=最も赤い）</summary>
+	float GetFlashIntensity()  const { return (kFlashDuration_ > 0) ? static_cast<float>(flashTimer_) / static_cast<float>(kFlashDuration_) : 0.0f; }
 
 	private:
+	/// <summary>連続ヒット閾値に達したときの押し返し発動</summary>
+	void DoRepel(Enemy* enemy, Player* player);
+
 	// スタン
 	bool  isRushStunned_ = false;
 	int   rushStunTimer_ = 0;
 	const int kRushStunDuration_ = 18;
 	const int kFinalHitStunMultiplier_ = 3;     // ファイナルヒット時のスタン時間倍率
 
-	// 被弾リアクション（よろめき）
-	bool    isWobbling_ = false;
-	int     wobbleTimer_ = 0;
-	float   wobblePhase_ = 0.0f;
-	Vector3 wobbleRotation_ = { 0.0f, 0.0f, 0.0f };
-	const int kWobbleDuration_ = 10;
-	const float kWobbleMaxAngle_ = 0.25f; // 少し強めに
-	const float kWobbleFrequency_ = 1.2f;  // 速めに
+	// 被弾リアクション（赤フラッシュ）
+	bool  isFlashing_ = false;
+	int   flashTimer_ = 0;
+	const int kFlashDuration_ = 8; // 赤フラッシュのフレーム数
+
+	// 連続ヒット対策のノックバック（プレイヤーを押し返して距離をとらせる）
+	int     consecutiveHits_ = 0;
+	int     hitWindow_ = 0;       // 0でリセット（この猶予内の連続ヒットを数える）
+	int     repelCooldown_ = 0;   // 再発動までのクールダウン
+	int     repelPushTimer_ = 0;  // プレイヤー押し出しの残りフレーム
+	Vector3 repelDir_ = { 0.0f, 0.0f, -1.0f };
+	const int   kComboRepelThreshold_ = 6;   // 何連続ヒットで発動するか（連続攻撃を受け続けたら押し返す）
+	const int   kHitWindowFrames_ = 120;     // 連続ヒットの猶予（無ヒットでリセット。ラッシュ+αを跨げる長さ）
+	const int   kRepelCooldownFrames_ = 120; // 発動後のクールダウン
+	const int   kRepelPushFrames_ = 14;      // 押し出し継続フレーム
+	const float kRepelPushSpeed_ = 0.55f;    // 1フレームあたりの押し出し量
 
 	// ノックバック
 	bool     isBeingRushed_ = false;

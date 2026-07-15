@@ -3,6 +3,7 @@
 #include "WorldTransform.h"
 #include "ViewProjection.h"
 #include "GlobalVariables.h"
+#include "ObjColor.h"
 #include <Sprite.h>
 #include <ParticleEmitter.h>
 
@@ -76,7 +77,7 @@ public:
 	uint32_t         GetSerialNumber()    const { return serialNumber_; }
 	static uint32_t  GetNextSerialNumber() { return nextSerialNumber_; }
 	uint32_t         GetHP()              const { return HP_; }
-	uint32_t         GetMaxHP()           const { return kMaxHP_; }
+	uint32_t         GetMaxHP()           const { return maxHP_; }
 	bool             GetIsAlive()         const { return isAlive_; }
 	bool             GetIsPhase2()        const { return isPhase2_; }
 	bool             GetIsInvincible()    const { return isInvincible_; }
@@ -122,6 +123,7 @@ private:
 
 	// --- モデル ---
 	std::unique_ptr<Object3d> obj3d_;
+	ObjColor                  flashColor_; // 被弾時の赤フラッシュ用カラー
 
 	// --- 攻撃管理 ---
 	std::unique_ptr<EnemyAttackManager> attackManager_;
@@ -149,20 +151,18 @@ private:
 	// --- デバッグ用一時停止 ---
 	bool isPaused_ = false;
 
-	uint32_t kMaxHP_ = 1000;
-	uint32_t HP_ = kMaxHP_;
+	// 最大HP（GlobalVariables から ApplyVariables で上書きされる）
+	uint32_t maxHP_ = 1000;
+	uint32_t HP_ = maxHP_;
 
 	bool isStart_ = false;
 
 	// 元の回転（ノックバック後の戻し基準）
 	Vector3 originalRotation_;
 
-	// --- HPバー ---
+	// --- HPバー（位置・サイズは UILayout を参照） ---
 	std::unique_ptr<Sprite> hpBarBg_;
 	std::unique_ptr<Sprite> hpBar_;
-	static constexpr float kHpBarFullWidth_ = 350.0f;
-	static constexpr float kHpBarHeight_ = 40.0f;
-	static constexpr float kHpBarBgPadding_ = 4.0f;
 
 	// --- シリアルナンバー ---
 	uint32_t        serialNumber_ = 0;
@@ -172,9 +172,6 @@ private:
 	GlobalVariables* variables_ = nullptr;
 	static const std::string kGroupName_;
 
-	// GlobalVariables で調整可能な変数
-	uint32_t kMaxHP_Adjustable_ = 1000; // 最大HP（調整用）
-
 	void ApplyVariables();
 
 	// --- 初期化パラメータ ---
@@ -182,9 +179,7 @@ private:
 	const float   kColliderSize_ = 2.0f;
 	const Vector3 kModelInitialRotation_ = { 0.0f, 1.57f * 2.0f, 0.0f };
 
-	// --- HPバー UI座標 ---
-	const float kHpBarPosX_ = 1240.0f;
-	const float kHpBarPosY_ = 150.0f;
+	// --- HPバー ---
 	const Vector3 kHpBarBgColor_ = { 0.2f, 0.2f, 0.2f };
 
 	// --- 衝突処理パラメータ ---

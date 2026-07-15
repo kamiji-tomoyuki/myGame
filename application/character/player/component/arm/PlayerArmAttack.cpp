@@ -16,12 +16,12 @@ PlayerArmAttack::PlayerArmAttack()
 	}
 
 	// 攻撃モーション
-	variables_->AddItem(kGroupName_, "Attack Duration", static_cast<int32_t>(kAttackDuration_));
-	variables_->AddItem(kGroupName_, "Combo Window", static_cast<int32_t>(kComboWindow_));
+	variables_->AddItem(kGroupName_, "Attack Duration", static_cast<int32_t>(attackDuration_));
+	variables_->AddItem(kGroupName_, "Combo Window", static_cast<int32_t>(comboWindow_));
 	// 腕移動量
-	variables_->AddItem(kGroupName_, "Attack Distance", kAttackDistance_);
-	variables_->AddItem(kGroupName_, "Right Punch Offset X", kRightPunchOffsetX_);
-	variables_->AddItem(kGroupName_, "Left Punch Offset X", kLeftPunchOffsetX_);
+	variables_->AddItem(kGroupName_, "Attack Distance", attackDistance_);
+	variables_->AddItem(kGroupName_, "Right Punch Offset X", rightPunchOffsetX_);
+	variables_->AddItem(kGroupName_, "Left Punch Offset X", leftPunchOffsetX_);
 	// ダメージ
 	variables_->AddItem(kGroupName_, "Attack Damage", static_cast<int32_t>(attackDamage_));
 }
@@ -40,22 +40,22 @@ void PlayerArmAttack::StartAttack(AttackType attackType, bool isRightArm, const 
 	hasHitThisAttack_ = false;	// ヒットフラグをリセット
 
 	if (attackType == AttackType::kRightPunch) {
-		comboTimer_ = kComboWindow_;
+		comboTimer_ = comboWindow_;
 		comboCount_ = 1;
 	}
 	else if (attackType == AttackType::kLeftPunch) {
-		comboTimer_ = kComboWindow_;
+		comboTimer_ = comboWindow_;
 		comboCount_ = 2;
 	}
 
-	Vector3 attackOffset = { 0.0f, 0.0f, kAttackDistance_ };
+	Vector3 attackOffset = { 0.0f, 0.0f, attackDistance_ };
 
 	switch (attackType) {
 	case AttackType::kRightPunch:
-		attackOffset.x += kRightPunchOffsetX_;
+		attackOffset.x += rightPunchOffsetX_;
 		break;
 	case AttackType::kLeftPunch:
-		attackOffset.x += kLeftPunchOffsetX_;
+		attackOffset.x += leftPunchOffsetX_;
 		break;
 	default:
 		break;
@@ -88,7 +88,7 @@ bool PlayerArmAttack::Update()
 	if (!isAttack_) { return false; }
 
 	attackTimer_++;
-	attackProgress_ = static_cast<float>(attackTimer_) / static_cast<float>(kAttackDuration_);
+	attackProgress_ = static_cast<float>(attackTimer_) / static_cast<float>(attackDuration_);
 	if (attackProgress_ >= 1.0f) { attackProgress_ = 1.0f; }
 
 	float easedProgress = 1.0f - (1.0f - attackProgress_) * (1.0f - attackProgress_);
@@ -102,7 +102,7 @@ bool PlayerArmAttack::Update()
 		originalPosition_.z + (targetPosition_.z - originalPosition_.z) * easedProgress
 	};
 
-	if (attackTimer_ >= kAttackDuration_) {
+	if (attackTimer_ >= attackDuration_) {
 		lastAttackType_ = currentAttackType_;
 		currentAttackType_ = AttackType::kNone;
 		isAttack_ = false;
@@ -134,10 +134,10 @@ void PlayerArmAttack::UpdateComboTimer()
 // =============================================================
 void PlayerArmAttack::ApplyVariables()
 {
-	kAttackDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Attack Duration"));
-	kComboWindow_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Combo Window"));
-	kAttackDistance_ = variables_->GetFloatValue(kGroupName_, "Attack Distance");
-	kRightPunchOffsetX_ = variables_->GetFloatValue(kGroupName_, "Right Punch Offset X");
-	kLeftPunchOffsetX_ = variables_->GetFloatValue(kGroupName_, "Left Punch Offset X");
+	attackDuration_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Attack Duration"));
+	comboWindow_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Combo Window"));
+	attackDistance_ = variables_->GetFloatValue(kGroupName_, "Attack Distance");
+	rightPunchOffsetX_ = variables_->GetFloatValue(kGroupName_, "Right Punch Offset X");
+	leftPunchOffsetX_ = variables_->GetFloatValue(kGroupName_, "Left Punch Offset X");
 	attackDamage_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Attack Damage"));
 }

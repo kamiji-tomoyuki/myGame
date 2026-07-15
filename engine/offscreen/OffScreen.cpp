@@ -7,6 +7,7 @@
 
 #ifdef _DEBUG
 #include "imgui.h"
+#include "EditorUI.h"
 #endif // _DEBUG
 
 namespace Engine {
@@ -217,6 +218,8 @@ void OffScreen::LoadFromJson() {
 
 void OffScreen::DrawCommonSetting() {
 #ifdef _DEBUG
+    // 「表示」メニューでトグル可能に（オフなら描画しない。エフェクト自体は Draw() で適用済み）
+    if (!EditorUI::GetInstance()->PanelVisible("OffScreen", "デバッグ")) { return; }
     ImGui::Begin("OffScreen");
 
     // --- エフェクト追加 / 保存・読み込み ---

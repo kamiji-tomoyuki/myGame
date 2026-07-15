@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdio>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -13,6 +14,7 @@
 #include "SceneManager.h"
 #include "DirectXCommon.h"
 #include "WinApp.h"
+#include "engine/Frame/Frame.h"
 
 #include "Object3d.h"
 #include "Object3dCommon.h"
@@ -140,16 +142,32 @@ void EditorUI::BeginDockSpace() {
 		DrawSceneMenu();
 		DrawDisplayMenu();
 		DrawAddMenu();
+		DrawFpsIndicator(); // 右寄せで常時FPS表示
 		ImGui::EndMenuBar();
 	}
 
 	ImGui::End(); // ##EditorDockHost
 
-	// ---- ゲーム画面 + 左右パネル + 追加ダイアログ ----
+	// ---- ゲーム画面 + 右パネル + パーティクル + 追加ダイアログ ----
+	//   （シーン切り替えはメニューバーの「シーン」にあるため左のシーン設定ウィンドウは廃止）
 	DrawGameWindow();
-	DrawLeftPanel();
 	DrawRightPanel();
+	ParticleEmitter::DrawParticleWindow(); // 全エミッタを1つの「パーティクル」窓に集約
 	DrawAddDialog();
+}
+
+// メニューバー右端に FPS を常時表示する
+void EditorUI::DrawFpsIndicator() {
+	const float fps = Frame::GetFPS();
+	const float ms = Frame::DeltaTime() * 1000.0f;
+	char buf[64];
+	snprintf(buf, sizeof(buf), "FPS %.1f  (%.2f ms)", fps, ms);
+	const float textW = ImGui::CalcTextSize(buf).x;
+	ImGui::SameLine(ImGui::GetWindowWidth() - textW - 16.0f);
+	ImVec4 color = (fps >= 59.0f) ? ImVec4(0.4f, 1.0f, 0.4f, 1.0f)
+		: (fps >= 30.0f) ? ImVec4(1.0f, 1.0f, 0.3f, 1.0f)
+		: ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
+	ImGui::TextColored(color, "%s", buf);
 }
 
 void EditorUI::EndDockSpace() {
@@ -167,11 +185,11 @@ void EditorUI::BuildDefaultLayout(unsigned int dockspaceID) {
 
 	// 中央ノードにゲーム画面を配置（左右パネルに隠れない）
 	ImGui::DockBuilderDockWindow("ゲーム画面", dockMain);
-	ImGui::DockBuilderDockWindow("シーン設定", dockLeft);
 	ImGui::DockBuilderDockWindow("ヒエラルキー", dockRight);
 	// 既存のデバッグウィンドウも初期状態でドッキングして画面を整理
 	ImGui::DockBuilderDockWindow("Global Variables", dockRight);
 	ImGui::DockBuilderDockWindow("OffScreen", dockRight);
+	ImGui::DockBuilderDockWindow("パーティクル", dockLeft);
 	ImGui::DockBuilderDockWindow("Debug", dockLeft);
 	ImGui::DockBuilderDockWindow("GameScene:Debug", dockLeft);
 	ImGui::DockBuilderFinish(dockspaceID);
@@ -526,30 +544,6 @@ void EditorUI::DrawGameWindow() {
 // =============================================================
 // 左パネル：シーン設定
 // =============================================================
-void EditorUI::DrawLeftPanel() {
-	if (!ImGui::Begin("シーン設定")) { ImGui::End(); return; }
-
-	SceneManager* sm = SceneManager::GetInstance();
-	ImGui::TextUnformatted("シーン切り替え");
-	ImGui::Separator();
-	bool canChange = sm->CanChangeScene();
-	for (const auto& s : scenes_) {
-		if (!canChange) { ImGui::BeginDisabled(); }
-		if (ImGui::Button(s.second.c_str(), ImVec2(-1.0f, 0.0f))) {
-			sm->NextSceneReservation(s.first);
-		}
-		if (!canChange) { ImGui::EndDisabled(); }
-	}
-
-	ImGui::Spacing();
-	ImGui::TextUnformatted("エディタ");
-	ImGui::Separator();
-	ImGui::Text("追加オブジェクト数: %d", static_cast<int>(objects_.size()));
-	ImGui::Text("パネル登録数: %d", static_cast<int>(panels_.size()));
-
-	ImGui::End();
-}
-
 // =============================================================
 // 右パネル：ヒエラルキー + インスペクター
 // =============================================================

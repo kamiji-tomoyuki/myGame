@@ -5,6 +5,7 @@
 #include "ViewProjection.h"
 #include "WorldTransform.h"
 #include <string>
+#include <vector>
 
 #ifdef _DEBUG
 #include "imgui.h"
@@ -17,6 +18,7 @@ namespace Engine {
 class ParticleEmitter {
 public:
     ParticleEmitter();
+    ~ParticleEmitter(); // 集約ウィンドウ用レジストリから登録解除する
 
     /// <summary>
     /// 初期化
@@ -42,9 +44,16 @@ public:
     void DrawEmitter();
 
     /// <summary>
-    /// imgui表示
+    /// インスペクタ内容を「現在のウィンドウ」内に描画する（ウィンドウ自体は開かない）。
+    /// 集約ウィンドウ DrawParticleWindow から選択中エミッタに対して呼ばれる。
     /// </summary>
     void imgui();
+
+    /// <summary>
+    /// 生存中の全エミッタを1つの「パーティクル」ウィンドウに集約し、
+    /// プルダウンで選択したエミッタを編集できるようにする（Debug実行時のみ）。
+    /// </summary>
+    static void DrawParticleWindow();
 
 public:
 
@@ -108,5 +117,8 @@ private:
 
     GlobalVariables* globalVariables = nullptr;
     const char* groupName = nullptr;
+
+    // 生存中の全エミッタ（集約ウィンドウ用）。ctorで登録・dtorで解除。
+    static std::vector<ParticleEmitter*> s_registry_;
 };
 } // namespace Engine

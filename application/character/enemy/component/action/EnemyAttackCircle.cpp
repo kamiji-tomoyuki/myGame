@@ -18,13 +18,13 @@ EnemyAttackCircle::EnemyAttackCircle()
 		variables_->CreateGroup(kGroupName_);
 	}
 
-	variables_->AddItem(kGroupName_, "Prep Time", static_cast<int32_t>(kPrepTime_));
-	variables_->AddItem(kGroupName_, "Recovery Time", static_cast<int32_t>(kRecoveryTime_));
+	variables_->AddItem(kGroupName_, "Prep Time", static_cast<int32_t>(prepTime_));
+	variables_->AddItem(kGroupName_, "Recovery Time", static_cast<int32_t>(recoveryTime_));
 	variables_->AddItem(kGroupName_, "Attack Radius", 15.0f);
-	variables_->AddItem(kGroupName_, "Jump Height", kJumpHeight_);
-	variables_->AddItem(kGroupName_, "Gravity", kGravity_);
-	variables_->AddItem(kGroupName_, "Damage", kDamage_);
-	variables_->AddItem(kGroupName_, "Tilt Angle", kTiltAngle_);
+	variables_->AddItem(kGroupName_, "Jump Height", jumpHeight_);
+	variables_->AddItem(kGroupName_, "Gravity", gravity_);
+	variables_->AddItem(kGroupName_, "Damage", damage_);
+	variables_->AddItem(kGroupName_, "Tilt Angle", tiltAngle_);
 	variables_->AddItem(kGroupName_, "Shake Amount", 0.35f);
 
 	warningOutline_ = std::make_unique<Object3d>();
@@ -75,7 +75,7 @@ void EnemyAttackCircle::Start(Enemy* enemy, Player* player)
 	}
 
 	isWarningActive_ = true;
-	warningOutline_->SetSize({ kAttackRadius_, 1.0f, kAttackRadius_ });
+	warningOutline_->SetSize({ attackRadius_, 1.0f, attackRadius_ });
 	warningFill_->SetSize({ 0.0f, 1.0f, 0.0f });
 
 	enemy->SetVelocity({ 0.0f, 0.0f, 0.0f });
@@ -103,23 +103,23 @@ void EnemyAttackCircle::UpdatePreparation(Enemy* enemy, Player* player)
 	timer_++;
 
 	// 警告表示更新
-	float progress = std::min(1.0f, static_cast<float>(timer_) / kPrepTime_);
-	warningFill_->SetSize({ progress * kAttackRadius_, 1.0f, progress * kAttackRadius_ });
+	float progress = std::min(1.0f, static_cast<float>(timer_) / prepTime_);
+	warningFill_->SetSize({ progress * attackRadius_, 1.0f, progress * attackRadius_ });
 
 	// 前に傾く
 	Vector3 rot = baseRotation_;
-	rot.x += kTiltAngle_ * progress; // 前傾
+	rot.x += tiltAngle_ * progress; // 前傾
 	enemy->SetRotation(rot);
 	enemy->SetObjRotation(rot);
 
 	// シェイク値を更新して保持
-	currentShake_.x = ((rand() % 100) / 100.0f - 0.5f) * kShakeAmount_;
-	currentShake_.z = ((rand() % 100) / 100.0f - 0.5f) * kShakeAmount_;
+	currentShake_.x = ((rand() % 100) / 100.0f - 0.5f) * shakeAmount_;
+	currentShake_.z = ((rand() % 100) / 100.0f - 0.5f) * shakeAmount_;
 	currentShake_.y = 0.0f;
 
 	enemy->SetWorldPosition({ startPosition_.x + currentShake_.x, startPosition_.y, startPosition_.z + currentShake_.z });
 
-	if (timer_ >= kPrepTime_) {
+	if (timer_ >= prepTime_) {
 		phase_ = Phase::kJump;
 		timer_ = 0;
 		currentShake_ = { 0.0f, 0.0f, 0.0f };
@@ -130,7 +130,7 @@ void EnemyAttackCircle::UpdatePreparation(Enemy* enemy, Player* player)
 			// 放物線ジャンプの計算 (簡易)
 			// 到達時間を計算。滞空時間を 60 フレームと仮定
 			float airTime = 60.0f;
-			jumpVelocityY_ = (kGravity_ * airTime) * 0.5f; // 最高点に達するまでの速度
+			jumpVelocityY_ = (gravity_ * airTime) * 0.5f; // 最高点に達するまでの速度
 		}
 		else {
 			jumpVelocityY_ = 0.6f; // その場ジャンプ
@@ -155,7 +155,7 @@ void EnemyAttackCircle::UpdateJump(Enemy* enemy, Player* player)
 		pos.x = nextXZ.x;
 		pos.z = nextXZ.z;
 		pos.y += jumpVelocityY_;
-		jumpVelocityY_ -= kGravity_;
+		jumpVelocityY_ -= gravity_;
 
 		if (progress >= 1.0f && pos.y <= targetPosition_.y) {
 			pos.y = targetPosition_.y;
@@ -168,7 +168,7 @@ void EnemyAttackCircle::UpdateJump(Enemy* enemy, Player* player)
 	}
 	else {
 		pos.y += jumpVelocityY_;
-		jumpVelocityY_ -= kGravity_;
+		jumpVelocityY_ -= gravity_;
 
 		if (jumpVelocityY_ < 0.0f && pos.y <= startPosition_.y) {
 			pos.y = startPosition_.y;
@@ -187,13 +187,13 @@ void EnemyAttackCircle::UpdateRecovery(Enemy* enemy)
 {
 	timer_++;
 
-	float progress = std::min(1.0f, static_cast<float>(timer_) / kRecoveryTime_);
+	float progress = std::min(1.0f, static_cast<float>(timer_) / recoveryTime_);
 	Vector3 rot = enemy->GetWorldRotation();
-	rot.x = baseRotation_.x + kTiltAngle_ * (1.0f - progress); // 復帰
+	rot.x = baseRotation_.x + tiltAngle_ * (1.0f - progress); // 復帰
 	enemy->SetRotation(rot);
 	enemy->SetObjRotation(rot);
 
-	if (timer_ >= kRecoveryTime_) {
+	if (timer_ >= recoveryTime_) {
 		enemy->SetRotation(baseRotation_);
 		enemy->SetObjRotation(baseRotation_);
 		isComplete_ = true;
@@ -211,9 +211,9 @@ void EnemyAttackCircle::CheckCollision(Enemy* enemy, Player* player)
 	Vector3 to_player = playerPos - center;
 	to_player.y = 0.0f;
 	
-	if (to_player.Length() <= kAttackRadius_) {
+	if (to_player.Length() <= attackRadius_) {
 		if (!player->IsDodging()) {
-			player->ApplyDamage(static_cast<uint32_t>(kDamage_), center);
+			player->ApplyDamage(static_cast<uint32_t>(damage_), center);
 		}
 	}
 }
@@ -264,12 +264,12 @@ void EnemyAttackCircle::Interrupt()
 
 void EnemyAttackCircle::ApplyVariables()
 {
-	kPrepTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Prep Time"));
-	kRecoveryTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Recovery Time"));
-	kAttackRadius_ = variables_->GetFloatValue(kGroupName_, "Attack Radius");
-	kJumpHeight_ = variables_->GetFloatValue(kGroupName_, "Jump Height");
-	kGravity_ = variables_->GetFloatValue(kGroupName_, "Gravity");
-	kDamage_ = variables_->GetIntValue(kGroupName_, "Damage");
-	kTiltAngle_ = variables_->GetFloatValue(kGroupName_, "Tilt Angle");
-	kShakeAmount_ = variables_->GetFloatValue(kGroupName_, "Shake Amount");
+	prepTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Prep Time"));
+	recoveryTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Recovery Time"));
+	attackRadius_ = variables_->GetFloatValue(kGroupName_, "Attack Radius");
+	jumpHeight_ = variables_->GetFloatValue(kGroupName_, "Jump Height");
+	gravity_ = variables_->GetFloatValue(kGroupName_, "Gravity");
+	damage_ = variables_->GetIntValue(kGroupName_, "Damage");
+	tiltAngle_ = variables_->GetFloatValue(kGroupName_, "Tilt Angle");
+	shakeAmount_ = variables_->GetFloatValue(kGroupName_, "Shake Amount");
 }

@@ -2,6 +2,7 @@
 #include "Input.h"
 #include "FollowCamera.h"
 #include "CollisionTypeIdDef.h"
+#include "UILayout.h"
 #include "myMath.h"
 #include "Frame.h"
 #include <Enemy.h>
@@ -36,20 +37,20 @@ void Player::Init()
 	if (!variables_->GroupExists(kGroupName_)) {
 		variables_->CreateGroup(kGroupName_);
 	}
-	variables_->AddItem(kGroupName_, "Max HP", static_cast<int32_t>(kMaxHP_Adjustable_));
-	variables_->AddItem(kGroupName_, "Right Arm Translation", kRightArmTranslation_);
-	variables_->AddItem(kGroupName_, "Left Arm Translation", kLeftArmTranslation_);
-	variables_->AddItem(kGroupName_, "Arm Scale", kArmScale_);
-	variables_->AddItem(kGroupName_, "Motion Hit Range", kMotionHitRange_);
+	variables_->AddItem(kGroupName_, "Max HP", static_cast<int32_t>(maxHP_));
+	variables_->AddItem(kGroupName_, "Right Arm Translation", rightArmTranslation_);
+	variables_->AddItem(kGroupName_, "Left Arm Translation", leftArmTranslation_);
+	variables_->AddItem(kGroupName_, "Arm Scale", armScale_);
+	variables_->AddItem(kGroupName_, "Motion Hit Range", motionHitRange_);
 
 	// ラッシュ残像（トレール）調整値
 	if (!variables_->GroupExists(kTrailGroupName_)) {
 		variables_->CreateGroup(kTrailGroupName_);
 	}
-	variables_->AddItem(kTrailGroupName_, "Trail Count", kTrailCount_);
-	variables_->AddItem(kTrailGroupName_, "Trail Max Alpha", kTrailMaxAlpha_);
-	variables_->AddItem(kTrailGroupName_, "Trail Falloff", kTrailFalloff_);
-	variables_->AddItem(kTrailGroupName_, "Trail Offset Step", kTrailOffsetStep_);
+	variables_->AddItem(kTrailGroupName_, "Trail Count", trailCount_);
+	variables_->AddItem(kTrailGroupName_, "Trail Max Alpha", trailMaxAlpha_);
+	variables_->AddItem(kTrailGroupName_, "Trail Falloff", trailFalloff_);
+	variables_->AddItem(kTrailGroupName_, "Trail Offset Step", trailOffsetStep_);
 	ApplyVariables();
 
 	stageManager_ = StageManager::GetInstance();
@@ -64,15 +65,19 @@ void Player::Init()
 
 	// HPバー背景
 	hpBarBg_ = std::make_unique<Sprite>();
-	hpBarBg_->Initialize("white1x1.png", { 40.0f - kHpBarBgPadding_, 150.0f - kHpBarBgPadding_ });
+	hpBarBg_->Initialize("white1x1.png", {
+		UILayout::kHpBarPlayerX - UILayout::kHpBarBgPadding,
+		UILayout::kHpBarTopY - UILayout::kHpBarBgPadding });
 	hpBarBg_->SetColor({ 0.2f, 0.2f, 0.2f });
-	hpBarBg_->SetSize({ kHpBarFullWidth_ + kHpBarBgPadding_ * 2.0f, kHpBarHeight_ + kHpBarBgPadding_ * 2.0f });
+	hpBarBg_->SetSize({
+		UILayout::kHpBarWidth + UILayout::kHpBarBgPadding * 2.0f,
+		UILayout::kHpBarHeight + UILayout::kHpBarBgPadding * 2.0f });
 
 	// HPバー
 	hpBar_ = std::make_unique<Sprite>();
-	hpBar_->Initialize("white1x1.png", { 40.0f, 150.0f });
+	hpBar_->Initialize("white1x1.png", { UILayout::kHpBarPlayerX, UILayout::kHpBarTopY });
 	hpBar_->SetColor(hpColor_);
-	hpBar_->SetSize({ kHpBarFullWidth_, kHpBarHeight_ });
+	hpBar_->SetSize({ UILayout::kHpBarWidth, UILayout::kHpBarHeight });
 
 	// エフェクト
 	hitEffect_ = std::make_unique<ParticleEmitter>();
@@ -179,8 +184,8 @@ void Player::Update()
 	}
 
 	// HPバー更新
-	float hpRatio = static_cast<float>(HP_) / static_cast<float>(kMaxHP_);
-	hpBar_->SetSize({ kHpBarFullWidth_ * hpRatio, kHpBarHeight_ });
+	float hpRatio = static_cast<float>(HP_) / static_cast<float>(maxHP_);
+	hpBar_->SetSize({ UILayout::kHpBarWidth * hpRatio, UILayout::kHpBarHeight });
 
 	trailEffect_->Update(*vp_);
 	Collider::UpdateWorldTransform();
@@ -302,13 +307,13 @@ void Player::ApplyMotionArmsAndHit(PlayerComboMotion* motion)
 	if (arms_[kRArm]) {
 		arms_[kRArm]->SetTranslation(rp.translate);
 		arms_[kRArm]->SetRotation(rp.rotate);
-		arms_[kRArm]->SetScale(kArmScale_);
+		arms_[kRArm]->SetScale(armScale_);
 	}
 	PartPose lp = motion->GetLArmPose();
 	if (arms_[kLArm]) {
 		arms_[kLArm]->SetTranslation(lp.translate);
 		arms_[kLArm]->SetRotation(lp.rotate);
-		arms_[kLArm]->SetScale(kArmScale_);
+		arms_[kLArm]->SetScale(armScale_);
 	}
 
 	// ヒット判定：ヒット窓中に近距離の敵へ1クリップ1回だけダメージ。
@@ -316,7 +321,7 @@ void Player::ApplyMotionArmsAndHit(PlayerComboMotion* motion)
 	if (motion->IsHitActive() && enemy_) {
 		Vector3 diff = enemy_->GetCenterPosition() - GetCenterPosition();
 		diff.y = 0.0f; // 高さ差は無視して当てやすくする
-		if (diff.Length() < kMotionHitRange_) {
+		if (diff.Length() < motionHitRange_) {
 			enemy_->TakeDamage(motion->GetDamage());
 			if (attack_) {
 				PlayerUltGauge::HitType type = (motion->GetHitArm() == HitArm::kLeft)
@@ -446,6 +451,16 @@ void Player::ApplyDamageDirect(uint32_t damage, const Vector3& hitPosition)
 }
 
 // =============================================================
+//  敵の連続被弾ノックバックを受ける（ダメージ無し・行動中断のみ）
+// =============================================================
+void Player::ReceiveComboRepel(const Vector3& fromPos)
+{
+	// HP は変えず、被弾リアクション（＝コンボ等の行動中断＋硬直）だけ起こす。
+	// 実際の押し出し（距離）は EnemyHitReaction が位置を毎フレーム更新して行う。
+	TakeDamage(fromPos);
+}
+
+// =============================================================
 //  ロックオン
 // =============================================================
 void Player::UpdateLockOn()
@@ -559,16 +574,16 @@ void Player::StartRushTrails(uint32_t rushInterval, uint32_t rightBaseOffset, ui
 	(void)rushInterval;
 	for (int side = 0; side < kModelNum; ++side) {
 		const uint32_t baseOffset = (side == kRArm) ? rightBaseOffset : leftBaseOffset;
-		const uint32_t step = static_cast<uint32_t>(kTrailOffsetStep_ > 0 ? kTrailOffsetStep_ : 1);
-		float alpha = kTrailMaxAlpha_;
+		const uint32_t step = static_cast<uint32_t>(trailOffsetStep_ > 0 ? trailOffsetStep_ : 1);
+		float alpha = trailMaxAlpha_;
 		for (int i = 0; i < static_cast<int>(trailArms_[side].size()); ++i) {
 			auto& arm = trailArms_[side][i];
 			if (!arm) { continue; }
-			if (i < kTrailCount_) {
+			if (i < trailCount_) {
 				// 主腕より (i+1)*step フレーム遅れた位置をなぞらせ、後ろほど薄くする
 				arm->StartRush(baseOffset + static_cast<uint32_t>(i + 1) * step);
 				arm->SetObjColor(Vector4(1.0f, 1.0f, 1.0f, alpha));
-				alpha *= kTrailFalloff_;
+				alpha *= trailFalloff_;
 			}
 		}
 	}
@@ -577,7 +592,7 @@ void Player::StartRushTrails(uint32_t rushInterval, uint32_t rightBaseOffset, ui
 void Player::DrawRushTrails(const ViewProjection& viewProjection)
 {
 	for (int side = 0; side < kModelNum; ++side) {
-		for (int i = 0; i < kTrailCount_ && i < static_cast<int>(trailArms_[side].size()); ++i) {
+		for (int i = 0; i < trailCount_ && i < static_cast<int>(trailArms_[side].size()); ++i) {
 			if (trailArms_[side][i]) { trailArms_[side][i]->DrawAnimation(viewProjection); }
 		}
 	}
@@ -601,9 +616,7 @@ void Player::DrawParticle(const ViewProjection& viewProjection)
 // =============================================================
 void Player::ImGui()
 {
-	hitEffect_->imgui();
-	damageEffect_->imgui();
-	trailEffect_->imgui();
+	// パーティクル(hitEffect_/damageEffect_/trailEffect_)は集約「パーティクル」窓で編集する
 	if (attack_) { attack_->ImGui(); }
 }
 
@@ -612,22 +625,20 @@ void Player::ImGui()
 // =============================================================
 void Player::ApplyVariables()
 {
-	kMaxHP_Adjustable_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Max HP"));
-	kRightArmTranslation_ = variables_->GetVector3Value(kGroupName_, "Right Arm Translation");
-	kLeftArmTranslation_ = variables_->GetVector3Value(kGroupName_, "Left Arm Translation");
-	kArmScale_ = variables_->GetVector3Value(kGroupName_, "Arm Scale");
-	kMotionHitRange_ = variables_->GetFloatValue(kGroupName_, "Motion Hit Range");
-	if (kMotionHitRange_ < 0.1f) { kMotionHitRange_ = 0.1f; }
+	maxHP_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Max HP"));
+	rightArmTranslation_ = variables_->GetVector3Value(kGroupName_, "Right Arm Translation");
+	leftArmTranslation_ = variables_->GetVector3Value(kGroupName_, "Left Arm Translation");
+	armScale_ = variables_->GetVector3Value(kGroupName_, "Arm Scale");
+	motionHitRange_ = variables_->GetFloatValue(kGroupName_, "Motion Hit Range");
+	if (motionHitRange_ < 0.1f) { motionHitRange_ = 0.1f; }
 
 	// ラッシュ残像調整値
-	kTrailCount_ = variables_->GetIntValue(kTrailGroupName_, "Trail Count");
-	if (kTrailCount_ < 0) { kTrailCount_ = 0; }
-	if (kTrailCount_ > kMaxTrail_) { kTrailCount_ = kMaxTrail_; }
-	kTrailMaxAlpha_ = variables_->GetFloatValue(kTrailGroupName_, "Trail Max Alpha");
-	kTrailFalloff_ = variables_->GetFloatValue(kTrailGroupName_, "Trail Falloff");
-	kTrailOffsetStep_ = variables_->GetIntValue(kTrailGroupName_, "Trail Offset Step");
-
-	kMaxHP_ = kMaxHP_Adjustable_;
+	trailCount_ = variables_->GetIntValue(kTrailGroupName_, "Trail Count");
+	if (trailCount_ < 0) { trailCount_ = 0; }
+	if (trailCount_ > kMaxTrail_) { trailCount_ = kMaxTrail_; }
+	trailMaxAlpha_ = variables_->GetFloatValue(kTrailGroupName_, "Trail Max Alpha");
+	trailFalloff_ = variables_->GetFloatValue(kTrailGroupName_, "Trail Falloff");
+	trailOffsetStep_ = variables_->GetIntValue(kTrailGroupName_, "Trail Offset Step");
 
 	// ★ 必殺技・コンボ・フィニッシャー中は腕位置を上書きしない
 	//    （それぞれが毎フレーム腕の translation/rotation を直接制御するため）
@@ -636,22 +647,22 @@ void Player::ApplyVariables()
 	if (!IsUltimateActive() && !IsAnyMotionActive()) {
 		const Vector3 kNoRotation = { 0.0f, 0.0f, 0.0f };
 		if (arms_[kRArm]) {
-			arms_[kRArm]->SetTranslation(kRightArmTranslation_);
+			arms_[kRArm]->SetTranslation(rightArmTranslation_);
 			arms_[kRArm]->SetRotation(kNoRotation);
-			arms_[kRArm]->SetScale(kArmScale_);
+			arms_[kRArm]->SetScale(armScale_);
 		}
 		if (arms_[kLArm]) {
-			arms_[kLArm]->SetTranslation(kLeftArmTranslation_);
+			arms_[kLArm]->SetTranslation(leftArmTranslation_);
 			arms_[kLArm]->SetRotation(kNoRotation);
-			arms_[kLArm]->SetScale(kArmScale_);
+			arms_[kLArm]->SetScale(armScale_);
 		}
 		for (int side = 0; side < kModelNum; ++side) {
-			const Vector3 base = (side == kRArm) ? kRightArmTranslation_ : kLeftArmTranslation_;
+			const Vector3 base = (side == kRArm) ? rightArmTranslation_ : leftArmTranslation_;
 			for (auto& arm : trailArms_[side]) {
 				if (arm) {
 					arm->SetTranslation(base);
 					arm->SetRotation(kNoRotation);
-					arm->SetScale(kArmScale_);
+					arm->SetScale(armScale_);
 				}
 			}
 		}
@@ -670,18 +681,14 @@ void Player::OnCollision(Collider* other)
 
 		if (dodge_->IsDodging() || hitReaction_->IsHitReacting()) { return; }
 
+		// 接触ダメージは「敵が攻撃モーション中」のみ発生させる。
+		// 攻撃していない敵に触れてもダメージは受けない（押し出し／範囲外クランプのみ行う）。
 		if (enemy->IsAttacking()) {
 			Vector3 hitPos = (GetCenterPosition() + enemy->GetCenterPosition()) * 0.5f;
 			ApplyDamage(100, hitPos);
 
 			Vector3 knockback = (GetCenterPosition() - enemy->GetCenterPosition()).Normalize();
 			move_->SetVelocity(move_->GetVelocity() + knockback * 0.5f);
-		}
-		else {
-			if (hitReaction_->IsContactCooldownActive()) { return; }
-
-			Vector3 hitPos = (GetCenterPosition() + enemy->GetCenterPosition()) * 0.5f;
-			ApplyDamage(10, hitPos);
 		}
 
 		Vector3 playerPos = BaseObject::GetWorldPosition();
@@ -705,8 +712,8 @@ void Player::InitArm()
 	arms_[kRArm]->SetID(serialNumber_);
 	arms_[kRArm]->SetColliderID(CollisionTypeIdDef::kPRArm);
 	arms_[kRArm]->SetIsRightArm(true);
-	arms_[kRArm]->SetTranslation(kRightArmTranslation_);
-	arms_[kRArm]->SetScale(kArmScale_);
+	arms_[kRArm]->SetTranslation(rightArmTranslation_);
+	arms_[kRArm]->SetScale(armScale_);
 	arms_[kRArm]->SetPlayerAttack(attack_.get());
 
 	arms_[kLArm] = std::make_unique<PlayerArm>();
@@ -715,14 +722,14 @@ void Player::InitArm()
 	arms_[kLArm]->SetID(serialNumber_);
 	arms_[kLArm]->SetColliderID(CollisionTypeIdDef::kPLArm);
 	arms_[kLArm]->SetIsRightArm(false);
-	arms_[kLArm]->SetTranslation(kLeftArmTranslation_);
-	arms_[kLArm]->SetScale(kArmScale_);
+	arms_[kLArm]->SetTranslation(leftArmTranslation_);
+	arms_[kLArm]->SetScale(armScale_);
 	arms_[kLArm]->SetPlayerAttack(attack_.get());
 
 	// 残像（トレール）用の腕プール（左右それぞれ kMaxTrail_ 本、当たり判定は無効化）
 	for (int side = 0; side < kModelNum; ++side) {
 		const bool isRight = (side == kRArm);
-		const Vector3 base = isRight ? kRightArmTranslation_ : kLeftArmTranslation_;
+		const Vector3 base = isRight ? rightArmTranslation_ : leftArmTranslation_;
 		trailArms_[side].clear();
 		trailArms_[side].reserve(kMaxTrail_);
 		for (int i = 0; i < kMaxTrail_; ++i) {
@@ -731,7 +738,7 @@ void Player::InitArm()
 			arm->SetPlayer(this);
 			arm->SetIsRightArm(isRight);
 			arm->SetTranslation(base);
-			arm->SetScale(kArmScale_);
+			arm->SetScale(armScale_);
 			arm->SetObjColor(Vector4(1, 1, 1, 0.4f));
 			arm->SetColliderID(CollisionTypeIdDef::kNone); // 当たり判定用IDをNoneに
 			arm->SetCollisionEnabled(false);               // 衝突判定自体を無効化

@@ -183,7 +183,6 @@ void Framework::Update() {
     sceneManager_->Update();
     collisionManager_->Update();
 #ifdef _DEBUG
-    DisplayFPS();
     EditorUI::GetInstance()->EndDockSpace();
     ImGuiManager::GetInstance()->End();
 #endif // _DEBUG
@@ -208,31 +207,5 @@ void Framework::PlaySounds() {
 void Framework::Draw() {
 }
 
-void Framework::DisplayFPS() {
-#ifdef _DEBUG
-    if (ImGui::CollapsingHeader("FPS")) {
-
-        ImGuiIO& io = ImGui::GetIO();
-        // FPSを取得
-        float fps = Frame::GetFPS();
-        float deltaTime = Frame::DeltaTime() * 1000.0f; // ミリ秒単位に変換
-
-        // FPSを色付きで表示
-        ImVec4 color;
-        if (fps >= 59.0f) {
-            color = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // 60FPS付近なら緑色
-        }
-        else if (fps >= 30.0f) {
-            color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // 30-59FPSなら黄色
-        }
-        else {
-            color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // 30FPS未満なら赤色
-        }
-
-        ImGui::TextColored(color, "FPS: %.1f", fps);
-        ImGui::TextColored(color, "Frame: %.2f ms", deltaTime);
-        // ImGui::TreePop();
-    }
-#endif // _DEBUG
-}
+// FPS表示はEditorUIのメニューバー右端（EditorUI::DrawFpsIndicator）へ移行。
 } // namespace Engine

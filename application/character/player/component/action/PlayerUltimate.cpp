@@ -24,14 +24,14 @@ void PlayerUltimate::Init()
     if (!variables_->GroupExists(kGroupName_)) {
         variables_->CreateGroup(kGroupName_);
     }
-    variables_->AddItem(kGroupName_, "Rise Duration", kRiseDuration_);
-    variables_->AddItem(kGroupName_, "Charge Duration", kChargeDuration_);
-    variables_->AddItem(kGroupName_, "Dive Duration", kDiveDuration_);
-    variables_->AddItem(kGroupName_, "Impact Duration", kImpactDuration_);
-    variables_->AddItem(kGroupName_, "Recover Duration", kRecoverDuration_);
-    variables_->AddItem(kGroupName_, "Rise Height", kRiseHeight_);
-    variables_->AddItem(kGroupName_, "Area Radius", kAreaRadius_);
-    variables_->AddItem(kGroupName_, "Area Damage", kAreaDamage_);
+    variables_->AddItem(kGroupName_, "Rise Duration", riseDuration_);
+    variables_->AddItem(kGroupName_, "Charge Duration", chargeDuration_);
+    variables_->AddItem(kGroupName_, "Dive Duration", diveDuration_);
+    variables_->AddItem(kGroupName_, "Impact Duration", impactDuration_);
+    variables_->AddItem(kGroupName_, "Recover Duration", recoverDuration_);
+    variables_->AddItem(kGroupName_, "Rise Height", riseHeight_);
+    variables_->AddItem(kGroupName_, "Area Radius", areaRadius_);
+    variables_->AddItem(kGroupName_, "Area Damage", areaDamage_);
 
     ApplyVariables();
     phase_ = Phase::kIdle;
@@ -55,7 +55,7 @@ void PlayerUltimate::Start(Player* player, Enemy* enemy)
     startPos_.y = kGroundY; 
 
     peakPos_ = startPos_;
-    peakPos_.y += kRiseHeight_;
+    peakPos_.y += riseHeight_;
 
     // targetPos_ は Dive 開始時に再計算するので暫定値でよい
     RecalcTarget(player);
@@ -173,7 +173,7 @@ void PlayerUltimate::RestoreArmPose(Player* player)
 // --- 飛び上がり ---
 void PlayerUltimate::UpdateRise(Player* player)
 {
-    float t = std::clamp(static_cast<float>(timer_) / kRiseDuration_, 0.0f, 1.0f);
+    float t = std::clamp(static_cast<float>(timer_) / riseDuration_, 0.0f, 1.0f);
     float eased = 1.0f - (1.0f - t) * (1.0f - t);  // ease-out
 
     Vector3 pos = startPos_;
@@ -185,7 +185,7 @@ void PlayerUltimate::UpdateRise(Player* player)
     if (arms[0]) { arms[0]->SetTranslation(savedArmPos_[0]); }
     if (arms[1]) { arms[1]->SetTranslation(savedArmPos_[1]); }
 
-    if (timer_ >= kRiseDuration_) {
+    if (timer_ >= riseDuration_) {
         player->SetTranslation(peakPos_);
         AdvancePhase(player);
     }
@@ -196,7 +196,7 @@ void PlayerUltimate::UpdateCharge(Player* player)
 {
     player->SetTranslation(peakPos_);
 
-    float t = std::clamp(static_cast<float>(timer_) / kChargeDuration_, 0.0f, 1.0f);
+    float t = std::clamp(static_cast<float>(timer_) / chargeDuration_, 0.0f, 1.0f);
     float eased = t * t * (3.0f - 2.0f * t);  // ease-in-out
 
     const auto& arms = player->GetArms();
@@ -204,7 +204,7 @@ void PlayerUltimate::UpdateCharge(Player* player)
     // 右腕（index 0）：後方（-Z）へ引く
     if (arms[0]) {
         Vector3 p = savedArmPos_[0];
-        p.z -= eased * kChargePullBack_;   // ローカル -Z = 体の後方
+        p.z -= eased * kChargePullBack;   // ローカル -Z = 体の後方
         arms[0]->SetTranslation(p);
         arms[0]->SetRotation(savedArmRot_[0]);   // 回転は変えない
     }
@@ -214,7 +214,7 @@ void PlayerUltimate::UpdateCharge(Player* player)
         arms[1]->SetRotation(savedArmRot_[1]);
     }
 
-    if (timer_ >= kChargeDuration_) {
+    if (timer_ >= chargeDuration_) {
         AdvancePhase(player);
     }
 }
@@ -222,7 +222,7 @@ void PlayerUltimate::UpdateCharge(Player* player)
 // --- 急降下：右腕を前方（+Z）へ突き出しながら降下 ---
 void PlayerUltimate::UpdateDive(Player* player)
 {
-    float t = std::clamp(static_cast<float>(timer_) / kDiveDuration_, 0.0f, 1.0f);
+    float t = std::clamp(static_cast<float>(timer_) / diveDuration_, 0.0f, 1.0f);
     float eased = t * t;  // ease-in（加速しながら落下）
 
     // プレイヤー位置を peakPos_ → targetPos_ へ移動
@@ -234,11 +234,11 @@ void PlayerUltimate::UpdateDive(Player* player)
 
     const auto& arms = player->GetArms();
 
-    // 右腕：後方引き位置（-kChargePullBack_）→ 前方突き出し（+kDivePunchReach_）へ補間
+    // 右腕：後方引き位置（-kChargePullBack）→ 前方突き出し（+kDivePunchReach）へ補間
     if (arms[0]) {
         Vector3 p = savedArmPos_[0];
-        float fromZ = -kChargePullBack_;      // Charge 終了時の Z オフセット
-        float toZ = kDivePunchReach_;       // Dive 終了時の Z オフセット（前方）
+        float fromZ = -kChargePullBack;      // Charge 終了時の Z オフセット
+        float toZ = kDivePunchReach;       // Dive 終了時の Z オフセット（前方）
         p.z += fromZ + (toZ - fromZ) * eased;
         arms[0]->SetTranslation(p);
         arms[0]->SetRotation(savedArmRot_[0]);
@@ -249,7 +249,7 @@ void PlayerUltimate::UpdateDive(Player* player)
         arms[1]->SetRotation(savedArmRot_[1]);
     }
 
-    if (timer_ >= kDiveDuration_) {
+    if (timer_ >= diveDuration_) {
         player->SetTranslation(targetPos_);
         AdvancePhase(player);
     }
@@ -267,7 +267,7 @@ void PlayerUltimate::UpdateImpact(Player* player)
     const auto& arms = player->GetArms();
     if (arms[0]) {
         Vector3 p = savedArmPos_[0];
-        p.z += kDivePunchReach_;
+        p.z += kDivePunchReach;
         arms[0]->SetTranslation(p);
         arms[0]->SetRotation(savedArmRot_[0]);
     }
@@ -276,7 +276,7 @@ void PlayerUltimate::UpdateImpact(Player* player)
         arms[1]->SetRotation(savedArmRot_[1]);
     }
 
-    if (timer_ >= kImpactDuration_) {
+    if (timer_ >= impactDuration_) {
         AdvancePhase(player);
     }
 }
@@ -284,7 +284,7 @@ void PlayerUltimate::UpdateImpact(Player* player)
 // --- 硬直回復：腕を初期位置へ戻す ---
 void PlayerUltimate::UpdateRecover(Player* player)
 {
-    float t = std::clamp(static_cast<float>(timer_) / kRecoverDuration_, 0.0f, 1.0f);
+    float t = std::clamp(static_cast<float>(timer_) / recoverDuration_, 0.0f, 1.0f);
 
     // 座標の固定（Y軸のずれ防止）
     player->SetTranslation(targetPos_);
@@ -294,7 +294,7 @@ void PlayerUltimate::UpdateRecover(Player* player)
     // Impact の突き出し位置 → 初期位置 へ線形補間
     if (arms[0]) {
         Vector3 p;
-        float punchZ = savedArmPos_[0].z + kDivePunchReach_;
+        float punchZ = savedArmPos_[0].z + kDivePunchReach;
         p.x = savedArmPos_[0].x;
         p.y = savedArmPos_[0].y;
         p.z = punchZ * (1.0f - t) + savedArmPos_[0].z * t;
@@ -306,7 +306,7 @@ void PlayerUltimate::UpdateRecover(Player* player)
         arms[1]->SetRotation(savedArmRot_[1]);
     }
 
-    if (timer_ >= kRecoverDuration_) {
+    if (timer_ >= recoverDuration_) {
         RestoreArmPose(player);
         phase_ = Phase::kIdle;
         timer_ = 0;
@@ -323,8 +323,8 @@ void PlayerUltimate::ApplyAreaDamage(Player* player)
     Vector3 enemyPos = enemy_->GetCenterPosition();
     float dx = enemyPos.x - targetPos_.x;
     float dz = enemyPos.z - targetPos_.z;
-    if (dx * dx + dz * dz <= kAreaRadius_ * kAreaRadius_) {
-        enemy_->TakeDamage(static_cast<uint32_t>(kAreaDamage_));
+    if (dx * dx + dz * dz <= areaRadius_ * areaRadius_) {
+        enemy_->TakeDamage(static_cast<uint32_t>(areaDamage_));
         enemy_->OnRushHit(true);  // 特殊リアクション発動
     }
 }
@@ -364,12 +364,12 @@ void PlayerUltimate::ImGui()
 // =============================================================
 void PlayerUltimate::ApplyVariables()
 {
-    kRiseDuration_ = max(variables_->GetIntValue(kGroupName_, "Rise Duration"), 1);
-    kChargeDuration_ = max(variables_->GetIntValue(kGroupName_, "Charge Duration"), 1);
-    kDiveDuration_ = max(variables_->GetIntValue(kGroupName_, "Dive Duration"), 1);
-    kImpactDuration_ = max(variables_->GetIntValue(kGroupName_, "Impact Duration"), 1);
-    kRecoverDuration_ = max(variables_->GetIntValue(kGroupName_, "Recover Duration"), 1);
-    kRiseHeight_ = variables_->GetFloatValue(kGroupName_, "Rise Height");
-    kAreaRadius_ = variables_->GetFloatValue(kGroupName_, "Area Radius");
-    kAreaDamage_ = variables_->GetFloatValue(kGroupName_, "Area Damage");
+    riseDuration_ = max(variables_->GetIntValue(kGroupName_, "Rise Duration"), 1);
+    chargeDuration_ = max(variables_->GetIntValue(kGroupName_, "Charge Duration"), 1);
+    diveDuration_ = max(variables_->GetIntValue(kGroupName_, "Dive Duration"), 1);
+    impactDuration_ = max(variables_->GetIntValue(kGroupName_, "Impact Duration"), 1);
+    recoverDuration_ = max(variables_->GetIntValue(kGroupName_, "Recover Duration"), 1);
+    riseHeight_ = variables_->GetFloatValue(kGroupName_, "Rise Height");
+    areaRadius_ = variables_->GetFloatValue(kGroupName_, "Area Radius");
+    areaDamage_ = variables_->GetFloatValue(kGroupName_, "Area Damage");
 }

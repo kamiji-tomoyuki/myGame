@@ -206,6 +206,12 @@
     <ClCompile Include="engine\2d\SpriteCommon.cpp">
       <Filter>ソースファイル\myEngine\2d</Filter>
     </ClCompile>
+    <ClCompile Include="engine\2d\TextTextureBaker.cpp">
+      <Filter>ソースファイル\myEngine\2d</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\2d\TextSprite.cpp">
+      <Filter>ソースファイル\myEngine\2d</Filter>
+    </ClCompile>
     <ClCompile Include="engine\base\WinApp.cpp">
       <Filter>ソースファイル\myEngine\base</Filter>
     </ClCompile>
@@ -586,6 +592,12 @@
     <ClInclude Include="engine\2d\SpriteCommon.h">
       <Filter>ソースファイル\myEngine\2d</Filter>
     </ClInclude>
+    <ClInclude Include="engine\2d\TextTextureBaker.h">
+      <Filter>ソースファイル\myEngine\2d</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\2d\TextSprite.h">
+      <Filter>ソースファイル\myEngine\2d</Filter>
+    </ClInclude>
     <ClInclude Include="engine\3d\camera\Camera.h">
       <Filter>ソースファイル\myEngine\3d\camera</Filter>
     </ClInclude>
@@ -918,6 +930,9 @@
       <Filter>ソースファイル\application\Other\tempObj</Filter>
     </ClInclude>
     <ClInclude Include="application\other\CollisionTypeIdDef.h">
+      <Filter>ソースファイル\application\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="application\other\UILayout.h">
       <Filter>ソースファイル\application\Other</Filter>
     </ClInclude>
     <ClInclude Include="application\scene\gameScene\Pause\Pause.h">

@@ -88,6 +88,8 @@ public:
 	uint32_t   GetRushInterval()       const { return rush_->GetRushInterval(); }
 	/// <summary>連打完了フラグを消費（フィニッシャー起動を1ラッシュ1回に限定する）</summary>
 	void       ClearRapidPunchDone() { rush_->ClearRapidPunchDone(); }
+	/// <summary>ラッシュの溜め(ウィンドアップ)中か（体の後傾判定用）</summary>
+	bool       IsRushCharging()        const { return rush_->IsCharging(); }
 
 	// --- 生成時のセットアップ（Player::InitArm から呼ぶ） ---
 	void SetID(int id) { serialNumber_ = id; }

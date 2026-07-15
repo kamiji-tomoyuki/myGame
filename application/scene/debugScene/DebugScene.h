@@ -15,6 +15,8 @@
 #include "PlayerComboMotion.h"
 #include "PlayerArmRush.h"
 #include "ObjColor.h"
+#include "TextSprite.h"
+#include "Sprite.h"
 #include <array>
 #include <memory>
 #include <string>
@@ -62,6 +64,16 @@ private:
     void DrawRushPreview();
     void DrawRushUI();
 
+    // --- テキストエディタ ---
+    void ScanFonts();                       // resources/fonts を走査
+    void InitTextEditor();                  // プレビュー生成
+    void UpdateTextEditor();                // UI 変更をプレビューへ反映
+    void DrawTextPreview();                 // シーン内へテキストを仮描画
+    void DrawTextUI();                      // ImGui エディタ
+    TextRenderParams BuildTextParams() const;
+    std::string CurrentFontPath() const;    // 選択中フォントのパス
+    std::string FallbackFontPath() const;   // 日本語補完フォントのパス
+
 private:
     Audio* audio_ = nullptr;
     Object3dCommon* objCommon_ = nullptr;
@@ -73,7 +85,7 @@ private:
     std::unique_ptr<DebugCamera> debugCamera_;
     std::unique_ptr<Skybox> skybox_;
 
-    int editorMode_ = 1; // 0=パーティクル 1=モーション 2=ラッシュ
+    int editorMode_ = 1; // 0=パーティクル 1=モーション 2=ラッシュ 3=テキスト
 
     // --- パーティクル ---
     std::unique_ptr<ParticleEmitter> emitter_;
@@ -132,4 +144,26 @@ private:
     const Vector3 armScale_ = { 0.8f, 0.8f, 0.8f };
     const Vector3 rArmBase_ = { 1.7f, 0.0f, 1.3f };
     const Vector3 lArmBase_ = { -1.7f, 0.0f, 1.3f };
+
+    // --- テキストエディタ状態 ---
+    std::unique_ptr<TextSprite> textPreview_;            // シーン内の仮描画スプライト
+    std::unique_ptr<Sprite>     textLoadedCheck_;        // 保存後の読み込み確認用
+    std::vector<std::string>    fontFiles_;              // resources/fonts の .ttf 一覧
+    int   textFontIndex_ = 0;                            // 選択中フォント
+    bool  textAutoFallback_ = true;                      // 日本語をフォールバックフォントで補完
+    char  textBuf_[1024] = "Text\nテキスト";             // 入力文字（UTF-8）
+    char  textOutName_[64] = "myText";                   // 保存ファイル名（拡張子なし）
+    float textSize_ = 96.0f;                             // 文字サイズ(px)
+    float textColor_[4] = { 1.0f, 0.85f, 0.2f, 1.0f };   // 塗り色
+    bool  textOutline_ = true;                           // アウトライン有無
+    float textOutlineColor_[4] = { 0.12f, 0.10f, 0.08f, 1.0f };
+    float textOutlineWidth_ = 5.0f;                      // アウトライン太さ(px)
+    int   textAlign_ = 1;                                // 0=左 1=中央 2=右
+    float textLineSpacing_ = 1.0f;                       // 行間倍率
+    float textPos_[2] = { 320.0f, 220.0f };              // 仮描画の画面位置(px)
+    float textScale_ = 1.0f;                             // 表示スケール
+    float textRotation_ = 0.0f;                          // 回転(rad)
+    float textMul_[4] = { 1.0f, 1.0f, 1.0f, 1.0f };      // スプライト乗算色
+    bool  textDirty_ = true;                             // 再生成が必要
+    std::string textLastSaved_;                          // 直近保存パス
 };

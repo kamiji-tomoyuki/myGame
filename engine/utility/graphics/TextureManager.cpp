@@ -5,9 +5,6 @@
 namespace Engine {
 std::unique_ptr<TextureManager> TextureManager::instance = nullptr;
 
-// ImGuiで0番を使用するため、1番から使用
-uint32_t TextureManager::kSRVIndexTop = 1;
-
 void TextureManager::LoadTexture(const std::string& filePath)
 {
     // ファイル名を取り出して、resources/images/を付ける
@@ -122,6 +119,37 @@ void TextureManager::LoadModelTexture(const std::string& filePath) {
         textureData.metadata,
         UINT(textureData.metadata.mipLevels)
     );
+}
+
+void TextureManager::RegisterTextureFromImage(const std::string& fullPathKey, const DirectX::ScratchImage& image)
+{
+    if (image.GetImageCount() == 0) { return; }
+
+    auto it = textureDatas.find(fullPathKey);
+    const bool exists = (it != textureDatas.end());
+
+    if (!exists) {
+        // 新規：SRV スロットを確保
+        assert(srvManager_->CanAllocate());
+        TextureData& textureData = textureDatas[fullPathKey];
+        textureData.srvIndex = srvManager_->Allocate() + kSRVIndexTop;
+        textureData.srvHandleCPU = srvManager_->GetCPUDescriptorHandle(textureData.srvIndex);
+        textureData.srvHandleGPU = srvManager_->GetGPUDescriptorHandle(textureData.srvIndex);
+    }
+
+    // 既存キーの場合はスロットを再利用してリソースだけ差し替える。
+    // 直前フレームの描画は PostDraw で GPU 完了待ちされるため、旧リソースは安全に破棄できる。
+    TextureData& textureData = textureDatas[fullPathKey];
+
+    textureData.metadata = image.GetMetadata();
+    textureData.resource = dxCommon_->CreateTextureResource(textureData.metadata);
+    textureData.intermediateResource = dxCommon_->UploadTextureData(textureData.resource, image);
+
+    srvManager_->CreateSRVforTexture2D(
+        textureData.srvIndex,
+        textureData.resource.Get(),
+        textureData.metadata,
+        UINT(textureData.metadata.mipLevels));
 }
 
 uint32_t TextureManager::GetModelTextureIndexByFilePath(const std::string& filePath)

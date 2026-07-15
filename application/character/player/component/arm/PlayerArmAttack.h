@@ -103,11 +103,11 @@ private:
 	// -------------------------------------------------------
 	// GlobalVariables で調整可能な変数（constexpr から昇格）
 	// -------------------------------------------------------
-	uint32_t kAttackDuration_ = 20;       // 攻撃モーションのフレーム数
-	uint32_t kComboWindow_ = 30;          // コンボ受付ウィンドウのフレーム数
-	float    kAttackDistance_ = 2.0f;     // 攻撃時の腕の前進距離
-	float    kRightPunchOffsetX_ = -0.3f; // 右パンチ時のX軸オフセット
-	float    kLeftPunchOffsetX_ = 0.3f;   // 左パンチ時のX軸オフセット
+	uint32_t attackDuration_ = 20;       // 攻撃モーションのフレーム数
+	uint32_t comboWindow_ = 30;          // コンボ受付ウィンドウのフレーム数
+	float    attackDistance_ = 2.0f;     // 攻撃時の腕の前進距離
+	float    rightPunchOffsetX_ = -0.3f; // 右パンチ時のX軸オフセット
+	float    leftPunchOffsetX_ = 0.3f;   // 左パンチ時のX軸オフセット
 
 	// --- 定数 ---
 	/// イージングの折り返し進捗（これ以降は戻り動作）

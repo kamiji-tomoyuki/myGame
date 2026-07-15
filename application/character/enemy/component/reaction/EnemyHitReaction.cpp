@@ -40,8 +40,10 @@ void EnemyHitReaction::OnRushHit(bool isFinalHit, Enemy* enemy)
 {
 	if (!enemy->GetIsAlive()) { return; }
 
-	// 被弾時の揺れを開始
-	OnHit();
+	// 被弾フラッシュのみ（連続ヒットのカウントは TakeDamage 側の OnHit() が1回だけ行う。
+	// ここで OnHit() を呼ぶとラッシュが二重カウントになるため呼ばない）
+	isFlashing_ = true;
+	flashTimer_ = kFlashDuration_;
 
 	if (isFinalHit) {
 		isRushStunned_ = true;
@@ -68,11 +70,13 @@ void EnemyHitReaction::Reset(Enemy* enemy)
 	isRushStunned_ = false;
 	rushStunTimer_ = 0;
 
-	// 揺れリセット
-	isWobbling_ = false;
-	wobbleTimer_ = 0;
-	wobblePhase_ = 0.0f;
-	wobbleRotation_ = { 0.0f, 0.0f, 0.0f };
+	// フラッシュ・連続ヒットリセット
+	isFlashing_ = false;
+	flashTimer_ = 0;
+	consecutiveHits_ = 0;
+	hitWindow_ = 0;
+	repelCooldown_ = 0;
+	repelPushTimer_ = 0;
 
 	// ノックバック終了
 	EndKnockback(enemy);
@@ -83,35 +87,80 @@ void EnemyHitReaction::Reset(Enemy* enemy)
 
 void EnemyHitReaction::OnHit()
 {
-	isWobbling_ = true;
-	wobbleTimer_ = kWobbleDuration_;
-	// Phase はリセットせず継続させることで、連続ヒット時も動きがつながるようにする
+	// 被弾時は「揺れ」ではなくモデルを一瞬赤くフラッシュ
+	isFlashing_ = true;
+	flashTimer_ = kFlashDuration_;
+
+	// 連続ヒット（プレイヤーの連続攻撃）を数える
+	consecutiveHits_++;
+	hitWindow_ = kHitWindowFrames_;
 }
 
-void EnemyHitReaction::UpdateWobble()
+void EnemyHitReaction::UpdateFlash()
 {
-	if (!isWobbling_) {
-		wobblePhase_ = 0.0f;
-		return;
+	if (!isFlashing_) { return; }
+	flashTimer_--;
+	if (flashTimer_ <= 0) {
+		isFlashing_ = false;
+		flashTimer_ = 0;
+	}
+}
+
+// =============================================================
+//  連続ヒット対策：一定連続で被弾したら攻撃を中断してプレイヤーを押し返す
+// =============================================================
+void EnemyHitReaction::UpdateComboRepel(Enemy* enemy)
+{
+	if (enemy == nullptr) { return; }
+	Player* player = enemy->GetPlayer();
+
+	// 猶予タイマー：一定時間ヒットが無ければ連続数リセット
+	if (hitWindow_ > 0) {
+		hitWindow_--;
+		if (hitWindow_ == 0) { consecutiveHits_ = 0; }
+	}
+	if (repelCooldown_ > 0) { repelCooldown_--; }
+
+	// 押し出し継続（プレイヤーを敵から離す）
+	if (repelPushTimer_ > 0 && player != nullptr) {
+		Vector3 newPos = player->GetCenterPosition() + repelDir_ * kRepelPushSpeed_;
+		newPos = StageManager::GetInstance()->ClampToStageBounds(newPos);
+		player->SetWorldPosition(newPos);
+		repelPushTimer_--;
 	}
 
-	wobbleTimer_--;
-	if (wobbleTimer_ <= 0) {
-		isWobbling_ = false;
-		wobbleTimer_ = 0;
-		wobbleRotation_ = { 0.0f, 0.0f, 0.0f };
-		wobblePhase_ = 0.0f;
-		return;
+	// 発動判定。ラッシュ／フィニッシャー中は発動させない（それらの見せ場を潰さない）。
+	//   ラッシュで貯まった連続ヒットは維持され、ラッシュ後もなお攻撃を続けると押し返される。
+	if (consecutiveHits_ >= kComboRepelThreshold_ && repelCooldown_ == 0 &&
+		player != nullptr && !player->IsRushActive() && !player->IsFinisherActive()) {
+		DoRepel(enemy, player);
+	}
+}
+
+void EnemyHitReaction::DoRepel(Enemy* enemy, Player* player)
+{
+	// 敵は自分の攻撃・行動を中断してでも押し返しに移る
+	if (EnemyAttackManager* mgr = enemy->GetAttackManager()) {
+		mgr->InterruptByRush(enemy);
+		if (auto* melee = mgr->GetMeleeAttack()) { melee->Interrupt(enemy); }
 	}
 
-	wobblePhase_ += kWobbleFrequency_;
+	// プレイヤーを敵から離す方向へ、数フレームかけて押し出す
+	Vector3 dir = player->GetCenterPosition() - enemy->GetCenterPosition();
+	dir.y = 0.0f;
+	repelDir_ = (dir.Length() > 0.001f) ? dir.Normalize() : Vector3(0.0f, 0.0f, -1.0f);
+	repelPushTimer_ = kRepelPushFrames_;
 
-	float t = static_cast<float>(wobbleTimer_) / static_cast<float>(kWobbleDuration_);
-	float decay = t * t; // 二乗で減衰
+	// プレイヤーの行動（コンボ等）を中断させる（被弾リアクション）。位置押し出しは上の timer で行う。
+	player->ReceiveComboRepel(enemy->GetCenterPosition());
 
-	// サイン波で揺らす。Phase を使うことで連続ヒット時も不自然なジャンプを防ぐ
-	wobbleRotation_.z = sin(wobblePhase_) * kWobbleMaxAngle_ * decay;
-	wobbleRotation_.x = cos(wobblePhase_ * 0.7f) * kWobbleMaxAngle_ * 0.5f * decay;
+	// 演出：敵を赤くフラッシュ
+	isFlashing_ = true;
+	flashTimer_ = kFlashDuration_;
+
+	repelCooldown_ = kRepelCooldownFrames_;
+	consecutiveHits_ = 0;
+	hitWindow_ = 0;
 }
 
 void EnemyHitReaction::StartKnockback(Enemy* enemy, Player* player, bool shouldBounce)

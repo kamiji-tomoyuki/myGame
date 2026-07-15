@@ -17,15 +17,15 @@ EnemyAttackMelee::EnemyAttackMelee()
 	}
 
 	// タイマー系
-	variables_->AddItem(kGroupName_, "Preparation Time", static_cast<int32_t>(kPreparationTime_));
-	variables_->AddItem(kGroupName_, "Charging Time", static_cast<int32_t>(kChargingTime_));
-	variables_->AddItem(kGroupName_, "Recovery Time", static_cast<int32_t>(kRecoveryTime_));
-	variables_->AddItem(kGroupName_, "Next Charge Delay", static_cast<int32_t>(kNextChargeDelay_));
+	variables_->AddItem(kGroupName_, "Preparation Time", static_cast<int32_t>(preparationTime_));
+	variables_->AddItem(kGroupName_, "Charging Time", static_cast<int32_t>(chargingTime_));
+	variables_->AddItem(kGroupName_, "Recovery Time", static_cast<int32_t>(recoveryTime_));
+	variables_->AddItem(kGroupName_, "Next Charge Delay", static_cast<int32_t>(nextChargeDelay_));
 	// 挙動
-	variables_->AddItem(kGroupName_, "Charge Speed", kChargeSpeed_);
-	variables_->AddItem(kGroupName_, "Preparation Tilt Angle", kPreparationTiltAngle_);
-	variables_->AddItem(kGroupName_, "Melee Hit Radius", kMeleeHitRadius_);
-	variables_->AddItem(kGroupName_, "Melee Damage", kMeleeDamage_);
+	variables_->AddItem(kGroupName_, "Charge Speed", chargeSpeed_);
+	variables_->AddItem(kGroupName_, "Preparation Tilt Angle", preparationTiltAngle_);
+	variables_->AddItem(kGroupName_, "Melee Hit Radius", meleeHitRadius_);
+	variables_->AddItem(kGroupName_, "Melee Damage", meleeDamage_);
 }
 
 EnemyAttackMelee::~EnemyAttackMelee() = default;
@@ -126,9 +126,9 @@ void EnemyAttackMelee::UpdatePreparation(Enemy* enemy)
 		chargeStartPos_ = currentPos;
 	}
 
-	if (preparationTimer_ < kPreparationTime_) {
-		float preparationProgress = static_cast<float>(preparationTimer_) / static_cast<float>(kPreparationTime_);
-		float tiltAmount = preparationProgress * kPreparationTiltAngle_;
+	if (preparationTimer_ < preparationTime_) {
+		float preparationProgress = static_cast<float>(preparationTimer_) / static_cast<float>(preparationTime_);
+		float tiltAmount = preparationProgress * preparationTiltAngle_;
 
 		Vector3 baseRotation = enemy->GetWorldRotation();
 		Vector3 objRotation = baseRotation;
@@ -136,7 +136,7 @@ void EnemyAttackMelee::UpdatePreparation(Enemy* enemy)
 		enemy->SetRotation(objRotation);
 	}
 
-	if (preparationTimer_ >= kPreparationTime_) {
+	if (preparationTimer_ >= preparationTime_) {
 		phase_ = Phase::kCharging;
 		chargingTimer_ = 0;
 		chargeCount_++;
@@ -147,7 +147,7 @@ void EnemyAttackMelee::UpdateCharging(Enemy* enemy, Player* player)
 {
 	chargingTimer_++;
 
-	Vector3 chargeVelocity = chargeDirection_ * kChargeSpeed_;
+	Vector3 chargeVelocity = chargeDirection_ * chargeSpeed_;
 	chargeVelocity.y = 0.0f;  // 突進はXZ平面のみ
 	Vector3 newPos = enemy->GetCenterPosition() + chargeVelocity;
 	newPos.y = groundY_;       // 地面Y座標に固定
@@ -159,7 +159,7 @@ void EnemyAttackMelee::UpdateCharging(Enemy* enemy, Player* player)
 
 	CheckCollision(player);
 
-	if (chargingTimer_ >= kChargingTime_) {
+	if (chargingTimer_ >= chargingTime_) {
 		phase_ = Phase::kRecovery;
 		recoveryTimer_ = 0;
 	}
@@ -171,22 +171,22 @@ void EnemyAttackMelee::UpdateRecovery(Enemy* enemy)
 
 	enemy->SetVelocity(Vector3(0.0f, 0.0f, 0.0f));
 
-	float recoveryProgress = static_cast<float>(recoveryTimer_) / static_cast<float>(kRecoveryTime_);
-	float currentTilt = kPreparationTiltAngle_ * (1.0f - recoveryProgress);
+	float recoveryProgress = static_cast<float>(recoveryTimer_) / static_cast<float>(recoveryTime_);
+	float currentTilt = preparationTiltAngle_ * (1.0f - recoveryProgress);
 
 	Vector3 baseRotation = enemy->GetWorldRotation();
 	Vector3 objRotation = baseRotation;
 	objRotation.x = originalRotation_.x + currentTilt;
 	enemy->SetRotation(objRotation);
 
-	if (recoveryTimer_ >= kRecoveryTime_) {
+	if (recoveryTimer_ >= recoveryTime_) {
 		Vector3 currentRotation = enemy->GetWorldRotation();
 		currentRotation.x = originalRotation_.x;
 		enemy->SetRotation(currentRotation);
 
 		if (chargeCount_ < maxChargeCount_) {
 			phase_ = Phase::kPreparation;
-			preparationTimer_ = kPreparationTime_ - kNextChargeDelay_;
+			preparationTimer_ = preparationTime_ - nextChargeDelay_;
 			hitRegistered_ = false;
 
 			// 座標だけ最新にしておく。向きの旋回は UpdatePreparation に委譲する
@@ -204,7 +204,7 @@ void EnemyAttackMelee::CheckCollision(Player* player)
 	if (player == nullptr) return;
 	if (hitRegistered_) return;
 
-	Vector3 enemyPos = chargeStartPos_ + chargeDirection_ * (kChargeSpeed_ * static_cast<float>(chargingTimer_));
+	Vector3 enemyPos = chargeStartPos_ + chargeDirection_ * (chargeSpeed_ * static_cast<float>(chargingTimer_));
 	Vector3 playerPos = player->GetCenterPosition();
 
 	float distanceXZ = std::sqrt(
@@ -212,9 +212,9 @@ void EnemyAttackMelee::CheckCollision(Player* player)
 		std::pow(playerPos.z - enemyPos.z, 2.0f)
 	);
 
-	if (distanceXZ <= kMeleeHitRadius_) {
+	if (distanceXZ <= meleeHitRadius_) {
 		if (!player->IsDodging()) {
-			player->ApplyDamage(static_cast<uint32_t>(kMeleeDamage_), enemyPos);
+			player->ApplyDamage(static_cast<uint32_t>(meleeDamage_), enemyPos);
 			hitRegistered_ = true;
 		}
 	}
@@ -239,12 +239,12 @@ void EnemyAttackMelee::Interrupt(Enemy* enemy)
 // =============================================================
 void EnemyAttackMelee::ApplyVariables()
 {
-	kPreparationTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Preparation Time"));
-	kChargingTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Charging Time"));
-	kRecoveryTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Recovery Time"));
-	kNextChargeDelay_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Next Charge Delay"));
-	kChargeSpeed_ = variables_->GetFloatValue(kGroupName_, "Charge Speed");
-	kPreparationTiltAngle_ = variables_->GetFloatValue(kGroupName_, "Preparation Tilt Angle");
-	kMeleeHitRadius_ = variables_->GetFloatValue(kGroupName_, "Melee Hit Radius");
-	kMeleeDamage_ = variables_->GetIntValue(kGroupName_, "Melee Damage");
+	preparationTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Preparation Time"));
+	chargingTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Charging Time"));
+	recoveryTime_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Recovery Time"));
+	nextChargeDelay_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Next Charge Delay"));
+	chargeSpeed_ = variables_->GetFloatValue(kGroupName_, "Charge Speed");
+	preparationTiltAngle_ = variables_->GetFloatValue(kGroupName_, "Preparation Tilt Angle");
+	meleeHitRadius_ = variables_->GetFloatValue(kGroupName_, "Melee Hit Radius");
+	meleeDamage_ = variables_->GetIntValue(kGroupName_, "Melee Damage");
 }

@@ -1,8 +1,21 @@
 #include "ParticleEmitter.h"
 #include "line/DrawLine3D.h"
+#include <algorithm>
+
+#ifdef _DEBUG
+#include "EditorUI.h"
+#endif // _DEBUG
 
 namespace Engine {
-ParticleEmitter::ParticleEmitter() {}
+std::vector<ParticleEmitter*> ParticleEmitter::s_registry_;
+
+ParticleEmitter::ParticleEmitter() {
+    s_registry_.push_back(this);
+}
+
+ParticleEmitter::~ParticleEmitter() {
+    s_registry_.erase(std::remove(s_registry_.begin(), s_registry_.end(), this), s_registry_.end());
+}
 
 void ParticleEmitter::Initialize(const std::string& name, const std::string& fileName)
 {
@@ -278,10 +291,9 @@ void ParticleEmitter::imgui() {
         ImVec4(0.8f, 0.3f, 0.4f, 0.95f)   // 赤系
     };
 
-    ImGui::SetNextWindowSize(ImVec2(450, 600), ImGuiCond_FirstUseEver);
-
-    // メインウィンドウ開始
-    ImGui::Begin(name_.c_str(), nullptr);
+    // 集約ウィンドウ「パーティクル」内に描画する（ウィンドウは開かない）。
+    // エミッタごとにIDを分けて、選択切替時の状態混線を防ぐ。
+    ImGui::PushID(this);
 
     // ヘッダーセクション
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -1055,11 +1067,56 @@ void ParticleEmitter::imgui() {
 
     SetValue();
 
+    ImGui::PopID();
+
     // スタイルを元に戻す
     style = oldStyle;
 
-    ImGui::End();
-
 #endif
+}
+
+// =============================================================
+//  全エミッタを1つの「パーティクル」ウィンドウへ集約（プルダウン選択）
+// =============================================================
+void ParticleEmitter::DrawParticleWindow() {
+#ifdef _DEBUG
+    // 「表示」メニューでトグル可能に
+    if (!EditorUI::GetInstance()->PanelVisible("パーティクル", "パーティクル")) { return; }
+
+    ImGui::SetNextWindowSize(ImVec2(470, 640), ImGuiCond_FirstUseEver);
+    if (!ImGui::Begin("パーティクル")) { ImGui::End(); return; }
+
+    if (s_registry_.empty()) {
+        ImGui::TextDisabled("(アクティブなパーティクルなし)");
+        ImGui::End();
+        return;
+    }
+
+    // 名前は重複し得るので "名前##index" で一意化（表示は##以降が隠れる）
+    auto makeLabel = [](ParticleEmitter* e, int i) {
+        std::string n = e->name_.empty() ? "(no name)" : e->name_;
+        return n + "##" + std::to_string(i);
+    };
+
+    static int sel = 0;
+    if (sel < 0) { sel = 0; }
+    if (sel >= static_cast<int>(s_registry_.size())) { sel = 0; }
+
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    if (ImGui::BeginCombo("##EmitterCombo", makeLabel(s_registry_[sel], sel).c_str())) {
+        for (int i = 0; i < static_cast<int>(s_registry_.size()); ++i) {
+            const bool selected = (i == sel);
+            if (ImGui::Selectable(makeLabel(s_registry_[i], i).c_str(), selected)) { sel = i; }
+            if (selected) { ImGui::SetItemDefaultFocus(); }
+        }
+        ImGui::EndCombo();
+    }
+    ImGui::Separator();
+
+    // 選択中エミッタのインスペクタを本ウィンドウ内に描画
+    s_registry_[sel]->imgui();
+
+    ImGui::End();
+#endif // _DEBUG
 }
 } // namespace Engine

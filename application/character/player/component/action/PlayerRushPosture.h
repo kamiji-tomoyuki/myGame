@@ -47,4 +47,6 @@ private:
 	static constexpr float kRushLeanPitch_ = 0.18f;
 	static constexpr float kWindUpTwist_ = 0.22f;
 	static constexpr float kFinisherTwist_ = -0.30f;
+	static constexpr float kChargeLeanBackPitch_ = 0.50f;    // 溜めの後傾量（X負方向へ倒す）
+	static constexpr float kAttackLeanForwardPitch_ = 0.4f; // 連打攻撃の前傾量（X正方向へ倒す）
 };

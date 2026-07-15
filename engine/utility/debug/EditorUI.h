@@ -59,10 +59,10 @@ private:
 	void DrawSceneMenu();
 	void DrawDisplayMenu();
 	void DrawAddMenu();
+	void DrawFpsIndicator(); // メニューバー右端の常時FPS表示
 
 	// パネル描画
 	void DrawGameWindow();  // ゲーム画面（実行画面をImGuiウィンドウ内に表示）
-	void DrawLeftPanel();   // シーン設定（左）
 	void DrawRightPanel();  // ヒエラルキー＋インスペクター（右）
 	void DrawAddDialog();   // 追加ウィンドウ
 

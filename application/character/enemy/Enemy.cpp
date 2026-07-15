@@ -1,6 +1,7 @@
 #include "Enemy.h"
 
 #include "CollisionTypeIdDef.h"
+#include "UILayout.h"
 #include "Player.h"
 #include "PlayerArm.h"
 #include <ParticleEmitter.h>
@@ -40,7 +41,7 @@ void Enemy::Init()
 	if (!variables_->GroupExists(kGroupName_)) {
 		variables_->CreateGroup(kGroupName_);
 	}
-	variables_->AddItem(kGroupName_, "Max HP", static_cast<int32_t>(kMaxHP_Adjustable_));
+	variables_->AddItem(kGroupName_, "Max HP", static_cast<int32_t>(maxHP_));
 	ApplyVariables();
 
 	float size = kColliderSize_;
@@ -51,6 +52,7 @@ void Enemy::Init()
 	// --- モデル ---
 	obj3d_ = std::make_unique<Object3d>();
 	obj3d_->Initialize("Enemy/enemyBody.obj");
+	flashColor_.Initialize(); // 被弾フラッシュ用カラーの定数バッファ生成
 	obj3d_->SetSize({ size, size, size });
 	obj3d_->SetRotation(kModelInitialRotation_);
 	BaseObject::SetRotation(obj3d_->GetRotation());
@@ -81,22 +83,22 @@ void Enemy::Init()
 	move_->SetTrailEmitter(trailEffect_.get());
 	move_->SetLastTrailPosition(BaseObject::GetWorldPosition());
 
-	// --- HPバー ---
+	// --- HPバー（画面右上・右端基準） ---
 	hpBarBg_ = std::make_unique<Sprite>();
 	hpBarBg_->Initialize("white1x1.png", {
-		kHpBarPosX_ + kHpBarBgPadding_,
-		kHpBarPosY_ - kHpBarBgPadding_ });
+		UILayout::kHpBarEnemyX + UILayout::kHpBarBgPadding,
+		UILayout::kHpBarTopY - UILayout::kHpBarBgPadding });
 	hpBarBg_->SetAnchorPoint({ 1.0f, 0.0f });
 	hpBarBg_->SetColor({ kHpBarBgColor_.x, kHpBarBgColor_.y, kHpBarBgColor_.z });
 	hpBarBg_->SetSize({
-		kHpBarFullWidth_ + kHpBarBgPadding_ * 2.0f,
-		kHpBarHeight_ + kHpBarBgPadding_ * 2.0f });
+		UILayout::kHpBarWidth + UILayout::kHpBarBgPadding * 2.0f,
+		UILayout::kHpBarHeight + UILayout::kHpBarBgPadding * 2.0f });
 
 	hpBar_ = std::make_unique<Sprite>();
-	hpBar_->Initialize("white1x1.png", { kHpBarPosX_, kHpBarPosY_ });
+	hpBar_->Initialize("white1x1.png", { UILayout::kHpBarEnemyX, UILayout::kHpBarTopY });
 	hpBar_->SetAnchorPoint({ 1.0f, 0.0f });
 	hpBar_->SetColor({ 1.0f, 0.0f, 0.0f });
-	hpBar_->SetSize({ kHpBarFullWidth_, kHpBarHeight_ });
+	hpBar_->SetSize({ UILayout::kHpBarWidth, UILayout::kHpBarHeight });
 
 	// --- State Pattern：初期状態を Playing に設定 ---
 	ChangeState(std::make_unique<EnemyStatePlaying>());
@@ -128,7 +130,7 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 	// デバッグ一時停止中は状態・移動・攻撃の更新をスキップ
 	if (!isPaused_)
 	{
-		hitReaction_->UpdateWobble();
+		hitReaction_->UpdateFlash();
 
 		// 現在の状態を更新し、次状態が返ってきたら遷移する
 		if (currentState_) {
@@ -146,9 +148,9 @@ void Enemy::Update(Player* player, const ViewProjection& vp)
 	powerUpEffect_->Update(vp);
 
 	// HPバー更新
-	float hpRatio = static_cast<float>(HP_) / static_cast<float>(kMaxHP_);
-	float currentWidth = kHpBarFullWidth_ * hpRatio;
-	hpBar_->SetSize({ currentWidth, kHpBarHeight_ });
+	float hpRatio = static_cast<float>(HP_) / static_cast<float>(maxHP_);
+	float currentWidth = UILayout::kHpBarWidth * hpRatio;
+	hpBar_->SetSize({ currentWidth, UILayout::kHpBarHeight });
 
 	// 遠距離攻撃のビュープロジェクション更新
 	if (vp_ != nullptr && attackManager_) {
@@ -277,33 +279,12 @@ void Enemy::HandleCollisionWithPlayer(Player* player)
 // =============================================================
 void Enemy::Draw(const ViewProjection& viewProjection)
 {
-	if (hitReaction_->IsWobbling()) {
-		// 行列計算ではなく、SRTを一時的に変更して Object3d::Draw に渡す
-		// Object3d::Update が内部で SRT から行列を再計算するため
-		Vector3 originalPos = transform_.translation_;
-		Vector3 originalRot = transform_.rotation_;
-
-		Vector3 wobbleRot = hitReaction_->GetWobbleRotation();
-		float halfHeight = kColliderSize_ * 0.5f;
-		
-		// 足元を支点とした回転後の座標を計算
-		Vector3 footPos = originalPos;
-		footPos.y -= halfHeight;
-
-		Matrix4x4 matRotate = MakeRotateXYZMatrix(wobbleRot);
-		Vector3 localOffset = { 0.0f, halfHeight, 0.0f };
-		Vector3 rotatedOffset = Transformation(localOffset, matRotate);
-
-		transform_.translation_ = footPos + rotatedOffset;
-		transform_.rotation_ = originalRot + wobbleRot;
-		transform_.UpdateMatrix();
-
-		obj3d_->Draw(transform_, viewProjection);
-
-		// 元に戻す
-		transform_.translation_ = originalPos;
-		transform_.rotation_ = originalRot;
-		transform_.UpdateMatrix();
+	if (hitReaction_->IsFlashing()) {
+		// 被弾時：揺らさず、モデルを一瞬赤くする。
+		// 乗算カラーなので赤を過剰駆動(>1)して暗赤にならないようにし、緑青を落として赤くする。
+		float i = hitReaction_->GetFlashIntensity();
+		flashColor_.SetColor({ 1.0f + 1.8f * i, 1.0f - 0.85f * i, 1.0f - 0.85f * i, 1.0f });
+		obj3d_->Draw(transform_, viewProjection, &flashColor_);
 	}
 	else {
 		obj3d_->Draw(transform_, viewProjection);
@@ -377,7 +358,7 @@ void Enemy::ImGui()
 	ImGui::Separator();
 
 	// ===== ステータス表示 =====
-	ImGui::Text("HP        : %u / %u", HP_, kMaxHP_);
+	ImGui::Text("HP        : %u / %u", HP_, maxHP_);
 	ImGui::Text("IsAlive   : %s", isAlive_ ? "true" : "false");
 	ImGui::Text("IsAttacking: %s", IsAttacking() ? "true" : "false");
 
@@ -425,7 +406,7 @@ void Enemy::ImGui()
 	ImGui::EndDisabled();
 
 	ImGui::End();
-	trailEffect_->imgui();
+	// パーティクル(trailEffect_)は集約「パーティクル」窓で編集する
 #endif // _DEBUG
 }
 
@@ -434,8 +415,7 @@ void Enemy::ImGui()
 // =============================================================
 void Enemy::ApplyVariables()
 {
-	kMaxHP_Adjustable_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Max HP"));
-	kMaxHP_ = kMaxHP_Adjustable_;
+	maxHP_ = static_cast<uint32_t>(variables_->GetIntValue(kGroupName_, "Max HP"));
 }
 
 // =============================================================
